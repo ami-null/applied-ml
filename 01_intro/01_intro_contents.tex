@@ -10,7 +10,9 @@
 	\end{itemize}
 
 	\vspace{0.5em}
+\end{frame}
 
+\begin{frame}
 	\begin{center}
 		\begin{tikzpicture}[node distance=1.4cm, every node/.style={font=\small}]
 			\node[draw, rounded corners, fill=gray!10, minimum width=2.5cm, minimum height=0.8cm] (rules1) {Rules};
@@ -21,7 +23,11 @@
 			\draw[->] (data1) -- (comp1);
 			\draw[->] (comp1) -- (out1);
 			\node[above=0.3cm of rules1] {\footnotesize\textbf{Traditional programming}};
+		\end{tikzpicture}
 
+		\vspace{2em}
+
+		\begin{tikzpicture}
 			\node[draw, rounded corners, fill=gray!10, minimum width=2.5cm, minimum height=0.8cm, right=6cm of rules1] (data2) {Data};
 			\node[draw, rounded corners, fill=gray!10, minimum width=2.5cm, minimum height=0.8cm, below=0.4cm of data2] (out2) {Output};
 			\node[draw, rounded corners, fill=blue!10, minimum width=1.8cm, minimum height=1.6cm, right=1.5cm of data2, yshift=-0.6cm] (comp2) {Computer};
@@ -40,9 +46,10 @@
 		\item \textbf{Machine Learning (ML)}: the subset of AI where the system \emph{learns} its behavior from data rather than being explicitly programmed.
 		\item \textbf{Deep Learning (DL)}: the subset of ML that uses multi-layered neural networks, especially effective for unstructured data like images, audio, and text (e.g., ChatGPT, face recognition on your phone).
 	\end{itemize}
+\end{frame}
 
-	\vspace{0.5em}
 
+\begin{frame}
 	\begin{center}
 		\begin{tikzpicture}
 			\draw[fill=blue!5] (0,0) circle (3.2cm);
@@ -62,16 +69,16 @@
 	\end{center}
 \end{frame}
 
-\begin{frame}{Machine Learning, Statistics, and Data Science}
+\begin{frame}[allowframebreaks=0.8]{Machine Learning, Statistics, and Data Science}
 	\begin{itemize}
 		\item \textbf{Statistics}: the mathematical discipline of collecting, analyzing, and interpreting data, with heavy emphasis on \emph{inference} --- quantifying uncertainty, testing hypotheses, estimating confidence intervals.
 		\item \textbf{Data Science}: a broad, applied field that combines domain knowledge, programming/engineering, statistics, and ML to go from raw data to business decisions --- includes data collection, cleaning, visualization, and communicating results to stakeholders.
 		\item \textbf{Machine Learning}: algorithms that learn patterns from data primarily to make \emph{predictions} on new, unseen data.
-		\item Statistics supplies much of ML's theoretical foundation (linear regression, maximum likelihood estimation, hypothesis testing); ML is one tool a data scientist uses, alongside dashboards, ETL pipelines, and A/B testing.
-		\item A statistician cares whether a coefficient is significant and interpretable; an ML engineer mostly cares whether the model predicts well on new data, even if it is a black box; a data scientist at a company typically needs a bit of both, plus the ability to explain results to a non-technical manager.
+		\item Statistics supplies much of ML's theoretical foundation (linear regression, maximum likelihood estimation, hypothesis testing).
+		\item ML is one tool a data scientist uses, alongside dashboards, ETL pipelines, and A/B testing.
+		\item A statistician cares whether a coefficient is significant and interpretable; an ML engineer mostly cares whether the model predicts well on new data, even if it is a black box.
+		\item A data scientist at a company typically needs a bit of both statistics and ML, as well as the ability to explain results to a non-technical manager.
 	\end{itemize}
-
-	\vspace{0.3em}
 
 	\begin{center}
 		\begin{tikzpicture}[font=\footnotesize]
@@ -81,7 +88,7 @@
 			\node at (-0.9,1.1) {Statistics};
 			\node at (2.7,1.1) {Machine Learning};
 			\node at (0.9,-2.7) {Data Science};
-			\node at (0.9,-0.5) {\tiny predictive modeling};
+			\node at (0.9,-0.5) {Predictive modeling};
 		\end{tikzpicture}
 	\end{center}
 \end{frame}
@@ -95,7 +102,12 @@
 		\item \textbf{Classification}: label is a discrete category. Example: is this email spam or not? Does this X-ray show a tumor or not (used in hospital diagnostic-support tools)?
 		\item \textbf{Regression}: label is a continuous number. Example: predicting a house's sale price from its size, location, and age; predicting tomorrow's temperature.
 		\item The \textbf{model} is the learned function $\hat{Y} = f(X)$; a \textbf{loss function} measures how wrong its predictions are, and training adjusts the model to minimize this loss on the training data while still \textbf{generalizing} well to new, unseen data (avoiding \textbf{overfitting}, i.e., memorizing training data instead of learning general patterns).
-		\item Everyday examples: your email client's spam filter (Gmail), your phone unlocking with face recognition, autocorrect/predictive text.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Supervised Learning: Examples}
+	\begin{itemize}
+		\item Everyday examples: your email's spam filter, your phone unlocking with face recognition, autocorrect/predictive text.
 		\item Industry examples: banks predicting loan default risk (credit scoring), Tesla/Waymo detecting pedestrians and stop signs from camera images, hospitals using ML to flag likely-cancerous scans for radiologist review.
 	\end{itemize}
 \end{frame}
@@ -107,12 +119,17 @@
 		\item \textbf{Clustering}: grouping similar data points together (e.g., $k$-means). Example: a retailer segments customers into groups by purchasing behavior, without being told in advance what the groups should be, in order to target each group with different marketing.
 		\item \textbf{Dimensionality reduction}: compressing many features into a few that capture most of the information (e.g., PCA), useful for visualization or as a preprocessing step.
 		\item \textbf{Anomaly detection}: flagging data points that don't fit the usual pattern. Example: banks flagging an unusual credit card transaction as possible fraud.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Unsupervised Learning: Examples}
+	\begin{itemize}
 		\item Everyday example: Google Photos automatically grouping photos of the same person's face together, even though it was never told who that person is.
 		\item Industry example: genomics researchers clustering gene-expression data to discover previously unknown subtypes of a disease.
 	\end{itemize}
 \end{frame}
 
-\begin{frame}{Reinforcement Learning (Brief Overview)}
+\begin{frame}{Reinforcement Learning}
 	An \textbf{agent} learns to make a sequence of decisions by interacting with an \textbf{environment}: at each \textbf{state}, it takes an \textbf{action}, receives a \textbf{reward} (or penalty), and updates its \textbf{policy} (its strategy for choosing actions) to maximize cumulative reward over time.
 
 	\vspace{0.3em}
@@ -125,13 +142,22 @@
 			\draw[->] (env.south) -- ++(0,-0.6) -| node[below, pos=0.25]{state, reward} (agent.south);
 		\end{tikzpicture}
 	\end{center}
+\end{frame}
 
+
+\begin{frame}{Reinforcement Learning (cont.)}
 	\begin{itemize}
 		\item Unlike supervised learning, there is no fixed ``correct'' action for each state --- the agent must learn from trial and error, and rewards can be delayed (an action now may only pay off many steps later).
 		\item Analogy: training a dog with treats --- you don't tell it the exact muscle movements for ``sit,'' you reward it when it happens to get closer to the desired behavior.
 		\item Example: DeepMind's AlphaGo learned to play Go well enough to beat the world champion, largely through self-play reinforcement learning.
-		\item Example: robots learning to walk or grasp objects through repeated physical trial and error.
-		\item Industry example: Google used reinforcement learning to reduce the energy used for cooling its data centers; YouTube uses RL-based methods to optimize recommendations for long-term viewer engagement rather than just the next click.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\begin{itemize}
+		\item Robots learning to walk or grasp objects through repeated physical trial and error.
+		\item Google used reinforcement learning to reduce the energy used for cooling its data centers.
+		\item YouTube uses RL-based methods to optimize recommendations for long-term viewer engagement rather than just the next click.
 	\end{itemize}
 \end{frame}
 
@@ -162,7 +188,7 @@
 	\end{itemize}
 \end{frame}
 
-\begin{frame}{Applications in Industry and Organizations}
+\begin{frame}[allowframebreaks]{Applications in Industry and Organizations}
 	\begin{itemize}
 	\item \textbf{Healthcare}: diagnostic support from medical images (X-rays, MRIs); DeepMind's AlphaFold predicting 3D protein structures, accelerating drug discovery.
 	\item \textbf{Finance}: fraud detection on card transactions, algorithmic trading, automated credit scoring for loan approval.

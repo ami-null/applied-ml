@@ -1,0 +1,286 @@
+\section{Data Preprocessing and Exploratory Data Analysis}
+
+\pgfplotsset{
+    compact/.style={
+        width=4.3cm, height=3.3cm,
+        label style={font=\tiny},
+        tick label style={font=\tiny},
+        axis lines=left,
+    }
+}
+
+\begin{frame}{Data Collection}
+\begin{sitemize}
+    \item Data can originate from many sources: sensors, application logs, web scraping, surveys, or existing operational databases.
+    \item The way it is collected determines its reliability; sampling bias, missing context, or inconsistent labeling introduced at collection time cannot be fully corrected later.
+    \item Before any modeling can begin, this raw information must be organized into a machine-readable format.
+\end{sitemize}
+
+\svspace{1em}
+
+Key quality dimensions to check at intake:
+\begin{itemize}
+    \item Accuracy: values reflect the true underlying quantity
+    \item Completeness: required fields are actually populated
+    \item Consistency: the same fact is not represented differently across records
+    \item Timeliness: the data is current enough for the task at hand
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Data Representation Formats}
+\begin{itemize}
+    \item Structured: tabular/relational data with rows as examples and columns as features (spreadsheets, SQL tables)
+    \item Semi-structured: JSON, XML, or log files with nested or optional fields, no fixed schema
+    \item Unstructured: raw text, images, audio, video; typically converted into numerical feature vectors before use
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Data as Vectors and Matrices}
+\begin{itemize}
+    \item A single example is a feature vector $\mathbf{x}_i \in \mathbb{R}^d$ with components $x_{i1}, \dots, x_{id}$, one per feature.
+    \item A dataset of $n$ examples is stored as a design matrix $\mathbf{X} \in \mathbb{R}^{n \times d}$, with row $i$ equal to $\mathbf{x}_i^\top$.
+    \item Column $j$ of $\mathbf{X}$ holds feature $j$ across all examples; useful for computing per-feature statistics or scaling.
+    \item Convention note: some texts transpose this, using $d \times n$ with examples as columns; check the source before mixing formulas.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Features and Labels}
+\begin{itemize}
+    \item Label vector $\mathbf{y}$: continuous $\mathbf{y} \in \mathbb{R}^n$ for regression, or discrete $y_i \in \{1, \dots, K\}$ for classification.
+    \item Feature types: numerical (continuous or discrete), categorical nominal (unordered), categorical ordinal (ordered).
+    \item Data is partitioned as $\mathbf{X}^{(\text{tr})}$, $\mathbf{X}^{(\text{val})}$, $\mathbf{X}^{(\text{te})}$, each with matching label subsets.
+    \item Feature space: the $d$-dimensional space containing every $\mathbf{x}_i$; as $d$ grows, data becomes sparse in this space (curse of dimensionality).
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Data Preprocessing and Cleaning}
+\begin{sitemize}
+    \item Collected data rarely arrives ready for modeling; it contains inconsistent formats, duplicate entries, or fields irrelevant to the prediction task.
+    \item Cleaning resolves these structural issues before any statistical or geometric assumption of a learning algorithm is applied to the data.
+    \item The specific steps required depend on the data types present and the model that will consume them.
+\end{sitemize}
+
+\svspace{1em}
+
+\begin{itemize}
+    \item Deduplication: remove or merge repeated records from logging errors or merged sources
+    \item Encoding: one-hot encoding for nominal categories, ordinal encoding for ordered categories
+    \item Scaling: min-max normalization to $[0,1]$, or standardization to $\mu = 0$, $\sigma = 1$
+    \item Splitting into train/validation/test, done before computing any preprocessing statistics
+    \item Leakage guard: fit scalers and imputers on training data only, then apply to validation/test
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Handling Missing Values}
+\begin{sitemize}
+    \item Missing entries arise from sensor failures, survey non-response, or incomplete records.
+    \item Ignoring them silently can bias parameter estimates or shrink the effective training set.
+    \item The right strategy depends on how much data is missing and why it is missing.
+\end{sitemize}
+
+\svspace{1em}
+
+\begin{itemize}
+    \item Deletion: listwise or pairwise removal; reasonable when missingness is small and random
+    \item Imputation: mean/median/mode, or model-based (k-NN, regression) for more structure
+    \item Missingness indicator: add a binary flag so the model can use the pattern of missingness itself
+    \item Mechanism matters: MCAR, MAR, and MNAR data call for different strategies
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Handling Outliers}
+\begin{sitemize}
+    \item Outliers are values far from the bulk of the data, arising from measurement error, data entry mistakes, or genuine rare events.
+    \item Left unaddressed, they can dominate distance- or variance-based computations, skewing the fitted model.
+    \item Not every outlier should be removed, so detection and treatment are handled as separate decisions.
+\end{sitemize}
+
+\svspace{1em}
+
+\begin{itemize}
+    \item Detection: z-score thresholding ($|z| > 3$), IQR rule ($Q_1 - 1.5\,\text{IQR}$, $Q_3 + 1.5\,\text{IQR}$), or visual inspection
+    \item Treatment: winsorizing/capping, log or Box--Cox transform to reduce skew, or removal if clearly erroneous
+    \item Caution: some outliers are the signal, not noise (e.g., fraud detection, rare disease cases)
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Exploratory Data Analysis: Goals}
+\begin{sitemize}
+    \item Visual exploration is often the fastest way to understand a dataset before committing to a model.
+    \item It surfaces patterns, relationships, and irregularities that summary statistics alone can miss.
+    \item The goal is to let the data guide modeling choices, not to confirm assumptions made in advance.
+\end{sitemize}
+
+\svspace{1em}
+
+\begin{itemize}
+    \item Check distribution shape, skew, and modality of individual features
+    \item Detect relationships and redundancy between feature pairs
+    \item Spot outliers and anomalies before they distort training
+    \item Guide feature engineering and transformation decisions
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Visualizing Distributions}
+\begin{itemize}
+    \item Histogram: shows the frequency distribution of a single numerical feature
+    \begin{itemize}
+        \item Use when checking skewness, modality, or the need for a transform
+    \end{itemize}
+    \item Box plot: summarizes median, quartiles, and potential outliers via whiskers
+    \begin{itemize}
+        \item Use when comparing spread and outliers across features or groups
+    \end{itemize}
+\end{itemize}
+
+\svspace{1em}
+
+\begin{center}
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    compact,
+    ybar, bar width=6pt,
+    xlabel={value}, ylabel={count},
+]
+\addplot coordinates {(1,3) (2,8) (3,15) (4,22) (5,18) (6,10) (7,4) (8,1)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    compact,
+    ylabel={value},
+    boxplot/draw direction=y,
+    xtick=\empty,
+]
+\addplot+[
+    boxplot prepared={
+        median=5, upper quartile=7, lower quartile=3,
+        upper whisker=9.5, lower whisker=1
+    },
+    fill=blue!20,
+] coordinates {};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\end{center}
+\end{frame}
+
+
+\begin{frame}{Visualizing Relationships}
+\begin{itemize}
+    \item Scatter plot: shows the relationship between two numerical features
+    \begin{itemize}
+        \item Use when checking for linear/nonlinear trends or clustering between two features
+    \end{itemize}
+    \item Correlation heatmap: shows pairwise linear association across many features at once
+    \begin{itemize}
+        \item Use when screening many feature pairs for redundancy or multicollinearity
+    \end{itemize}
+\end{itemize}
+
+\svspace{1em}
+
+\begin{center}
+\begin{minipage}{0.44\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    compact,
+    xlabel={$x_1$}, ylabel={$x_2$},
+]
+\addplot[only marks, mark=*, mark size=1pt, blue] coordinates {
+(1,2)(1.5,2.3)(2,3)(2.2,2.8)(2.5,3.5)(3,3.2)(3.3,4)(3.8,4.3)(4,4.8)(4.5,5)(5,5.3)(5.2,5.8)(5.8,6)(6,6.5)
+};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    compact,
+    axis lines=none,
+    colormap/viridis,
+    colorbar, colorbar style={font=\tiny},
+    point meta min=-1, point meta max=1,
+    xtick={0,1,2,3}, ytick={0,1,2,3},
+    xticklabels={$x_1$,$x_2$,$x_3$,$x_4$},
+    yticklabels={$x_1$,$x_2$,$x_3$,$x_4$},
+    y dir=reverse,
+    enlargelimits=false,
+    axis on top,
+]
+\addplot[matrix plot, mesh/cols=4, point meta=explicit] coordinates {
+(0,0)[1.0] (1,0)[0.8] (2,0)[-0.3] (3,0)[0.1]
+(0,1)[0.8] (1,1)[1.0] (2,1)[-0.1] (3,1)[0.4]
+(0,2)[-0.3] (1,2)[-0.1] (2,2)[1.0] (3,2)[0.6]
+(0,3)[0.1] (1,3)[0.4] (2,3)[0.6] (3,3)[1.0]
+};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\end{center}
+\end{frame}
+
+
+\begin{frame}{Visualizing High-Dimensional Data}
+\begin{itemize}
+    \item Dimensionality reduction projects high-dimensional features into 2D for visual inspection
+    \item PCA: linear projection onto directions of maximum variance
+    \begin{itemize}
+        \item Use when a fast, linear, variance-preserving view is enough
+    \end{itemize}
+    \item t-SNE: nonlinear projection that preserves local neighborhood structure
+    \begin{itemize}
+        \item Use when cluster structure matters more than global distances; slower, non-deterministic
+    \end{itemize}
+    \item Both are used for visualization only, not as inputs to downstream models
+\end{itemize}
+
+\svspace{1em}
+
+\begin{center}
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    compact,
+    xlabel={PC1}, ylabel={PC2},
+]
+\addplot[only marks, mark=*, mark size=1pt, red] coordinates {(1,1)(1.2,1.5)(0.8,0.9)(1.5,1.2)(1.1,0.7)};
+\addplot[only marks, mark=*, mark size=1pt, blue] coordinates {(3,3)(3.2,2.8)(2.8,3.3)(3.5,3.1)(3.1,2.6)};
+\addplot[only marks, mark=*, mark size=1pt, green!60!black] coordinates {(1,4)(1.3,3.8)(0.9,4.2)(1.5,4.5)(1.1,3.6)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    compact,
+    xlabel={t-SNE1}, ylabel={t-SNE2},
+]
+\addplot[only marks, mark=*, mark size=1pt, red] coordinates {(1,1)(1.1,1.1)(0.9,0.95)(1.05,1.05)(0.95,1.0)};
+\addplot[only marks, mark=*, mark size=1pt, blue] coordinates {(4,4)(4.1,3.9)(3.9,4.05)(4.05,3.95)(3.95,4.0)};
+\addplot[only marks, mark=*, mark size=1pt, green!60!black] coordinates {(1,4.5)(1.1,4.4)(0.9,4.55)(1.05,4.45)(0.95,4.5)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\end{center}
+\end{frame}

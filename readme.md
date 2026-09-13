@@ -1,0 +1,1 @@
+An introductory machine learning course with applications in Python.

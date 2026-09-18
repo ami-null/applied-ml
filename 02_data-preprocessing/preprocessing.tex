@@ -1,0 +1,185 @@
+
+\subsection{Linear Algebra Foundations \& Mathematical Representation}
+
+
+\begin{frame}{Feature Vectors}
+    \begin{sitemize}
+        \item Each data point is represented as a $d$-dimensional feature vector.
+        \item For the $i$-th instance in the dataset,
+        $$x^{(i)} = \begin{bmatrix} x^{(i)}_1 & x^{(i)}_2 & \dots & x^{(i)}_d \end{bmatrix}^T \in \mathbb{R}^d$$
+        \item The superscript $(i)$ indexes the instance; the subscript indexes the feature.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{The Design Matrix}
+    \begin{sitemize}
+        \item Stacking $n$ instances gives an $n \times d$ design matrix,
+        $$X = \begin{bmatrix} x^{(1)T} \\ x^{(2)T} \\ \vdots \\ x^{(n)T} \end{bmatrix} = \begin{bmatrix} x_{11} & x_{12} & \dots & x_{1d} \\ x_{21} & x_{22} & \dots & x_{2d} \\ \vdots & \vdots & \ddots & \vdots \\ x_{n1} & x_{n2} & \dots & x_{nd} \end{bmatrix} \in \mathbb{R}^{n \times d}$$
+        \item Row $i$ of $X$ is the transpose of instance $i$'s feature vector, $x^{(i)T}$; column $j$ holds every instance's value for feature $j$.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Target Vector}
+    \begin{sitemize}
+        \item Target variables are collected into a vector $y \in \mathbb{R}^n$, one entry per instance.
+        \item Continuous values for regression (e.g.\ price, temperature); discrete class labels for classification (e.g.\ spam / not spam).
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Practical Scenario: Real Estate Price Prediction}
+    \begin{sitemize}
+        \item Each row of $X$ is one house: $x^{(i)} = [x_{\text{sqft}}, x_{\text{beds}}, x_{\text{baths}}, x_{\text{zip}}]^T$.
+        \item For three houses,
+        $$X = \begin{bmatrix} 1400 & 3 & 2 & 10001 \\ 2200 & 4 & 3 & 10002 \\ 950 & 2 & 1 & 10001 \end{bmatrix}, \qquad y = \begin{bmatrix} 310 \\ 480 \\ 205 \end{bmatrix} \text{(\$1000s)}$$
+        \item The model learns a mapping from each row of $X$ to the corresponding entry of $y$.
+    \end{sitemize}
+\end{frame}
+
+
+\section{Features and Feature Engineering Basics}
+
+\subsection{Feature Taxonomy}
+
+
+\begin{frame}{Feature Taxonomy}
+    \begin{itemize}
+        \item \textbf{Categorical:} Nominal (unordered, e.g.\ color, region), Ordinal (ordered, e.g.\ education level)
+        \item \textbf{Numerical:} Discrete (integer counts), Continuous (real numbers)
+        \item \textbf{Binary:} Logical indicators, $0$ or $1$
+    \end{itemize}
+\end{frame}
+
+
+\subsection{Categorical Encoding Techniques}
+
+
+\begin{frame}{One-Hot Encoding (Dummy Variables)}
+    \begin{sitemize}
+        \item Expands a categorical column with $k$ levels into $k$ (or $k-1$) binary indicator columns.
+        \item Used for nominal data with distance- or gradient-based algorithms (Linear Regression, Neural Networks, SVMs), to avoid implying an ordinal relationship that doesn't exist.
+        \item Example: \texttt{Color} $\in \{$Red, Blue, Green$\}$ becomes \texttt{Is\_Red}, \texttt{Is\_Blue}, \texttt{Is\_Green}.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Ordinal / Label Encoding}
+    \begin{sitemize}
+        \item Maps ordered categories to an integer sequence, $0, 1, 2, \dots$
+        \item Appropriate for genuinely ordinal features, or for tree-based algorithms (Random Forests, XGBoost) that split on integers efficiently without expanding dimensionality.
+        \item Example: satisfaction responses [Poor, Satisfactory, Excellent] $\to$ [0, 1, 2].
+    \end{sitemize}
+\end{frame}
+
+
+\subsection{Feature Scaling \& Normalization}
+
+
+\begin{frame}{Standardization ($Z$-Score Scaling)}
+    \begin{sitemize}
+        \item Formula: $x' = \dfrac{x - \mu}{\sigma}$, giving $\mu = 0$, $\sigma = 1$.
+        \item Needed for algorithms sensitive to scale and to gradient descent step size (KNN, Linear/Logistic Regression, SVMs, Neural Networks).
+        \item Example: bringing \texttt{Age} ($0$--$100$ years) and \texttt{Annual Income} (\$10,000--\$1,000,000) onto a common scale.
+        \item Fit $\mu$ and $\sigma$ on the training set only, then apply to validation/test — the same leakage principle as target encoding.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Min-Max Scaling}
+    \begin{sitemize}
+        \item Formula: $x' = \dfrac{x - x_{\min}}{x_{\max} - x_{\min}}$, bounding data to $[0,1]$.
+        \item Used for non-Gaussian features needing a bounded range, or to preserve zero values in sparse matrices.
+        \item Example: normalizing image pixel intensities ($0$--$255$) before neural network training.
+        \item Terminology note: this and standardization are column-wise \emph{scaling}. Row-wise \emph{normalization} (e.g.\ rescaling each instance vector to unit $L_2$ norm) is a distinct operation — the two terms get conflated often.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Robust Scaling (Median \& IQR)}
+    \begin{sitemize}
+        \item Formula: $x' = \dfrac{x - \text{Median}}{\text{IQR}}$.
+        \item Used when scale-sensitive algorithms meet data with legitimate extreme values that would distort mean/variance-based scaling.
+        \item Example: scaling executive compensation data with a heavy upper tail.
+    \end{sitemize}
+\end{frame}
+
+
+\section{Data Preprocessing and Cleaning}
+
+\subsection{Handling Missing Values}
+
+
+\begin{frame}{Missingness Mechanisms}
+    \begin{sitemize}
+        \item \textbf{MCAR} (Missing Completely at Random): missingness is independent of both observed and unobserved data.
+        \item \textbf{MAR} (Missing at Random): missingness depends on observed data, but not on the missing value itself.
+        \item \textbf{MNAR} (Missing Not at Random): missingness depends on the unobserved value itself (e.g.\ high earners skipping the salary question).
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Deletion Strategies}
+    \begin{sitemize}
+        \item \textbf{Listwise deletion:} drop entire rows with any missing entry. Reasonable under MCAR with minimal missingness ($<2$--$5\%$); risky under MAR/MNAR, where it introduces bias and shrinks the sample.
+        \item \textbf{Pairwise deletion:} use all available data for each calculation (e.g.\ each pairwise correlation) rather than discarding a row entirely. Avoids losing data but can leave summary statistics computed on inconsistent subsamples.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Simple Imputation}
+    \begin{sitemize}
+        \item \textbf{Mean / Median / Mode Imputation:} replace missing entries with a global summary statistic — median for numerical/skewed features, mode for categorical.
+        \item Appropriate for baseline modeling with minimal MCAR missingness ($<5\%$).
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Model-Based Imputation}
+    \begin{sitemize}
+        \item \textbf{$k$-Nearest Neighbors (KNN) Imputation:} imputes using feature distance to neighboring rows. Suited to tabular data with moderate missingness ($5$--$15\%$) where features are correlated.
+        \item \textbf{MICE} (Multivariate Imputation by Chained Equations): models each variable with missing values as a function of the others, iteratively. Suited to high-stakes statistical/clinical modeling under MAR, with missingness spread across multiple features.
+        \item Fit both on the training fold only, then apply to validation/test — the same leakage principle as target encoding.
+    \end{sitemize}
+\end{frame}
+
+
+\subsection{Handling Outliers}
+
+
+\begin{frame}{Outlier Detection: IQR and $Z$-Score}
+    \begin{sitemize}
+        \item \textbf{Tukey's IQR rule:} flag points outside $[Q1 - 1.5 \times \text{IQR}, \, Q3 + 1.5 \times \text{IQR}]$.
+        \item \textbf{$Z$-score rule:} flag points where $|z| = \left|\dfrac{x - \mu}{\sigma}\right| > 3$ (or another chosen threshold).
+        \item $Z$-score reuses the standardization formula from Section 2; it assumes roughly normal data and is sensitive to the same outliers it's trying to detect, since they inflate $\mu$ and $\sigma$ — the IQR rule is more robust to that feedback loop.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Outlier Detection: Isolation Forest}
+    \begin{sitemize}
+        \item Model-based detection: measures how quickly an instance is isolated by random tree partitions — outliers isolate in fewer splits.
+        \item Suited to high-dimensional tabular data, where single-feature rules (IQR, $Z$-score) miss multivariate anomalies.
+        \item Example: credit card fraud detection, where a fraudulent transaction may look normal on any one feature but anomalous jointly.
+    \end{sitemize}
+\end{frame}
+
+
+\begin{frame}{Outlier Treatment}
+    \begin{sitemize}
+        \item \textbf{Trimming / culling:} remove verified, corrupt outlier rows.
+        \item \textbf{Winsorization (capping):} replace extreme values with a boundary percentile (e.g.\ 1st/99th), preserving sample size while limiting the influence of tail values on parametric regression coefficients.
+    \end{sitemize}
+\end{frame}
+
+
+\subsection{Data Integrity \& Hygiene}
+
+
+\begin{frame}{Data Integrity \& Hygiene}
+    \begin{itemize}
+        \item Deduplication of redundant rows
+        \item Structural corrections: unit conversions, standardizing date-time strings, fixing casing errors
+    \end{itemize}
+\end{frame}

@@ -1,44 +1,29 @@
 \section{Data Sources and Types}
 
-\begin{frame}{Learning outcomes}
-    \begin{itemize}
-        \item Explain why exploratory data analysis (EDA) comes before modelling
-        \item Choose summaries and plots that suit the variable type and the question
-        \item Read distributions, relationships, and structure in real data, and interpret them in context
-        \item Recognise when EDA already answers the question, and when it shows that a model is needed
-    \end{itemize}
-    \svspace{1em}
-    \textbf{Roadmap:} data and variable types $\to$ why EDA $\to$ one variable $\to$ data quality $\to$ two variables $\to$ many variables $\to$ time and space $\to$ when EDA is enough $\to$ pitfalls
-\end{frame}
 
 \begin{frame}{Where data come from}
-    \footnotesize
-    \begin{tabular}{@{}p{0.25\linewidth}p{0.32\linewidth}p{0.32\linewidth}@{}}
+    \centering
+    \begin{tabular}{@{}p{0.45\linewidth}p{0.45\linewidth}@{}}
         \toprule
-        Source & Examples & What EDA must check \\
+        Source & Examples \\
         \midrule
-        Surveys, administrative records & DHS, MICS, census extracts, hospital or school records & design weights, codes for ``don't know'', top-coding \\
-        Sensors and logs & weather stations, phones, server logs & timestamps, gaps, drift \\
-        Web and APIs & scraped pages, social media, open data & duplicates, selection bias \\
-        Remote sensing & satellite imagery, NDVI & resolution, cloud cover, alignment \\
+        Surveys, administrative records & DHS, MICS, census extracts, hospital or school records \\
+        Sensors and logs & Weather stations, phones, server logs \\
+        Web and APIs & Scraped pages, social media, open data \\
+        Remote sensing & Satellite imagery, NDVI \\
         \bottomrule
     \end{tabular}
-    \normalsize
-    \svspace{0.5em}
-    \begin{itemize}
-        \item Microdata means one row per person, household, or event rather than pre-aggregated tables
-        \item The source determines who is included, how variables were measured, and what can go wrong
-    \end{itemize}
 \end{frame}
+
 
 \begin{frame}{How data are structured}
     \begin{itemize}
         \item \textbf{Structured:} fixed rows and columns with a schema, such as survey microdata, spreadsheets, and relational tables
         \item \textbf{Semi-structured:} self-describing hierarchy without a fixed table layout, such as JSON from APIs, XML, and server logs; it must be parsed into columns before analysis
         \item \textbf{Unstructured:} no predefined layout, such as free text, images, audio, and video; useful numbers must be extracted first
-        \item This lecture works with structured (tabular) data; the other types enter once their content has been turned into columns
     \end{itemize}
 \end{frame}
+
 
 \begin{frame}{Variable types decide the analysis}
     \begin{center}
@@ -48,8 +33,8 @@
         \toprule
         Type & Example & Summaries & Plots \\
         \midrule
-        Nominal & sex, embarkation port & counts, mode & bar chart \\
-        Ordinal & diamond cut, class & counts, median & ordered bars \\
+        Nominal & gender, religion & counts, mode & bar chart \\
+        Ordinal & socio-economic status, class & counts, median & ordered bars \\
         Discrete & number of children & counts, mean & bar chart \\
         Continuous & price, age & mean, median, SD & histogram, boxplot \\
         \bottomrule
@@ -57,10 +42,11 @@
     \end{center}
     \svspace{0.5em}
     \begin{itemize}
-        \item The type, not the storage, decides which summary is meaningful: class is stored as 1, 2, 3, yet an average class of 2.3 means nothing
         \item Survey microdata often store categories as numeric codes (1 = male, 2 = female, 99 = don't know); recognise them before summarising
+        \item The type decides which summary is meaningful: gender could be stored as 1, 2, yet an `average gender' of 1.5 means nothing
     \end{itemize}
 \end{frame}
+
 
 \section{Why Exploratory Data Analysis?}
 
@@ -98,12 +84,13 @@
 \end{frame}
 
 \begin{frame}{Why look at the data? The plots}
-    \includegraphics[width=0.95\linewidth,height=3.8cm,keepaspectratio]{figures/eda_diamonds_cut_carat.pdf}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.8cm,keepaspectratio]{figures/eda_diamonds_cut_carat.pdf}
+    \end{center}
     \footnotesize
     \begin{itemize}
         \item Left: Ideal stones are mostly small (median 0.54 carat) and Fair stones large (median 1.00 carat)
         \item Right: within every cut, price rises steeply with carat; at exactly 1 carat, Fair costs \$4,130 on average ($n=166$) and Ideal \$5,547 ($n=208$)
-        \item Cut and carat are entangled: the table by cut mixed two effects, and looking at the variables jointly separated them
     \end{itemize}
 \end{frame}
 
@@ -130,21 +117,22 @@
     \svspace{1em}
     \begin{itemize}
         \item Each stage raises questions for the next, so EDA is iterative rather than a fixed pipeline
-        \item The decision at the end is not always ``fit a model'': it may be to collect more data, apply a simple rule, or report the summary
+        \item The decision at the end is not always ``fit a model'': it may be to collect more data, apply a simple rule rather than a complex ML algorithm, or report the summary
     \end{itemize}
 \end{frame}
 
 \begin{frame}{First look at a dataset}
     \begin{itemize}
-        \item Size and types: number of rows and columns and the type of each variable (\textttbg{glimpse(df)} in R, \textttbg{df.info()} in pandas)
-        \item Missing values: count them per variable (\textttbg{colSums(is.na(df))}, \textttbg{df.isna().sum()}); if any are present, judge whether action is required before analysis, and take the necessary steps (treatments are covered in the data preprocessing lecture)
+        \item Size and types: number of rows and columns and the type of each variable
+        \item Missing values: count them per variable; take necessary actions in case of any missing values
         \item Duplicate rows and impossible values, such as negative ages or zero dimensions
-        \item Explore the training data only; looking at the test set leaks information into modelling decisions
-        \item Titanic (891 passengers): age is missing for 177 passengers, deck for 688, and port of embarkation for 2
+        % \item Titanic (891 passengers): age is missing for 177 passengers, deck for 688, and port of embarkation for 2
     \end{itemize}
 \end{frame}
 
+
 \section{One Variable at a Time}
+
 
 \begin{frame}{Location: mean, median, trimmed mean, mode}
     Observations $x_1,\dots,x_n$ of one numeric variable.
@@ -152,21 +140,21 @@
     \begin{itemize}
         \item \textbf{Mean} $\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i$: uses every value, so extreme values pull it
         \item \textbf{Median}: the middle value of the sorted data, with half of the observations on each side; extreme values do not move it, so it is the better measure of centre for skewed data such as prices, incomes, or waiting times
-        \item \textbf{Trimmed mean}: the mean after discarding a fixed share (say 10\%) of observations from each tail; a compromise between the two
-        \item \textbf{Mode}: the most frequent value; the natural centre of a categorical variable, and for a continuous variable it is read from the peak of a histogram or density
+        \item \textbf{Trimmed mean}: the mean after discarding a fixed share (say 10\%) of observations from each tail
+        \item \textbf{Mode}: the most frequent value
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}{Spread and shape}
-    \small
     \begin{itemize}
-        \item \textbf{Standard deviation} $s=\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2}$: typical distance from the mean; sensitive to extreme values
-        \item \textbf{Interquartile range} $\mathrm{IQR}=Q_3-Q_1$: width of the middle 50\% of the data; robust to extreme values
-        \item \textbf{Median absolute deviation} $\mathrm{MAD}=\operatorname{median}_i\lvert x_i-\tilde{x}\rvert$, where $\tilde{x}$ is the median (no rescaling): a robust alternative to the standard deviation
-        \item \textbf{Skewness} $g_1=\frac{1}{n}\sum_{i=1}^{n}\bigl(\frac{x_i-\bar{x}}{s}\bigr)^{3}$: positive for a long right tail, negative for a long left tail, near zero for a symmetric distribution
-        \item \textbf{Excess kurtosis} $g_2=\frac{1}{n}\sum_{i=1}^{n}\bigl(\frac{x_i-\bar{x}}{s}\bigr)^{4}-3$: positive when the tails are heavier than those of a normal distribution
+        \item \textbf{Standard deviation}: $s=\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2}$: typical distance from the mean; sensitive to extreme values
+        \item \textbf{Interquartile range}: third quartile minus first quartile, $\mathrm{IQR}=Q_3-Q_1$: width of the middle 50\% of the data; robust to extreme values
+        \item \textbf{Skewness}: $g_1=\frac{1}{n}\sum_{i=1}^{n}\bigl(\frac{x_i-\bar{x}}{s}\bigr)^{3}$: positive for a long right tail, negative for a long left tail, near zero for a symmetric distribution
+        \item \textbf{Kurtosis}: $g_2=\frac{1}{n}\sum_{i=1}^{n}\bigl(\frac{x_i-\bar{x}}{s}\bigr)^{4}-3$: positive when the tails are heavier than those of a normal distribution
     \end{itemize}
 \end{frame}
+
 
 \begin{frame}{Summary statistics in practice: diamonds}
     \begin{columns}[T]
@@ -193,14 +181,16 @@
             \begin{itemize}
                 \item The mean price is 64\% above the median: a few expensive stones pull the mean up, while the median describes a typical stone
                 \item Skewness of 1.62 confirms a long right tail; mean $>$ median and positive skewness go together
-                \item Mean $-$ SD is $-\$57$, an impossible price: mean $\pm$ SD is a poor summary here, and quartiles are better
             \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
 
+
 \begin{frame}{Histograms and density estimates}
-    \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_diamonds_hist_density.pdf}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_diamonds_hist_density.pdf}
+    \end{center}
     \footnotesize
     \begin{itemize}
         \item \textbf{Histogram:} counts in equal-width bins; try several widths (wide bins hide structure, narrow bins add noise); read peaks, gaps, and spikes
@@ -211,8 +201,11 @@
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}{Boxplot, violin plot, and ECDF}
-    \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_diamonds_box_violin_ecdf.pdf}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_diamonds_box_violin_ecdf.pdf}
+    \end{center}
     \footnotesize
     \begin{itemize}
         \item \textbf{Boxplot:} box from $Q_1$ to $Q_3$ with the median line; whiskers reach the furthest points within $1.5\times\mathrm{IQR}$; points beyond are flagged (3,540 stones, 6.6\%, all expensive)
@@ -222,13 +215,16 @@
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}{Categorical variables: frequencies and bar charts}
-    \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_titanic_bars.pdf}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_titanic_bars.pdf}
+    \end{center}
     \footnotesize
     \begin{itemize}
         \item A frequency table lists the count and share of each level, and the bar chart is its picture
         \item Titanic, 891 passengers: 61.6\% died and 38.4\% survived; 55.1\% travelled third class; 64.8\% were male
         \item Imbalance matters: predicting ``died'' for everyone is already 61.6\% accurate, a baseline any model must beat
-        \item Order nominal levels by frequency and ordinal ones naturally; avoid pie charts
+        \item Order nominal levels by frequency and ordinal ones naturally
     \end{itemize}
 \end{frame}

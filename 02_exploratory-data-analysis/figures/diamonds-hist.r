@@ -12,8 +12,12 @@ hist_bw <- function(w) {
       ggplot(diamonds, aes(price)) +
             geom_histogram(binwidth = w, boundary = 0, closed = "left", fill = "grey35") +
             scale_x_continuous(labels = k_labels) +
-            labs(title = paste("binwidth =", w), x = "price (USD)", y = "count")
-    }
+            labs(title = paste("binwidth =", w), x = "price (USD)", y = "count") +
+        theme(
+            panel.background = element_rect(fill = "transparent", colour = NA),
+            plot.background  = element_rect(fill = "transparent", colour = NA)
+        )
+}
 
 # p_dens <- ggplot(diamonds, aes(price)) +
 #       geom_density(aes(colour = "0.2"), adjust = 0.2) +

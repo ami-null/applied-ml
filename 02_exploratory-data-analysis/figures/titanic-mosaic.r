@@ -43,6 +43,10 @@ titanic <- read_csv(
 #       plot_layout(guides = "collect")
 # p
 ggplot(titanic) +
-    geom_bar(aes(y = class, fill = outcome), alpha = 0.8)
+    geom_bar(aes(y = class, fill = outcome), alpha = 0.8) +
+    theme(
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background  = element_rect(fill = "transparent", colour = NA)
+    )
 
 ggsave("eda_titanic_stacked-barplot.pdf", width = 6.0, height = 1.7)

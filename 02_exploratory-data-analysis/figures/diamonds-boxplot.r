@@ -14,7 +14,11 @@ p_box <- ggplot(diamonds, aes(x = price, y = "")) +
           # title = "boxplot",
           x = "price (USD)",
           y = NULL
-        )
+        ) +
+    theme(
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background  = element_rect(fill = "transparent", colour = NA)
+    )
 
 # p_violin <- ggplot(diamonds, aes(x = price, y = "")) +
 #       geom_violin(fill = "grey85") +

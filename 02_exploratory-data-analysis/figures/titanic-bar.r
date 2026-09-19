@@ -25,6 +25,10 @@ p <- ggplot(freq, aes(level, n)) +
       geom_text(aes(label = scales::percent(share, accuracy = 0.1)), vjust = -0.4, size = 2.6) +
       scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
       facet_wrap(~ variable, scales = "free_x") +
-      labs(x = NULL, y = "Number of passengers")
+      labs(x = NULL, y = "Number of passengers") +
+    theme(
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background  = element_rect(fill = "transparent", colour = NA)
+    )
 p
 ggsave("eda_titanic_bars.pdf", p, width = 6.0, height = 1.5)

@@ -18,7 +18,11 @@ p_facet <- ggplot(peng, aes(flipper_length_mm, body_mass_g, colour = species, sh
       geom_point(size = 0.8, alpha = 0.8) +
       facet_wrap(~ island) +
       labs(title = "colour = species, shape = sex, facets = island",
-                    x = "flipper length (mm)", y = "body mass (g)")
+                    x = "flipper length (mm)", y = "body mass (g)") +
+    theme(
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background  = element_rect(fill = "transparent", colour = NA)
+    )
 
 # pc <- peng |>
 #       mutate(across(all_of(vars), \(v) as.numeric(scale(v)))) |>

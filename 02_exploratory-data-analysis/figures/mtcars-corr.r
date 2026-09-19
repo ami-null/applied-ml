@@ -21,7 +21,11 @@ p <- ggplot(cdf, aes(col, row, fill = r)) +
               scale_fill_gradient2(low = "#B2182B", mid = "white", high = "#2166AC",
                        limits = c(-1, 1)) +
       coord_fixed() +
-      labs(x = NULL, y = NULL, fill = NULL)
+      labs(x = NULL, y = NULL, fill = NULL) +
+      theme(
+        panel.background = element_rect(fill = "transparent", colour = NA),
+        plot.background  = element_rect(fill = "transparent", colour = NA)
+    )
 p
 
 ggsave("eda_mtcars_corr.pdf", p, width = 3.6, height = 3.4)

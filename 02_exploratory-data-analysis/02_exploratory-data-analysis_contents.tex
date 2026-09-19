@@ -228,3 +228,111 @@
         \item Order nominal levels by frequency and ordinal ones naturally
     \end{itemize}
 \end{frame}
+
+
+\section{Data Quality}
+
+\begin{frame}{Missing values: count first, then decide}
+    \begin{center}
+    \footnotesize
+    \begin{tabular}{llrr}
+        \toprule
+        Dataset & Variable & Missing & Share \\
+        \midrule
+        Titanic (891 rows) & age & 177 & 19.9\% \\
+        & deck & 688 & 77.2\% \\
+        & embarked & 2 & 0.2\% \\
+        California housing (20,640) & total\_bedrooms & 207 & 1.0\% \\
+        \bottomrule
+    \end{tabular}
+    \end{center}
+    \footnotesize
+    \begin{itemize}
+        \item Count the missing values per variable: 2 missing values (embarked) call for a different response than 77\% (deck)
+        \item Ask why: Titanic age is missing for 27.7\% of third-class but 6.0\% of second-class passengers, so not at random; total\_bedrooms is missing at 0.8--1.1\% in each large ocean-proximity group, no visible pattern
+        \item Missing values can hide as codes (99, $-1$, 0), common in survey microdata; check value counts
+        \item If any are present, judge whether action is required and take the necessary steps (preprocessing lecture)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Detecting outliers}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.6cm,keepaspectratio]{figures/eda_mtcars_wt_boxplot.pdf}
+    \end{center}
+    \footnotesize
+    \begin{itemize}
+        \item \textbf{$1.5\times\mathrm{IQR}$ rule:} flag values below $Q_1-1.5\,\mathrm{IQR}$ or above $Q_3+1.5\,\mathrm{IQR}$
+        \item \textbf{$z$-score:} $z_i=(x_i-\bar{x})/s$, flag $\lvert z_i\rvert>3$; the mean and SD are pulled by the outliers themselves, which can mask them
+        \item \textbf{Modified $z$-score:} $M_i=0.6745\,(x_i-\tilde{x})/\mathrm{MAD}$, flag $\lvert M_i\rvert>3.5$; robust, but on skewed data it flags the long tail
+    \end{itemize}
+\end{frame}
+
+
+\section{Two Variables}
+
+\begin{frame}{Two numeric variables: scatter plots}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.6cm,keepaspectratio]{figures/eda_mtcars-scatter.pdf}
+    \end{center}
+    \footnotesize
+    \begin{itemize}
+        \item A scatter plot puts each observation at $(x,y)$
+        \item The overall shape of the plot can tell us whether there is any association between the two variables
+        \item The correlation coefficeint is a numeric measure that quantifies the linear relationship between the two variables
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Numeric variable across groups}
+    \includegraphics[width=0.95\linewidth,height=3.6cm,keepaspectratio]{figures/eda_penguins_mass_species.pdf}
+    \footnotesize
+    \begin{itemize}
+        \item Mean body mass: Adelie 3,701 g, Chinstrap 3,733 g, Gentoo 5,076 g; the first two are nearly equal, Gentoo is about 1.4 kg heavier
+        \item Mean $\pm$ 1.96 SE intervals (about $\pm$73, $\pm$91, $\pm$89 g) overlap for Adelie and Chinstrap; ANOVA gives $F(2,339)=343.6$, $\eta^2=0.67$: species explains 67\% of the variance
+        \item Choose the plot by the question
+        \begin{itemize}
+            \item Boxplot with points: many groups; ridgeline: shape; mean and interval: means only
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Two categorical variables}
+    \includegraphics[width=0.95\linewidth,height=3.8cm,keepaspectratio]{figures/eda_titanic_stacked-barplot.pdf}
+    \footnotesize
+    \begin{itemize}
+        \item Above is a stacked barplot
+        \item It shows the proportion of survived passengers among different passenger classes in the Titanic
+    \end{itemize}
+\end{frame}
+
+\section{Many Variables}
+
+
+\begin{frame}{Correlation heatmap and multicollinearity}
+    \begin{columns}[T]
+        \begin{column}{0.46\textwidth}
+            \includegraphics[width=\linewidth,height=5.3cm,keepaspectratio]{figures/eda_mtcars_corr.pdf}
+        \end{column}
+        \begin{column}{0.50\textwidth}
+            \footnotesize
+            \begin{itemize}
+                \item Heatmap: a tile per pair, diverging colours centred at zero; clustering the order puts related variables in blocks
+                \item mtcars: mpg vs. weight $-0.87$, cylinders $-0.85$, displacement $-0.85$; displacement vs. cylinders 0.90, weight 0.89
+                \item Multicollinearity: overlapping predictors; $\mathrm{VIF}_j=1/(1-R_j^2)$, $R_j^2$ from regressing predictor $j$ on the others; cyl 6.7, disp 10.4, hp 3.4, wt 4.8 (concern above about 5--10)
+                \item Shows pairwise linear association only
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{More dimensions: colour, shape, facets, parallel coordinates}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.8cm,keepaspectratio]{figures/eda_penguins_encodings.pdf}
+    \end{center}
+    \footnotesize
+    \begin{itemize}
+        \item Extra variables can be encoded by colour (categorical), size or a colour gradient (numeric), shape, or faceting into small multiples with shared scales; keep to three or four variables per plot
+        \item Facets by island reveal structure: Gentoo lives only on Biscoe and Chinstrap only on Dream, while Adelie is on all three, so island and species are entangled
+        \item Parallel coordinates draw one line per observation across standardised variables; species form bands (Gentoo: shallow bills, long flippers, high mass), but many lines overlap
+    \end{itemize}
+\end{frame}

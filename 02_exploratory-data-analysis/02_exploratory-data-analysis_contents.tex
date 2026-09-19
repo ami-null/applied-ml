@@ -1,194 +1,234 @@
-\section{Data Collection and Representation}
-\subsection{Data Sources \& Collection}
+\section{Data Sources and Types}
 
-\begin{frame}{Data Sources}
+\begin{frame}{Learning outcomes}
     \begin{itemize}
-        \item Web APIs and web scraping
-        \item Batch ingestion vs.\ real-time streaming pipelines
-        \item Public ML repositories (Kaggle, UCI Machine Learning Repository)
-        \item Administrative and survey microdata (e.g.\ DHS/MICS-style datasets), typically collected under a complex survey design with sampling weights
+        \item Explain why exploratory data analysis (EDA) comes before modelling
+        \item Choose summaries and plots that suit the variable type and the question
+        \item Read distributions, relationships, and structure in real data, and interpret them in context
+        \item Recognise when EDA already answers the question, and when it shows that a model is needed
+    \end{itemize}
+    \svspace{1em}
+    \textbf{Roadmap:} data and variable types $\to$ why EDA $\to$ one variable $\to$ data quality $\to$ two variables $\to$ many variables $\to$ time and space $\to$ when EDA is enough $\to$ pitfalls
+\end{frame}
+
+\begin{frame}{Where data come from}
+    \footnotesize
+    \begin{tabular}{@{}p{0.25\linewidth}p{0.32\linewidth}p{0.32\linewidth}@{}}
+        \toprule
+        Source & Examples & What EDA must check \\
+        \midrule
+        Surveys, administrative records & DHS, MICS, census extracts, hospital or school records & design weights, codes for ``don't know'', top-coding \\
+        Sensors and logs & weather stations, phones, server logs & timestamps, gaps, drift \\
+        Web and APIs & scraped pages, social media, open data & duplicates, selection bias \\
+        Remote sensing & satellite imagery, NDVI & resolution, cloud cover, alignment \\
+        \bottomrule
+    \end{tabular}
+    \normalsize
+    \svspace{0.5em}
+    \begin{itemize}
+        \item Microdata means one row per person, household, or event rather than pre-aggregated tables
+        \item The source determines who is included, how variables were measured, and what can go wrong
     \end{itemize}
 \end{frame}
 
-
-\begin{frame}{Data Types}
+\begin{frame}{How data are structured}
     \begin{itemize}
-        \item Tabular data
-        \item Unstructured data: text, images, audio
-        \item Time-series data
-        \item Graph / network data
-        \item Structured vs.\ semi-structured: relational tables vs.\ JSON-style API responses
+        \item \textbf{Structured:} fixed rows and columns with a schema, such as survey microdata, spreadsheets, and relational tables
+        \item \textbf{Semi-structured:} self-describing hierarchy without a fixed table layout, such as JSON from APIs, XML, and server logs; it must be parsed into columns before analysis
+        \item \textbf{Unstructured:} no predefined layout, such as free text, images, audio, and video; useful numbers must be extracted first
+        \item This lecture works with structured (tabular) data; the other types enter once their content has been turned into columns
     \end{itemize}
 \end{frame}
 
-
-\section{Exploratory Data Analysis (EDA) \& Data Visualization}
-
-\subsection{Summary Statistics \& Central Tendency}
-
-
-\begin{frame}{Summary Statistics}
+\begin{frame}{Variable types decide the analysis}
+    \begin{center}
+    \footnotesize
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{llll}
+        \toprule
+        Type & Example & Summaries & Plots \\
+        \midrule
+        Nominal & sex, embarkation port & counts, mode & bar chart \\
+        Ordinal & diamond cut, class & counts, median & ordered bars \\
+        Discrete & number of children & counts, mean & bar chart \\
+        Continuous & price, age & mean, median, SD & histogram, boxplot \\
+        \bottomrule
+    \end{tabular}
+    \end{center}
+    \svspace{0.5em}
     \begin{itemize}
-        \item \textbf{Central tendency:} Mean, Median, Mode
-        \item \textbf{Dispersion:} Variance, Standard Deviation, Interquartile Range (IQR)
-        \item First step of EDA: establishes central values, spread, and baseline data health before any modeling
+        \item The type, not the storage, decides which summary is meaningful: class is stored as 1, 2, 3, yet an average class of 2.3 means nothing
+        \item Survey microdata often store categories as numeric codes (1 = male, 2 = female, 99 = don't know); recognise them before summarising
     \end{itemize}
 \end{frame}
 
+\section{Why Exploratory Data Analysis?}
 
-\begin{frame}{Distribution Shape}
+\begin{frame}{What is EDA?}
     \begin{sitemize}
-        \item Compare mean and median to detect skew: right-skewed income data shows Mean (\$85{,}000) well above Median (\$52{,}000).
-        \item A long right tail (a few very high earners) pulls the mean up without moving the bulk of the distribution — visible directly in a histogram.
+        \item Exploratory data analysis (EDA) is the systematic examination of a dataset through summary statistics and graphics before any formal modelling, in the spirit of John Tukey's ``detective work''.
+        \item It asks what each variable looks like, how variables relate to each other, which values are unusual, and whether there is structure such as groups or trends.
+        \item Its output is decisions: which questions the data can answer, which problems must be fixed first, and which kinds of model, if any, are worth trying.
+        \item EDA is not confirmatory: patterns found this way are hypotheses, to be tested on data that were not used to find them.
     \end{sitemize}
-    \begin{figure}
+\end{frame}
+
+\begin{frame}{Why look at the data? An example}
+    \textbf{Diamonds:} 53,940 stones, price in US dollars. Mean price by cut, from worst to best:
+    \begin{center}
+    \footnotesize
+    \begin{tabular}{lrrr}
+        \toprule
+        Cut & $n$ & Mean price & Mean carat \\
+        \midrule
+        Fair & 1,610 & \$4,359 & 1.05 \\
+        Good & 4,906 & \$3,929 & 0.85 \\
+        Very Good & 12,082 & \$3,982 & 0.81 \\
+        Premium & 13,791 & \$4,584 & 0.89 \\
+        Ideal & 21,551 & \$3,458 & 0.70 \\
+        \bottomrule
+    \end{tabular}
+    \end{center}
+    \footnotesize
+    \begin{itemize}
+        \item The best cut (Ideal) has the lowest mean price, and the worst cut (Fair) is dearer than Good, Very Good, and Ideal
+        \item Taken at face value, a better cut lowers the price, and a model using cut alone would learn exactly that
+        \item The last column hints at the reason: Ideal stones are the smallest on average (0.70 carat) and Fair the largest (1.05)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Why look at the data? The plots}
+    \includegraphics[width=0.95\linewidth,height=3.8cm,keepaspectratio]{figures/eda_diamonds_cut_carat.pdf}
+    \footnotesize
+    \begin{itemize}
+        \item Left: Ideal stones are mostly small (median 0.54 carat) and Fair stones large (median 1.00 carat)
+        \item Right: within every cut, price rises steeply with carat; at exactly 1 carat, Fair costs \$4,130 on average ($n=166$) and Ideal \$5,547 ($n=208$)
+        \item Cut and carat are entangled: the table by cut mixed two effects, and looking at the variables jointly separated them
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{The EDA workflow}
     \centering
-        \begin{tikzpicture}
-                \begin{axis}[
-                    width=8cm, height=4.5cm,
-                    font=\tiny,
-                    xlabel={Income (\$1000s)},
-                    ylabel={Frequency},
-                    ybar interval,
-                    xtick=data,
-                    x tick label style={rotate=45,anchor=east},
-                    tick label style={font=\tiny},
-                    ymin=0,
-                ]
-                    \addplot table[row sep=\\] {
-                        x y \\
-                        20 15 \\
-                        40 25 \\
-                        60 20 \\
-                        80 12 \\
-                        100 8 \\
-                        120 5 \\
-                        140 3 \\
-                        160 2 \\
-                        180 0 \\
-                    };
-                \end{axis}
-        \end{tikzpicture}
-    \end{figure}
+    \begin{tikzpicture}[
+        stage/.style={draw=airforceblue, fill=airforceblue!15, rounded corners=2pt, minimum height=0.9cm, text width=0.15\linewidth, align=center, font=\scriptsize\bfseries},
+        note/.style={text width=0.15\linewidth, align=center, font=\scriptsize},
+        flow/.style={-{Latex[length=1.8mm]}, thick, draw=airforceblue}]
+        \node[stage] (a) {First look};
+        \node[stage, right=0.025\linewidth of a] (b) {One variable};
+        \node[stage, right=0.025\linewidth of b] (c) {Two variables};
+        \node[stage, right=0.025\linewidth of c] (d) {Many variables};
+        \node[stage, right=0.025\linewidth of d] (e) {Decision};
+        \node[note, below=1mm of a] {size, types, missing counts};
+        \node[note, below=1mm of b] {centre, spread, shape};
+        \node[note, below=1mm of c] {association, groups};
+        \node[note, below=1mm of d] {structure, redundancy};
+        \node[note, below=1mm of e] {rule, model, or more data?};
+        \foreach \s/\t in {a/b, b/c, c/d, d/e} \draw[flow] (\s) -- (\t);
+        \draw[flow, dashed] (e.north) -- ++(0,0.6) coordinate (r) -| (a.north);
+        \node[above, font=\scriptsize] at (c |- r) {new questions};
+    \end{tikzpicture}
+    \svspace{1em}
+    \begin{itemize}
+        \item Each stage raises questions for the next, so EDA is iterative rather than a fixed pipeline
+        \item The decision at the end is not always ``fit a model'': it may be to collect more data, apply a simple rule, or report the summary
+    \end{itemize}
 \end{frame}
 
-
-\subsection{Groupwise Analysis \& Segment Distributions}
-
-\begin{frame}{Groupwise Boxplots}
-    \begin{sitemize}
-        \item Compare a continuous feature's distribution across discrete groups: median, spread, and outliers per group, side by side.
-        \item Example: salary distributions by job level, or recovery times by treatment arm (Placebo, Drug A, Drug B).
-        \item Reveals sub-group variance and median shifts that a single overall summary statistic would hide.
-    \end{sitemize}
-    \begin{figure}
-    \centering
-        \begin{tikzpicture}
-            \begin{axis}[
-                width=4.5cm, height=4cm,
-                font=\tiny,
-                ylabel={Salary (\$1000s)},
-                boxplot/draw direction=y,
-                xtick={1,2,3},
-                xticklabels={Entry,Mid,Senior},
-                tick label style={font=\tiny},
-            ]
-                \addplot+[boxplot prepared={
-                    median=45, upper quartile=52, lower quartile=38,
-                    upper whisker=65, lower whisker=30}] coordinates {};
-                \addplot+[boxplot prepared={
-                    median=65, upper quartile=75, lower quartile=58,
-                    upper whisker=90, lower whisker=48}] coordinates {};
-                \addplot+[boxplot prepared={
-                    median=95, upper quartile=110, lower quartile=85,
-                    upper whisker=130, lower whisker=70}] coordinates {};
-            \end{axis}
-        \end{tikzpicture}
-    \end{figure}
+\begin{frame}{First look at a dataset}
+    \begin{itemize}
+        \item Size and types: number of rows and columns and the type of each variable (\textttbg{glimpse(df)} in R, \textttbg{df.info()} in pandas)
+        \item Missing values: count them per variable (\textttbg{colSums(is.na(df))}, \textttbg{df.isna().sum()}); if any are present, judge whether action is required before analysis, and take the necessary steps (treatments are covered in the data preprocessing lecture)
+        \item Duplicate rows and impossible values, such as negative ages or zero dimensions
+        \item Explore the training data only; looking at the test set leaks information into modelling decisions
+        \item Titanic (891 passengers): age is missing for 177 passengers, deck for 688, and port of embarkation for 2
+    \end{itemize}
 \end{frame}
 
+\section{One Variable at a Time}
 
-\begin{frame}{Groupwise Aggregations \& Contingency Tables}
-    \begin{sitemize}
-        \item Cross-tabulate a categorical outcome against a categorical predictor to segment behavior by group.
-        \item Example: churn status against subscription tier (Basic, Pro, Enterprise), to find segment-specific churn rates.
-        \item Watch for Simpson's Paradox: an association that holds within every subgroup can reverse when the subgroups are pooled.
-    \end{sitemize}
+\begin{frame}{Location: mean, median, trimmed mean, mode}
+    Observations $x_1,\dots,x_n$ of one numeric variable.
+    \svspace{0.5em}
+    \begin{itemize}
+        \item \textbf{Mean} $\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i$: uses every value, so extreme values pull it
+        \item \textbf{Median}: the middle value of the sorted data, with half of the observations on each side; extreme values do not move it, so it is the better measure of centre for skewed data such as prices, incomes, or waiting times
+        \item \textbf{Trimmed mean}: the mean after discarding a fixed share (say 10\%) of observations from each tail; a compromise between the two
+        \item \textbf{Mode}: the most frequent value; the natural centre of a categorical variable, and for a continuous variable it is read from the peak of a histogram or density
+    \end{itemize}
 \end{frame}
 
-
-\subsection{Bivariate \& Multivariate Structural Analysis}
-
-
-\begin{frame}{Scatter Plots \& Trendlines}
-    \begin{sitemize}
-        \item Examine pairwise relationships between a continuous feature and the target.
-        \item Example: \texttt{House\_Size} vs.\ \texttt{Sales\_Price}, with a fitted trendline to check linearity.
-    \end{sitemize}
-    \begin{figure}
-        \centering
-        \begin{tikzpicture}
-            \begin{axis}[
-                width=6cm, height=5cm,
-                font=\tiny,
-                xlabel={House Size (sqft)},
-                ylabel={Price (\$1000s)},
-                tick label style={font=\tiny},
-            ]
-                \addplot[only marks, mark size=1pt] coordinates {
-                (800,150) (1000,180) (1200,210) (1400,230)
-                (1600,270) (1800,300) (2000,330) (2200,350)
-                (2400,400) (2600,420)
-                };
-                \addplot[domain=800:2600, samples=2, thick] {0.135*x + 45};
-            \end{axis}
-        \end{tikzpicture}
-    \end{figure}
+\begin{frame}{Spread and shape}
+    \small
+    \begin{itemize}
+        \item \textbf{Standard deviation} $s=\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2}$: typical distance from the mean; sensitive to extreme values
+        \item \textbf{Interquartile range} $\mathrm{IQR}=Q_3-Q_1$: width of the middle 50\% of the data; robust to extreme values
+        \item \textbf{Median absolute deviation} $\mathrm{MAD}=\operatorname{median}_i\lvert x_i-\tilde{x}\rvert$, where $\tilde{x}$ is the median (no rescaling): a robust alternative to the standard deviation
+        \item \textbf{Skewness} $g_1=\frac{1}{n}\sum_{i=1}^{n}\bigl(\frac{x_i-\bar{x}}{s}\bigr)^{3}$: positive for a long right tail, negative for a long left tail, near zero for a symmetric distribution
+        \item \textbf{Excess kurtosis} $g_2=\frac{1}{n}\sum_{i=1}^{n}\bigl(\frac{x_i-\bar{x}}{s}\bigr)^{4}-3$: positive when the tails are heavier than those of a normal distribution
+    \end{itemize}
 \end{frame}
 
+\begin{frame}{Summary statistics in practice: diamonds}
+    \begin{columns}[T]
+        \begin{column}{0.43\textwidth}
+            \footnotesize
+            \setlength{\tabcolsep}{3pt}
+            \begin{tabular}{@{}lrr@{}}
+                \toprule
+                & price (USD) & carat \\
+                \midrule
+                Mean & 3,933 & 0.80 \\
+                10\% trimmed & 3,159 & 0.73 \\
+                Median & 2,401 & 0.70 \\
+                Std. dev. & 3,989 & 0.47 \\
+                IQR & 4,374 & 0.64 \\
+                MAD & 1,670 & 0.32 \\
+                Skewness & 1.62 & 1.12 \\
+                Ex. kurtosis & 2.18 & 1.26 \\
+                \bottomrule
+            \end{tabular}
+        \end{column}
+        \begin{column}{0.50\textwidth}
+            \small
+            \begin{itemize}
+                \item The mean price is 64\% above the median: a few expensive stones pull the mean up, while the median describes a typical stone
+                \item Skewness of 1.62 confirms a long right tail; mean $>$ median and positive skewness go together
+                \item Mean $-$ SD is $-\$57$, an impossible price: mean $\pm$ SD is a poor summary here, and quartiles are better
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
 
-\begin{frame}{Correlation Matrices \& Heatmaps}
-    \begin{sitemize}
-        \item Metrics: Pearson linear correlation ($r$), Spearman rank correlation.
-        \item Screen features for multicollinearity before training a model.
-        \item Example: pairwise correlations among \texttt{Height}, \texttt{Weight}, \texttt{BMI}, \texttt{Waist\_Circumference} to flag collinear pairs ($r > 0.85$).
-    \end{sitemize}
-    \begin{figure}
-        \centering
-        \begin{tikzpicture}
-            \begin{axis}[
-                width=4.5cm, height=4.5cm,
-                font=\tiny,
-                colormap/viridis,
-                colorbar,
-                colorbar style={font=\tiny},
-                xtick=data, ytick=data,
-                xticklabels={Height,Weight,BMI,Waist},
-                yticklabels={Height,Weight,BMI,Waist},
-                x tick label style={rotate=45,anchor=east},
-                tick label style={font=\tiny},
-                point meta min=-1, point meta max=1,
-            ]
-                \addplot[matrix plot, mesh/cols=4, point meta=explicit] table[meta=C, row sep=\\] {
-                x y C \\
-                0 0 1.00 \\
-                1 0 0.88 \\
-                2 0 0.90 \\
-                3 0 0.55 \\
-                0 1 0.88 \\
-                1 1 1.00 \\
-                2 1 0.92 \\
-                3 1 0.60 \\
-                0 2 0.90 \\
-                1 2 0.92 \\
-                2 2 1.00 \\
-                3 2 0.58 \\
-                0 3 0.55 \\
-                1 3 0.60 \\
-                2 3 0.58 \\
-                3 3 1.00 \\
-                };
-            \end{axis}
-        \end{tikzpicture}
-    \end{figure}
+\begin{frame}{Histograms and density estimates}
+    \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_diamonds_hist_density.pdf}
+    \footnotesize
+    \begin{itemize}
+        \item \textbf{Histogram:} counts in equal-width bins; try several widths (wide bins hide structure, narrow bins add noise); read peaks, gaps, and spikes
+        \begin{itemize}
+            \item At width 100 the count falls to 463 in \$1,500--1,599 and jumps to 1,115 in the next bin, a jump that width 1000 hides
+            \item Use with hundreds of observations or more; for small samples use a dot or strip plot
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Boxplot, violin plot, and ECDF}
+    \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_diamonds_box_violin_ecdf.pdf}
+    \footnotesize
+    \begin{itemize}
+        \item \textbf{Boxplot:} box from $Q_1$ to $Q_3$ with the median line; whiskers reach the furthest points within $1.5\times\mathrm{IQR}$; points beyond are flagged (3,540 stones, 6.6\%, all expensive)
+        \begin{itemize}
+            \item Use to compare many groups side by side; it cannot show several peaks
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Categorical variables: frequencies and bar charts}
+    \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_titanic_bars.pdf}
+    \footnotesize
+    \begin{itemize}
+        \item A frequency table lists the count and share of each level, and the bar chart is its picture
+        \item Titanic, 891 passengers: 61.6\% died and 38.4\% survived; 55.1\% travelled third class; 64.8\% were male
+        \item Imbalance matters: predicting ``died'' for everyone is already 61.6\% accurate, a baseline any model must beat
+        \item Order nominal levels by frequency and ordinal ones naturally; avoid pie charts
+    \end{itemize}
 \end{frame}

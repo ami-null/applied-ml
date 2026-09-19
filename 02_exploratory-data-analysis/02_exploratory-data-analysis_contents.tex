@@ -289,10 +289,6 @@
     \begin{itemize}
         \item Mean body mass: Adelie 3,701 g, Chinstrap 3,733 g, Gentoo 5,076 g; the first two are nearly equal, Gentoo is about 1.4 kg heavier
         \item Mean $\pm$ 1.96 SE intervals (about $\pm$73, $\pm$91, $\pm$89 g) overlap for Adelie and Chinstrap; ANOVA gives $F(2,339)=343.6$, $\eta^2=0.67$: species explains 67\% of the variance
-        \item Choose the plot by the question
-        \begin{itemize}
-            \item Boxplot with points: many groups; ridgeline: shape; mean and interval: means only
-        \end{itemize}
     \end{itemize}
 \end{frame}
 
@@ -335,4 +331,49 @@
         \item Facets by island reveal structure: Gentoo lives only on Biscoe and Chinstrap only on Dream, while Adelie is on all three, so island and species are entangled
         \item Parallel coordinates draw one line per observation across standardised variables; species form bands (Gentoo: shallow bills, long flippers, high mass), but many lines overlap
     \end{itemize}
+\end{frame}
+
+
+\section{Time and Space}
+
+
+\begin{frame}{Time series: trend, seasonality, variance}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=4.5cm,keepaspectratio]{figures/eda_airpassengers.pdf}
+    \end{center}
+    \footnotesize
+    \begin{itemize}
+        \item Plot against time first; look for trend, seasonality, changing variance, and breaks; the yearly mean rises from 126.7 to 476.2 thousand over 1949--1960
+        \item Seasonal peak in July and August
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Spatial data: map before you model}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.2cm,keepaspectratio]{figures/eda_california_maps.pdf}
+    \end{center}
+    \footnotesize
+    \begin{itemize}
+        \item Map each variable (20,640 districts): values are high near the coast, low inland (median \$108,500 inland vs. \$214,850--\$233,800 coastal)
+        \item Observations are correlated, nearby observations resemble each other
+        \item Observations are not independent, so random train/test splits overstate accuracy
+        \item Check coordinates and resolution: survey cluster locations (e.g. DHS) are deliberately displaced
+    \end{itemize}
+\end{frame}
+
+
+\section{Summary}
+
+
+
+\begin{frame}{EDA checklist and tools}
+    \begin{enumerate}
+        \item First look: data size, types, missing, duplicates
+        \item Each variable: summaries, histogram or bar chart
+        \item Quality: outliers vs. artefacts, caps, codes
+        \item Pairs: plots, correlations, groups, confounders
+        \item Structure: time order, space, groups
+        \item Record findings and decisions in a script
+    \end{enumerate}
 \end{frame}

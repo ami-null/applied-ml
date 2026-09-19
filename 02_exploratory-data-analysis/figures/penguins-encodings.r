@@ -35,4 +35,4 @@ p_facet <- ggplot(peng, aes(flipper_length_mm, body_mass_g, colour = species, sh
 
 p_facet
 
-ggsave("eda_penguins_encodings.pdf", p, width = 6.0, height = 1.7)
+ggsave("eda_penguins_encodings.pdf", width = 6.0, height = 1.7)

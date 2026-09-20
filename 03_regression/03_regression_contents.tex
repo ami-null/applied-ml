@@ -168,3 +168,245 @@
         \item RSE is in the units of $y$, $R^2$ is unit-free; a good $R^2$ depends on the application
     \end{itemize}
 \end{frame}
+
+
+\section{Multiple Linear Regression}
+
+\begin{frame}{Why not several simple regressions?}
+    \begin{center}
+        \small
+        \begin{tabular}{lrrrr}
+            \toprule
+            sales on & $\hat\beta_1$ & std. error & $t$-statistic & $p$-value \\
+            \midrule
+            TV & 0.0475 & 0.0027 & 17.67 & $<0.0001$ \\
+            radio & 0.2025 & 0.0204 & 9.92 & $<0.0001$ \\
+            newspaper & 0.0547 & 0.0166 & 3.30 & 0.0011 \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \begin{itemize}
+        \item Three separate simple regressions give no single prediction from all three budgets, and each one ignores the other media
+        \item A simple-regression slope also absorbs the effect of every correlated feature that was left out
+        \item Newspaper and radio budgets are correlated ($r = 0.354$): markets that spend more on radio tend to spend more on newspaper, so newspaper may look useful only because it stands in for radio
+        \item Remedy: put all features in one model
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Multiple linear regression model}
+    \begin{itemize}
+        \item With $p$ features: $y = \beta_0 + \beta_1 x_1 + \dots + \beta_p x_p + \varepsilon$; $\beta_j$ is the average change in $y$ for a one-unit increase in $x_j$, \emph{holding all other features fixed}
+        \item For all $n$ observations at once, $\mathbf{y} = \tilde{\mathbf{X}} \symbf{\beta} + \symbf{\varepsilon}$:
+    \end{itemize}
+    \[
+        \underbrace{\begin{bmatrix} y^{(1)} \\ \vdots \\ y^{(n)} \end{bmatrix}}_{\mathbf{y}}
+        = \underbrace{\begin{bmatrix} 1 & x_1^{(1)} & \cdots & x_p^{(1)} \\ \vdots & \vdots & & \vdots \\ 1 & x_1^{(n)} & \cdots & x_p^{(n)} \end{bmatrix}}_{\tilde{\mathbf{X}}}
+        \underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_p \end{bmatrix}}_{\symbf{\beta}}
+        + \underbrace{\begin{bmatrix} \varepsilon^{(1)} \\ \vdots \\ \varepsilon^{(n)} \end{bmatrix}}_{\symbf{\varepsilon}}
+    \]
+    \begin{itemize}
+        \item $\tilde{\mathbf{X}} = [\,\mathbf{1} \;\; \mathbf{X}\,] \in \mathbb{R}^{n \times (p+1)}$ is the feature matrix with a column of ones for the intercept (the \textbf{design matrix}); fitted values $\hat{\mathbf{y}} = \tilde{\mathbf{X}} \hat{\symbf{\beta}}$, residuals $\mathbf{e} = \mathbf{y} - \hat{\mathbf{y}}$
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Least squares in matrix form}
+    \begin{itemize}
+        \item The RSS is a function of the coefficient vector: $\mathrm{RSS}(\symbf{\beta}) = \sum_{i=1}^{n} \big(y^{(i)} - \beta_0 - \beta_1 x_1^{(i)} - \dots - \beta_p x_p^{(i)}\big)^2 = \|\mathbf{y} - \tilde{\mathbf{X}} \symbf{\beta}\|^2$
+        \item Setting its gradient to zero gives the \textbf{normal equations} $\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}\, \hat{\symbf{\beta}} = \tilde{\mathbf{X}}^\top \mathbf{y}$, with solution
+    \end{itemize}
+    \[
+        \hat{\symbf{\beta}} = \big(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}\big)^{-1} \tilde{\mathbf{X}}^\top \mathbf{y}
+    \]
+    \begin{itemize}
+        \item The inverse exists when the $p+1$ columns of $\tilde{\mathbf{X}}$ are linearly independent: this needs $n > p$ and no feature that is an exact linear combination of the others
+        \item Standard errors: $\widehat{\mathrm{Var}}(\hat{\symbf{\beta}}) = \hat\sigma^2 \big(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}\big)^{-1}$ with $\hat\sigma^2 = \mathrm{RSS}/(n-p-1)$; $\mathrm{SE}(\hat\beta_j)$ is the square root of the diagonal entry for $\beta_j$
+    \end{itemize}
+\end{frame}
+
+
+\mode<article>{
+    \paragraph{Derivation of the normal equations.}
+    Expanding the squared norm gives
+    \[
+        \mathrm{RSS}(\symbf{\beta}) = \mathbf{y}^\top \mathbf{y} - 2\, \symbf{\beta}^\top \tilde{\mathbf{X}}^\top \mathbf{y} + \symbf{\beta}^\top \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} \symbf{\beta},
+        \qquad
+        \nabla_{\symbf{\beta}}\, \mathrm{RSS} = -2\, \tilde{\mathbf{X}}^\top \mathbf{y} + 2\, \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} \symbf{\beta}.
+    \]
+    Setting the gradient to zero gives $\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} \hat{\symbf{\beta}} = \tilde{\mathbf{X}}^\top \mathbf{y}$. Equivalently, $\tilde{\mathbf{X}}^\top (\mathbf{y} - \tilde{\mathbf{X}} \hat{\symbf{\beta}}) = \mathbf{0}$: the residual vector $\mathbf{e}$ is orthogonal to every column of $\tilde{\mathbf{X}}$, in particular its entries sum to zero (the column of ones) and are uncorrelated with each feature. For $p = 1$ the solution reduces to the simple regression formulas.
+}
+
+
+\begin{frame}{Interpreting the coefficients}
+    \begin{center}
+        \small
+        \begin{tabular}{lrrrr}
+            \toprule
+            & coefficient & std. error & $t$-statistic & $p$-value \\
+            \midrule
+            intercept & 2.9389 & 0.3119 & 9.42 & $<0.0001$ \\
+            TV & 0.0458 & 0.0014 & 32.81 & $<0.0001$ \\
+            radio & 0.1885 & 0.0086 & 21.89 & $<0.0001$ \\
+            newspaper & $-0.0010$ & 0.0059 & $-0.18$ & 0.860 \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \begin{itemize}
+        \item Holding radio and newspaper fixed, an extra \$1,000 on TV is associated with about 45.8 more units sold; an extra \$1,000 on radio with about 188.5 more units
+        \item Newspaper is not significant ($p = 0.86$) once TV and radio are in the model, although it was significant on its own ($p = 0.0011$)
+        \item The correlation between newspaper and radio explains it: the simple regression credited newspaper with the effect of radio
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Is at least one feature useful? The F-test}
+    \begin{itemize}
+        \item $H_0\colon \beta_1 = \beta_2 = \dots = \beta_p = 0$ against $H_a\colon$ at least one $\beta_j \neq 0$
+    \end{itemize}
+    \[
+        F = \frac{(\mathrm{TSS} - \mathrm{RSS})/p}{\mathrm{RSS}/(n-p-1)}
+    \]
+    \begin{itemize}
+        \item If $H_0$ is true, $F$ is close to 1; a value much larger than 1 is evidence against $H_0$, with the $p$-value taken from the $F_{p,\,n-p-1}$ distribution
+        \item Advertising: $F = 570.3$ on $(3, 196)$ degrees of freedom, $p < 0.0001$: at least one medium is related to sales
+        \item Why not just look at the individual $t$-tests? With many features, about 5\% of the $p$-values fall below 0.05 by chance even if no feature matters; the $F$-test accounts for the number of features
+        \item Deciding \emph{which} features to keep is variable selection, deferred to a later lecture
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Model fit in multiple regression}
+    \begin{center}
+        \small
+        \begin{tabular}{lrr}
+            \toprule
+            model & $R^2$ & RSE \\
+            \midrule
+            TV & 0.612 & 3.26 \\
+            radio & 0.332 & 4.27 \\
+            TV + radio & 0.897 & 1.68 \\
+            TV + radio + newspaper & 0.897 & 1.69 \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \begin{itemize}
+        \item $\mathrm{RSE} = \sqrt{\mathrm{RSS}/(n-p-1)}$ and $R^2 = 1 - \mathrm{RSS}/\mathrm{TSS}$; here $R^2$ is also the squared correlation between $\mathbf{y}$ and $\hat{\mathbf{y}}$
+        \item Adding radio to TV raises $R^2$ from 0.612 to 0.897 and cuts RSE from 3.26 to 1.68; adding newspaper changes nothing useful
+        \item $R^2$ never decreases when a feature is added, useful or not, while RSE can increase (the divisor $n-p-1$ shrinks); adjusted $R^2$ corrects this (performance measures, later)
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Prediction and its uncertainty}
+    \begin{itemize}
+        \item For a new observation $\mathbf{x}_0 = (x_{0,1}, \dots, x_{0,p})^\top$, with $\tilde{\mathbf{x}}_0 = (1, x_{0,1}, \dots, x_{0,p})^\top$, the prediction is
+    \end{itemize}
+    \[
+        \hat{y}_0 = \hat\beta_0 + \hat\beta_1 x_{0,1} + \dots + \hat\beta_p x_{0,p} = \tilde{\mathbf{x}}_0^\top \hat{\symbf{\beta}}
+    \]
+    \begin{itemize}
+        \item Uncertainty from estimating the coefficients (reducible): $\hat{f}$ differs from the true $f$; the \textbf{confidence interval} covers the \emph{average} response $f(\mathbf{x}_0)$ over many observations with these features
+        \item Model bias: a linear model is an approximation of reality; the intervals assume it is correct (checked with residual plots later)
+        \item Irreducible error: a single response is $y_0 = f(\mathbf{x}_0) + \varepsilon$ even if $f$ were known; the \textbf{prediction interval} covers an \emph{individual} response and is always wider than the confidence interval
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Confidence and prediction intervals for Advertising}
+    \begin{columns}[T]
+        \begin{column}{0.55\textwidth}
+            \begin{itemize}
+                \item Sales on TV at TV $= 100$: $\hat{y}_0 = 11.79$, 95\% CI $[11.27,\, 12.30]$, 95\% PI $[5.34,\, 18.23]$
+                \item The confidence band is narrowest at the mean TV budget and widens towards the edges; the prediction band stays wide because $\varepsilon$ dominates
+                \item Adding radio $= 20$ (TV + radio model): $\hat{y}_0 = 11.26$, CI $[10.99,\, 11.53]$, PI $[7.93,\, 14.58]$, narrower because RSE fell from 3.26 to 1.68
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.43\textwidth}
+            \begin{center}
+                \includegraphics[width=\linewidth]{figures/reg_ci_pi.pdf}
+            \end{center}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\section{Qualitative Predictors and Interactions}
+
+\begin{frame}{Qualitative features with two levels}
+    \begin{itemize}
+        \item Credit data: average credit card balance (dollars) of $n = 400$ cardholders; do women and men differ?
+        \item Encode gender with a \textbf{dummy variable}: $x^{(i)} = 1$ if person $i$ is female, $0$ if male
+        \item Model $y = \beta_0 + \beta_1 x + \varepsilon$: the mean balance is $\beta_0 + \beta_1$ for women and $\beta_0$ for men, so $\beta_0$ is the average for men (the \textbf{baseline}) and $\beta_1$ the average difference between women and men
+        \item Credit fit: $\hat\beta_0 = 509.80$ (SE 33.13) and $\hat\beta_1 = 19.73$ (SE 46.05, $p = 0.669$): women carry about \$20 more, but the difference is not statistically significant
+        \item Coding male as 1 and female as 0, or as $\pm 1$, changes what the coefficients mean but not the fitted values
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Qualitative features with more than two levels}
+    \begin{center}
+        \small
+        \begin{tabular}{lcc}
+            \toprule
+            ethnicity & $x_1$ (Asian) & $x_2$ (Caucasian) \\
+            \midrule
+            African American & 0 & 0 \\
+            Asian & 1 & 0 \\
+            Caucasian & 0 & 1 \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \begin{itemize}
+        \item A feature with $k$ levels needs $k-1$ dummy variables; the level without one is the baseline; one 0/1/2 variable would impose an order
+        \item $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \varepsilon$: $\beta_0$ is the baseline average, $\beta_1$ and $\beta_2$ are differences from the baseline
+        \item Credit fit: $\hat\beta_0 = 531.00$, $\hat\beta_1 = -18.69$ ($p = 0.774$), $\hat\beta_2 = -12.50$ ($p = 0.826$)
+        \item The individual $p$-values depend on the baseline; test the whole feature with the $F$-test: $F = 0.04$, $p = 0.957$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Interactions: relaxing the additive assumption}
+    \begin{itemize}
+        \item The additive model assumes the effect of TV on sales is the same at every radio budget; spending on both together may work better than the sum of the parts (synergy)
+        \item Add an \textbf{interaction term}, a new column of $\tilde{\mathbf{X}}$ with entries $x_1^{(i)} x_2^{(i)}$: $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1 x_2 + \varepsilon = \beta_0 + \beta_1 x_1 + (\beta_2 + \beta_3 x_1)\, x_2 + \varepsilon$, so the effect of $x_2$ depends on $x_1$
+        \item Advertising: $\widehat{\text{sales}} = 6.75 + 0.0191\,\text{TV} + 0.0289\,\text{radio} + 0.0011\,\text{TV} \times \text{radio}$; the interaction has $p < 0.0001$, $R^2$ rises from 0.897 to 0.968 and RSE falls from 1.68 to 0.94
+        \item An extra \$1,000 on radio is associated with about 28.9 more units when TV $= 0$ and about 137.5 more units when TV $= \$100{,}000$
+        \item \textbf{Hierarchical principle}: if an interaction is in the model, keep the main effects even when their $p$-values are large
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Interaction with a qualitative feature}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_credit_interaction.pdf}
+    \end{center}
+    \begin{itemize}
+        \item Credit: balance on income and a student dummy; without the income $\times$ student interaction the two groups get parallel lines (same slope, different intercept)
+        \item With it, the slope is $\hat\beta_1 = 6.22$ dollars per \$1,000 of income for non-students and $6.22 - 2.00 = 4.22$ for students
+        \item But the interaction estimate $-2.00$ has SE 1.73 and $p = 0.249$: no strong evidence that the slopes differ
+    \end{itemize}
+\end{frame}
+
+\section{Polynomial Regression}
+
+\begin{frame}{Polynomial regression}
+    \begin{itemize}
+        \item In the Auto data, mpg is a curved function of horsepower, so a straight line misses systematic structure
+        \item \textbf{Polynomial regression} adds powers of the feature: $y = \beta_0 + \beta_1 x + \beta_2 x^2 + \dots + \beta_d x^d + \varepsilon$
+        \item It is still a \emph{linear} regression, linear in the coefficients, with $x, x^2, \dots, x^d$ treated as $d$ features: least squares, standard errors and diagnostics carry over unchanged
+    \end{itemize}
+    \[
+        \tilde{\mathbf{X}} = \begin{bmatrix} 1 & x^{(1)} & (x^{(1)})^2 & \cdots & (x^{(1)})^d \\ \vdots & \vdots & \vdots & & \vdots \\ 1 & x^{(n)} & (x^{(n)})^2 & \cdots & (x^{(n)})^d \end{bmatrix}, \qquad \hat{\symbf{\beta}} = \big(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}\big)^{-1} \tilde{\mathbf{X}}^\top \mathbf{y}
+    \]
+    \begin{itemize}
+        \item Quadratic fit ($d = 2$): $\widehat{\text{mpg}} = 56.90 - 0.4662\,\text{hp} + 0.001231\,\text{hp}^2$, both coefficients with $p < 0.0001$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Polynomial fits on the Auto data}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_auto_poly.pdf}
+    \end{center}
+    \begin{itemize}
+        \item $R^2$ is 0.606 for the linear fit, 0.688 for the quadratic and 0.697 for degree 5: the quadratic term helps a lot, further terms barely
+        \item The linear fit leaves a U-shaped pattern in the residuals, a systematic structure it failed to capture; for the quadratic fit the U-shape is gone
+        \item Higher degrees always improve the fit to the training data, but degree 5 starts to wiggle at the ends: too much flexibility is a risk (bias-variance trade-off, later)
+    \end{itemize}
+\end{frame}

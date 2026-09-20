@@ -3,20 +3,33 @@
 \input{../header-common.tex}
 \input{../header-slides}
 
-\usepackage{booktabs}
-\usepackage{pgfplots}
-\pgfplotsset{compat=1.18}
-\usepgfplotslibrary{statistics,colormaps}
-
-\usepackage{tikz}
-\usetikzlibrary{positioning, arrows.meta}
-
 \input{../author.tex}
 \input{02_exploratory-data-analysis_meta.tex}
 
 
 \begin{document}
-	\input{../slides-frontmatter.tex}
+	% \input{../slides-frontmatter.tex}
+	{
+        \setbeamertemplate{footline}{}
+        \addtocounter{framenumber}{-2}
+
+        \begin{frame}
+            \titlepage
+        \end{frame}
+
+        \begin{frame}{Outline}
+            \frametitle<1>{Table of Contents}
+            \frametitle<2>{Table of Contents (cont.)}
+            \vfill
+            % \tableofcontents[subsectionstyle=hide]
+            \only<1>{
+                \tableofcontents[sections={1-4},hideallsubsections]
+                Table of contents continued in the next page\dots
+            }
+            \only<2>{\tableofcontents[sections={5-8},hideallsubsections]}
+            \vfill
+        \end{frame}
+    }
 	\input{02_exploratory-data-analysis_contents.tex}
 	\mode<presentation>{\section*{Questions?}}
 \end{document}

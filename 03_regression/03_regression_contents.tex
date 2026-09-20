@@ -342,6 +342,7 @@
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}{Qualitative features with more than two levels}
     \begin{center}
         \small
@@ -363,6 +364,7 @@
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}{Interactions: relaxing the additive assumption}
     \begin{itemize}
         \item The additive model assumes the effect of TV on sales is the same at every radio budget; spending on both together may work better than the sum of the parts (synergy)
@@ -372,6 +374,7 @@
         \item \textbf{Hierarchical principle}: if an interaction is in the model, keep the main effects even when their $p$-values are large
     \end{itemize}
 \end{frame}
+
 
 \begin{frame}[allowframebreaks]{Interaction with a qualitative feature}
     \begin{center}
@@ -384,7 +387,9 @@
     \end{itemize}
 \end{frame}
 
+
 \section{Polynomial Regression}
+
 
 \begin{frame}{Polynomial regression}
     \begin{itemize}
@@ -400,6 +405,7 @@
     \end{itemize}
 \end{frame}
 
+
 \begin{frame}[allowframebreaks]{Polynomial fits on the Auto data}
     \begin{center}
         \includegraphics[width=0.95\linewidth]{figures/reg_auto_poly.pdf}
@@ -408,5 +414,260 @@
         \item $R^2$ is 0.606 for the linear fit, 0.688 for the quadratic and 0.697 for degree 5: the quadratic term helps a lot, further terms barely
         \item The linear fit leaves a U-shaped pattern in the residuals, a systematic structure it failed to capture; for the quadratic fit the U-shape is gone
         \item Higher degrees always improve the fit to the training data, but degree 5 starts to wiggle at the ends: too much flexibility is a risk (bias-variance trade-off, later)
+    \end{itemize}
+\end{frame}
+
+
+\section{Residual Analysis and Diagnostics}
+
+
+\begin{frame}{Residuals and model assumptions}
+    \begin{itemize}
+        \item Residual vector $\mathbf{e} = \mathbf{y} - \hat{\mathbf{y}}$ with entries $e^{(i)} = y^{(i)} - \hat{y}^{(i)}$; least squares gives $\tilde{\mathbf{X}}^\top \mathbf{e} = \mathbf{0}$, so the residuals sum to zero and are uncorrelated with every feature
+        \item Standard errors, confidence and prediction intervals, and tests rely on assumptions about the errors: the relationship is linear in the coefficients, the errors $\varepsilon^{(i)}$ are uncorrelated, they have constant variance $\sigma^2$, and (for exact small-sample inference) they are normal
+        \item \textbf{Residual analysis} checks these assumptions with plots; the main tool is the plot of residuals against fitted values: random scatter around zero is good, a curve signals non-linearity, a funnel signals non-constant variance
+        \item Three further problems: outliers, high-leverage observations, and collinearity
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Four standard diagnostic plots}
+    \begin{columns}[T]
+        \begin{column}{0.40\textwidth}
+            \begin{itemize}
+                \item \textbf{Residuals vs fitted}: curve = non-linearity, funnel = non-constant variance
+                \item \textbf{Normal QQ plot}: points near the line = roughly normal errors
+                \item \textbf{Scale-location}: upward trend = non-constant variance
+                \item \textbf{Residuals vs leverage}: flags unusual observations
+                \item Shown: Auto, quadratic fit
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.58\textwidth}
+            \begin{center}
+                \includegraphics[width=\linewidth]{figures/reg_diag_four.pdf}
+            \end{center}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 1: non-linearity}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_diag_nonlinear.pdf}
+    \end{center}
+    \begin{itemize}
+        \item If the true relationship is non-linear, predictions and inference are unreliable; the residual plot shows a pattern, often a U-shape
+        \item Advertising, additive TV + radio model: positive residuals at the smallest and largest fitted values, negative in between, a sign of missing synergy
+        \item With the TV $\times$ radio interaction the curvature weakens and RSE falls from 1.68 to 0.94; a few large negative residuals remain
+        \item Remedies: transform features, add polynomial or interaction terms
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 2: correlated errors}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_diag_autocorr.pdf}
+    \end{center}
+    \begin{itemize}
+        \item The errors are assumed uncorrelated; this fails for time series (neighbouring errors alike) and for repeated measurements on the same unit
+        \item Consequence: standard errors are too small, so intervals are too narrow and $p$-values too small
+        \item Detection: plot residuals in observation order; tracking (neighbouring residuals alike) signals positive correlation ($\rho$ = correlation of successive errors)
+        \item Remedy: time-series or mixed models (out of the scope this lecture)
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 3: non-constant variance}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_diag_variance.pdf}
+    \end{center}
+    \begin{itemize}
+        \item \textbf{Heteroscedasticity}: $\mathrm{Var}(\varepsilon^{(i)})$ changes with the level of the response (a funnel in the residual plot), making standard errors, intervals and tests unreliable
+        \item Auto, quadratic fit: the residual standard deviation grows from 2.5 to 3.8, 4.8 and 5.8 across the four quartiles of the fitted values
+        \item Remedy: transform the response ($\log y$ or $\sqrt{y}$); for $\log(\text{mpg})$ the spread is nearly constant (0.15, 0.17, 0.18, 0.20); alternatively weighted least squares
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 4: outliers}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_diag_outlier.pdf}
+    \end{center}
+    \begin{itemize}
+        \item An \textbf{outlier} is an observation whose $y^{(i)}$ is far from the fitted value (a recording error or a genuinely unusual case)
+        \item At a typical $x$ it hardly moves the line, but it inflates RSE and lowers $R^2$
+        \item \textbf{Studentized residual} $r^{(i)} = e^{(i)} / \big(\hat\sigma \sqrt{1 - h^{(i)}}\big)$, with $h^{(i)}$ the leverage (next slide); $|r^{(i)}| > 3$ flags a possible outlier
+        \item Investigate before deleting; Auto quadratic fit: 5 of 392 cars have $|r^{(i)}| > 3$
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 5: high-leverage observations}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_diag_leverage.pdf}
+    \end{center}
+    \begin{itemize}
+        \item A \textbf{high-leverage} observation has unusual features $\mathbf{x}^{(i)}$ and pulls the fit towards itself
+        \item Leverage $h^{(i)}$ is the $i$th diagonal entry of the hat matrix $\mathbf{H} = \tilde{\mathbf{X}} (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top$, where $\hat{\mathbf{y}} = \mathbf{H} \mathbf{y}$; $1/n \le h^{(i)} \le 1$ with average $(p+1)/n$
+        \item Far above the average means high leverage, and with a large residual the point is influential; Auto quadratic fit: the 230-hp car has $h^{(i)} = 0.094$, 12 times the average 0.0077
+    \end{itemize}
+\end{frame}
+
+
+\mode<article>{
+    \paragraph{Leverage in simple regression.}
+    With one feature the leverage has a closed form, $h^{(i)} = \frac{1}{n} + \frac{(x^{(i)} - \bar{x})^2}{\sum_{k=1}^{n} (x^{(k)} - \bar{x})^2}$: it grows with the squared distance of $x^{(i)}$ from the mean $\bar{x}$. Note that leverage depends only on the features $\mathbf{x}^{(i)}$, never on the label $y^{(i)}$.
+}
+
+
+\begin{frame}[allowframebreaks]{Problem 6: collinearity}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_credit_collinearity.pdf}
+    \end{center}
+    \begin{itemize}
+        \item \textbf{Collinearity}: features are highly correlated, so their separate effects on $y$ cannot be told apart ($\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}$ is nearly singular)
+        \item Credit: limit and rating have $r = 0.997$, limit and age only $r = 0.10$
+        \item Consequences: unstable coefficients and inflated standard errors; an important feature can look insignificant
+        \item Balance on age + limit: $\mathrm{SE}(\hat\beta_{\text{limit}}) = 0.0050$, $p < 0.0001$; on rating + limit: $0.0638$ (13 times larger), $p = 0.70$
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Detecting collinearity: variance inflation factor}
+    \begin{itemize}
+        \item Pairwise correlations can miss collinearity among three or more features (multicollinearity); the \textbf{variance inflation factor} does not
+    \end{itemize}
+    \[
+        \mathrm{VIF}(\hat\beta_j) = \frac{1}{1 - R^2_{x_j \mid x_{-j}}}
+    \]
+    \begin{itemize}
+        \item $R^2_{x_j \mid x_{-j}}$ is the $R^2$ from regressing feature $x_j$ on all the other features; VIF is at least 1, and values above 5 or 10 signal a problem
+        \item Credit, age + rating + limit: VIF $= 1.01$ (age), $160.7$ (rating), $160.6$ (limit); with only age and limit: $1.01$ and $1.01$
+        \item Remedies: drop one of the redundant features, or combine them (for example, average the standardized features)
+        \item Predictions barely change ($R^2 = 0.750$ and $0.746$ for the two models), but individual coefficients and their inference do
+    \end{itemize}
+\end{frame}
+
+
+\section{Regression Performance Measures}
+
+
+\begin{frame}{Measures of the quality of fit}
+    \begin{center}
+        \small
+        \renewcommand{\arraystretch}{1.05}
+        \begin{tabular}{lll}
+            \toprule
+            measure & definition & comment \\
+            \midrule
+            MSE & $\frac{1}{n} \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2 = \mathrm{RSS}/n$ & squared units of $y$ \\
+            RMSE & $\sqrt{\mathrm{MSE}}$ & units of $y$ \\
+            MAE & $\frac{1}{n} \sum_{i=1}^{n} \big|y^{(i)} - \hat{y}^{(i)}\big|$ & units of $y$, less sensitive to outliers \\
+            RSE & $\sqrt{\mathrm{RSS}/(n-p-1)}$ & units of $y$, estimates $\sigma$ \\
+            $R^2$ & $1 - \mathrm{RSS}/\mathrm{TSS}$ & unit-free, never falls with more features \\
+            adjusted $R^2$ & $1 - \dfrac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$ & unit-free, penalizes each added feature \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \begin{itemize}
+        \item MSE and RMSE punish large errors heavily; adjusted $R^2$ rises only if a new feature lowers RSS enough to offset the lost degree of freedom, so unlike $R^2$ it can fall
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Comparing regression models on the Advertising data}
+    \begin{center}
+        \small
+        \begin{tabular}{lrrrrr}
+            \toprule
+            model & RSE & RMSE & MAE & $R^2$ & adjusted $R^2$ \\
+            \midrule
+            TV & 3.259 & 3.242 & 2.550 & 0.6119 & 0.6099 \\
+            TV + radio & 1.681 & 1.669 & 1.254 & 0.8972 & 0.8962 \\
+            TV + radio + newspaper & 1.686 & 1.669 & 1.252 & 0.8972 & 0.8956 \\
+            TV $\times$ radio & 0.944 & 0.934 & 0.660 & 0.9678 & 0.9673 \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \begin{itemize}
+        \item RMSE and MAE are in thousands of units of sales: the typical error falls from about 3.2 (TV only) to about 0.9 (TV $\times$ radio)
+        \item Adding newspaper leaves $R^2$ unchanged (0.8972) but lowers adjusted $R^2$ (0.8962 to 0.8956) and raises RSE: the penalty exposes a useless feature
+        \item All numbers here are computed on the training data used to fit the models
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Training error versus test error}
+    \begin{columns}[T]
+        \begin{column}{0.55\textwidth}
+            \begin{itemize}
+                \item \textbf{Training MSE} $= \frac{1}{n} \sum_i \big(y^{(i)} - \hat{f}(\mathbf{x}^{(i)})\big)^2$ uses the observations used to fit $\hat{f}$; all measures on the previous slides are training measures
+                \item \textbf{Test MSE}: the same average over new observations $(\mathbf{x}_0, y_0)$ not used in fitting, which is what we care about (validation and cross-validation: later)
+                \item More flexibility always lowers the training MSE, but the test MSE falls, then flattens or rises: \textbf{overfitting}, the model fits noise
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.43\textwidth}
+            \begin{center}
+                \includegraphics[width=\linewidth]{figures/reg_train_test.pdf}
+            \end{center}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% \section{Bias-Variance Trade-off}
+
+% \begin{frame}{Decomposition of the expected test error}
+%     \begin{itemize}
+%         \item Fix a test point $\mathbf{x}_0$; the estimate $\hat{f}$ depends on the random training set, so another training set gives another $\hat{f}$
+%         \item Expected test MSE at $\mathbf{x}_0$, over training sets and noise:
+%     \end{itemize}
+%     \[
+%         \mathbb{E}\Big[\big(y_0 - \hat{f}(\mathbf{x}_0)\big)^2\Big] = \underbrace{\mathrm{Var}\big(\hat{f}(\mathbf{x}_0)\big)}_{\text{variance}} + \underbrace{\Big[\mathrm{Bias}\big(\hat{f}(\mathbf{x}_0)\big)\Big]^2}_{\text{bias}^2} + \underbrace{\mathrm{Var}(\varepsilon)}_{\text{irreducible error}}
+%     \]
+%     \begin{itemize}
+%         \item \textbf{Variance}: how much $\hat{f}(\mathbf{x}_0)$ changes with the training set; flexible methods follow the noise, so their variance is high
+%         \item \textbf{Bias} $= \mathbb{E}[\hat{f}(\mathbf{x}_0)] - f(\mathbf{x}_0)$: the error from approximating the real relationship by a simpler model, such as a line for a curve
+%         \item \textbf{Irreducible error}: no model can remove $\mathrm{Var}(\varepsilon)$; it is a lower bound for the test MSE
+%     \end{itemize}
+% \end{frame}
+
+% \begin{frame}[allowframebreaks]{Bias and variance in polynomial fits}
+%     \begin{center}
+%         \includegraphics[width=0.95\linewidth]{figures/reg_bv_fits.pdf}
+%     \end{center}
+%     \begin{itemize}
+%         \item Simulated data: true $f$ in black, $n = 20$; each blue curve is $\hat{f}$ fitted on one of 30 training sets
+%         \item Degree 1: the curves are nearly identical (low variance) but all miss the curvature (high bias)
+%         \item Degree 4: close to $f$ on average, with moderate spread
+%         \item Degree 9: close to $f$ on average (low bias), but individual curves vary wildly (high variance): overfitting
+%     \end{itemize}
+% \end{frame}
+
+% \begin{frame}[allowframebreaks]{The bias-variance trade-off}
+%     \begin{columns}[T]
+%         \begin{column}{0.55\textwidth}
+%             \begin{itemize}
+%                 \item As flexibility grows, bias$^2$ falls and variance rises; the expected test MSE (their sum plus the irreducible error) is U-shaped
+%                 \item The best model has intermediate flexibility; training MSE sees only the falling part, so it misleads
+%                 \item On real data $f$ is unknown, so bias and variance cannot be computed; test MSE is estimated with held-out data (later)
+%                 \item In regression, more features, interactions and higher polynomial degree mean more flexibility
+%             \end{itemize}
+%         \end{column}
+%         \begin{column}{0.43\textwidth}
+%             \begin{center}
+%                 \includegraphics[width=\linewidth]{figures/reg_bv_curves.pdf}
+%             \end{center}
+%         \end{column}
+%     \end{columns}
+% \end{frame}
+
+
+\begin{frame}{Summary}
+    \begin{itemize}
+        \item \textbf{Data}: feature vectors $\mathbf{x}^{(i)}$, feature matrix $\mathbf{X}$, label vector $\mathbf{y}$, design matrix $\tilde{\mathbf{X}}$; least squares gives $\hat{\symbf{\beta}} = (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{y}$
+        \item \textbf{Inference}: standard errors, confidence intervals, $t$-tests and the $F$-test; dummy variables, interactions and polynomial terms extend the model within the same linear framework
+        \item \textbf{Diagnostics}: residual plots reveal non-linearity, correlated errors and non-constant variance; also check outliers, leverage and collinearity (VIF)
+        \item \textbf{Performance}: RSE, RMSE, MAE, $R^2$ and adjusted $R^2$ measure the fit to the training data, which is optimistic
+        % \item \textbf{Bias-variance trade-off}: more flexibility means less bias but more variance, and the expected test error is U-shaped
     \end{itemize}
 \end{frame}

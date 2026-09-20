@@ -43,7 +43,7 @@
     \svspace{0.5em}
     \begin{itemize}
         \item Survey microdata often store categories as numeric codes (1 = male, 2 = female, 99 = don't know); recognise them before summarising
-        \item The type decides which summary is meaningful: gender could be stored as 1, 2, yet an `average gender' of 1.5 means nothing
+        \item The type decides which summary is meaningful: gender could be stored as 1, 2, yet an `average gender' of 1.5 is meaningless
     \end{itemize}
 \end{frame}
 
@@ -52,7 +52,7 @@
 
 \begin{frame}{What is EDA?}
     \begin{sitemize}
-        \item Exploratory data analysis (EDA) is the systematic examination of a dataset through summary statistics and graphics before any formal modelling, in the spirit of John Tukey's ``detective work''.
+        \item Exploratory data analysis (EDA) is the systematic examination of a dataset through summary statistics and graphics before any formal modelling.
         \item It asks what each variable looks like, how variables relate to each other, which values are unusual, and whether there is structure such as groups or trends.
         \item Its output is decisions: which questions the data can answer, which problems must be fixed first, and which kinds of model, if any, are worth trying.
         \item EDA is not confirmatory: patterns found this way are hypotheses, to be tested on data that were not used to find them.
@@ -60,7 +60,7 @@
 \end{frame}
 
 \begin{frame}{Why look at the data? An example}
-    \textbf{Diamonds:} 53,940 stones, price in US dollars. Mean price by cut, from worst to best:
+    \textbf{The Diamonds dataset:} 53,940 stones, price in US dollars. Mean price by cut, from worst to best:
     \begin{center}
     \footnotesize
     \begin{tabular}{lrrr}
@@ -125,13 +125,13 @@
     \begin{itemize}
         \item Size and types: number of rows and columns and the type of each variable
         \item Missing values: count them per variable; take necessary actions in case of any missing values
-        \item Duplicate rows and impossible values, such as negative ages or zero dimensions
+        \item Duplicate rows and impossible values, such as negative ages or zero height/weight
         % \item Titanic (891 passengers): age is missing for 177 passengers, deck for 688, and port of embarkation for 2
     \end{itemize}
 \end{frame}
 
 
-\section{One Variable at a Time}
+\section{Univariate Analysis: One Variable at a Time}
 
 
 \begin{frame}{Location: mean, median, trimmed mean, mode}
@@ -202,7 +202,7 @@
 \end{frame}
 
 
-\begin{frame}{Boxplot, violin plot, and ECDF}
+\begin{frame}{Boxplot}
     \begin{center}
         \includegraphics[width=0.95\linewidth,height=3.4cm,keepaspectratio]{figures/eda_diamonds_box_violin_ecdf.pdf}
     \end{center}
@@ -276,7 +276,7 @@
     \end{center}
     \footnotesize
     \begin{itemize}
-        \item A scatter plot puts each observation at $(x,y)$
+        \item Above is a scatterplot that shows the relationship between car weight and car milage using the `mtcars' dataset
         \item The overall shape of the plot can tell us whether there is any association between the two variables
         \item The correlation coefficeint is a numeric measure that quantifies the linear relationship between the two variables
     \end{itemize}
@@ -284,9 +284,12 @@
 
 
 \begin{frame}{Numeric variable across groups}
-    \includegraphics[width=0.95\linewidth,height=3.6cm,keepaspectratio]{figures/eda_penguins_mass_species.pdf}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth,height=3.6cm,keepaspectratio]{figures/eda_penguins_mass_species.pdf}
+    \end{center}
     \footnotesize
     \begin{itemize}
+        \item Above are boxplots of body mass of different species of penguins
         \item Mean body mass: Adelie 3,701 g, Chinstrap 3,733 g, Gentoo 5,076 g; the first two are nearly equal, Gentoo is about 1.4 kg heavier
         \item Mean $\pm$ 1.96 SE intervals (about $\pm$73, $\pm$91, $\pm$89 g) overlap for Adelie and Chinstrap; ANOVA gives $F(2,339)=343.6$, $\eta^2=0.67$: species explains 67\% of the variance
     \end{itemize}
@@ -313,9 +316,8 @@
             \footnotesize
             \begin{itemize}
                 \item Heatmap: a tile per pair, diverging colours centred at zero; clustering the order puts related variables in blocks
-                \item mtcars: mpg vs. weight $-0.87$, cylinders $-0.85$, displacement $-0.85$; displacement vs. cylinders 0.90, weight 0.89
-                \item Multicollinearity: overlapping predictors; $\mathrm{VIF}_j=1/(1-R_j^2)$, $R_j^2$ from regressing predictor $j$ on the others; cyl 6.7, disp 10.4, hp 3.4, wt 4.8 (concern above about 5--10)
-                \item Shows pairwise linear association only
+                \item The correlation heatmap shows only the pairwise linear association among the numeric variables of a dataset
+                \item The current plot uses the `mtcars' dataset
             \end{itemize}
         \end{column}
     \end{columns}
@@ -329,7 +331,7 @@
     \begin{itemize}
         \item Extra variables can be encoded by colour (categorical), size or a colour gradient (numeric), shape, or faceting into small multiples with shared scales; keep to three or four variables per plot
         \item Facets by island reveal structure: Gentoo lives only on Biscoe and Chinstrap only on Dream, while Adelie is on all three, so island and species are entangled
-        \item Parallel coordinates draw one line per observation across standardised variables; species form bands (Gentoo: shallow bills, long flippers, high mass), but many lines overlap
+        % \item Parallel coordinates draw one line per observation across standardised variables; species form bands (Gentoo: shallow bills, long flippers, high mass), but many lines overlap
     \end{itemize}
 \end{frame}
 
@@ -343,7 +345,9 @@
     \end{center}
     \footnotesize
     \begin{itemize}
-        \item Plot against time first; look for trend, seasonality, changing variance, and breaks; the yearly mean rises from 126.7 to 476.2 thousand over 1949--1960
+        \item Plot against time first; look for trend, seasonality, changing variance, and breaks
+        \item Above is a time series and a seasonality plot of the `air passengers' dataset
+        \item The yearly mean rises from 126.7 to 476.2 thousand over 1949--1960
         \item Seasonal peak in July and August
     \end{itemize}
 \end{frame}

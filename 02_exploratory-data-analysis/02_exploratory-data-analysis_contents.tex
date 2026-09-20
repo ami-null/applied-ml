@@ -77,7 +77,7 @@
     \end{center}
     \footnotesize
     \begin{itemize}
-        \item The best cut (Ideal) has the lowest mean price, and the worst cut (Fair) is dearer than Good, Very Good, and Ideal
+        \item The best cut (Ideal) has the lowest mean price, and the worst cut (Fair) is more expensive than Good, Very Good, and Ideal
         \item Taken at face value, a better cut lowers the price, and a model using cut alone would learn exactly that
         \item The last column hints at the reason: Ideal stones are the smallest on average (0.70 carat) and Fair the largest (1.05)
     \end{itemize}
@@ -208,9 +208,10 @@
     \end{center}
     \footnotesize
     \begin{itemize}
-        \item \textbf{Boxplot:} box from $Q_1$ to $Q_3$ with the median line; whiskers reach the furthest points within $1.5\times\mathrm{IQR}$; points beyond are flagged (3,540 stones, 6.6\%, all expensive)
+        \item \textbf{Boxplot:} box from $Q_1$ to $Q_3$ with the median line; whiskers reach the furthest points within $1.5\times\mathrm{IQR}$; points beyond are flagged
         \begin{itemize}
-            \item Use to compare many groups side by side; it cannot show several peaks
+            \item Use to compare many groups side by side
+            \item It cannot show several peaks
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -224,7 +225,7 @@
     \begin{itemize}
         \item A frequency table lists the count and share of each level, and the bar chart is its picture
         \item Titanic, 891 passengers: 61.6\% died and 38.4\% survived; 55.1\% travelled third class; 64.8\% were male
-        \item Imbalance matters: predicting ``died'' for everyone is already 61.6\% accurate, a baseline any model must beat
+        % \item Imbalance matters: predicting ``died'' for everyone is already 61.6\% accurate, a baseline any model must beat
         \item Order nominal levels by frequency and ordinal ones naturally
     \end{itemize}
 \end{frame}
@@ -276,9 +277,9 @@
     \end{center}
     \footnotesize
     \begin{itemize}
-        \item Above is a scatterplot that shows the relationship between car weight and car milage using the `mtcars' dataset
+        \item Above is a scatterplot that shows the relationship between car weight and car mileage using the `mtcars' dataset
         \item The overall shape of the plot can tell us whether there is any association between the two variables
-        \item The correlation coefficeint is a numeric measure that quantifies the linear relationship between the two variables
+        \item The correlation coefficient is a numeric measure that quantifies the linear relationship between the two variables
     \end{itemize}
 \end{frame}
 
@@ -291,7 +292,6 @@
     \begin{itemize}
         \item Above are boxplots of body mass of different species of penguins
         \item Mean body mass: Adelie 3,701 g, Chinstrap 3,733 g, Gentoo 5,076 g; the first two are nearly equal, Gentoo is about 1.4 kg heavier
-        \item Mean $\pm$ 1.96 SE intervals (about $\pm$73, $\pm$91, $\pm$89 g) overlap for Adelie and Chinstrap; ANOVA gives $F(2,339)=343.6$, $\eta^2=0.67$: species explains 67\% of the variance
     \end{itemize}
 \end{frame}
 
@@ -330,8 +330,7 @@
     \footnotesize
     \begin{itemize}
         \item Extra variables can be encoded by colour (categorical), size or a colour gradient (numeric), shape, or faceting into small multiples with shared scales; keep to three or four variables per plot
-        \item Facets by island reveal structure: Gentoo lives only on Biscoe and Chinstrap only on Dream, while Adelie is on all three, so island and species are entangled
-        % \item Parallel coordinates draw one line per observation across standardised variables; species form bands (Gentoo: shallow bills, long flippers, high mass), but many lines overlap
+        \item Facets by island reveal that Gentoo lives only on Biscoe and Chinstrap only on Dream, while Adelie is on all three
     \end{itemize}
 \end{frame}
 
@@ -378,6 +377,5 @@
         \item Quality: outliers vs. artefacts, caps, codes
         \item Pairs: plots, correlations, groups, confounders
         \item Structure: time order, space, groups
-        \item Record findings and decisions in a script
     \end{enumerate}
 \end{frame}

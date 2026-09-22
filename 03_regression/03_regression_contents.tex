@@ -114,11 +114,17 @@
 \end{frame}
 
 
-\begin{frame}{OLS for simple regression: solving the normal equations}
+\begin{frame}[allowframebreaks]{OLS for simple regression: solving the normal equations}
     Write $S_{xx} = \sum_i (x^{(i)} - \bar{x})^2$ and $S_{xy} = \sum_i (x^{(i)} - \bar{x})(y^{(i)} - \bar{y})$.
     \begin{itemize}
         \item Dividing the first normal equation by $n$ gives $\bar{y} = \beta_0 + \beta_1 \bar{x}$, so $\hat\beta_0 = \bar{y} - \hat\beta_1 \bar{x}$
-        \item Substituting into the second gives $\sum_i x^{(i)} (y^{(i)} - \bar{y}) = \hat\beta_1 \sum_i x^{(i)} (x^{(i)} - \bar{x})$; the left side equals $S_{xy}$ and the right side $\hat\beta_1 S_{xx}$
+        \item Substituting into the second gives
+        \begin{align*}
+            \sum_i x^{(i)} (y^{(i)} - \bar{y}) &= \hat\beta_1 \sum_i x^{(i)} (x^{(i)} - \bar{x}) \\
+            \hat\beta_1 &= \frac{\sum_i x^{(i)} (y^{(i)} - \bar{y})}{\sum_i x^{(i)} (x^{(i)} - \bar{x})} \\
+            &= \frac{\sum_i (x^{(i)} - \bar{x}) (y^{(i)} - \bar{y})}{\sum_i (x^{(i)} - \bar{x})^2} \\
+            &= \frac{S_{xy}}{S_{xx}}
+        \end{align*}
     \end{itemize}
     \[
         \hat\beta_1 = \frac{S_{xy}}{S_{xx}} = \frac{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)\big(y^{(i)} - \bar{y}\big)}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \hat\beta_0 = \bar{y} - \hat\beta_1 \bar{x}

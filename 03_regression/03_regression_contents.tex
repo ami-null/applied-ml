@@ -197,7 +197,7 @@
     \begin{itemize}
         \item The errors $\varepsilon^{(i)}$ are unobserved, so $\sigma^2$ is estimated from the residuals $e^{(i)}$
         % \item The residuals are not free: they satisfy two linear constraints, $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$, so only $n-2$ of them can vary independently
-        \item It can be shown that $\mathbb{E}[\mathrm{RSS}] = (n-2)\sigma^2$, therefore, $\hat\sigma^2 = \mathrm{RSS}/(n-2)$ is an unbiased estimator of \(\sigma\)
+        \item It can be shown that $\mathbb{E}[\mathrm{RSS}] = (n-2)\sigma^2$, therefore, $\hat\sigma^2 = \mathrm{RSS}/(n-2)$ is an unbiased estimator of \(\sigma^2\)
         \item The residual standard error (RSE) is then given by \(\mathrm{RSE} = \sqrt{\mathrm{RSS}/(n-2)}\)
         \item Two parameters were estimated from the data, so two degrees of freedom are used up; with $p$ features the divisor becomes $n-p-1$
         \item Advertising, sales on TV: $\mathrm{RSS} = 2102.53$ and $n - 2 = 198$ give $\hat\sigma^2 = 10.62$ and $\mathrm{RSE} = 3.26$
@@ -530,30 +530,30 @@
 
 \begin{frame}{Prediction and its uncertainty}
     \begin{itemize}
-        \item For a new observation $\mathbf{x}_0 = (x_{0,1}, \dots, x_{0,p})^\top$, with $\tilde{\mathbf{x}}_0 = (1, x_{0,1}, \dots, x_{0,p})^\top$, the prediction is
+        \item For a new observation $\mathbf{x}^\ast = (x_1^\ast, \dots, x_p^\ast)^\top$ that is not in the training data, with $\tilde{\mathbf{x}}^\ast = (1, x_1^\ast, \dots, x_p^\ast)^\top$, the prediction is
     \end{itemize}
     \[
-        \hat{y}_0 = \hat\beta_0 + \hat\beta_1 x_{0,1} + \dots + \hat\beta_p x_{0,p} = \tilde{\mathbf{x}}_0^\top \hat{\symbf{\beta}}
+        \hat{y}^\ast = \hat\beta_0 + \hat\beta_1 x_1^\ast + \dots + \hat\beta_p x_p^\ast = (\tilde{\mathbf{x}}^\ast)^\top \hat{\symbf{\beta}}
     \]
     \begin{itemize}
-        \item Uncertainty from estimating the coefficients (reducible): $\hat{f}$ differs from the true $f$; the \textbf{confidence interval} covers the \emph{average} response $f(\mathbf{x}_0)$ over many observations with these features
+        \item Uncertainty from estimating the coefficients (reducible): $\hat{f}$ differs from the true $f$; the \textbf{confidence interval} covers the \emph{average} response $f(\mathbf{x}^\ast)$ over many observations with these features
         \item Model bias: a linear model is an approximation of reality; the intervals assume it is correct (checked with residual plots in the next lecture)
-        \item Irreducible error: a single response is $y_0 = f(\mathbf{x}_0) + \varepsilon$ even if $f$ were known; the \textbf{prediction interval} covers an \emph{individual} response and is always wider than the confidence interval
+        \item Irreducible error: a single response is $y^\ast = f(\mathbf{x}^\ast) + \varepsilon^\ast$ even if $f$ were known; the \textbf{prediction interval} covers an \emph{individual} response and is always wider than the confidence interval
     \end{itemize}
 \end{frame}
 
 
 \begin{frame}{Confidence and prediction intervals: formulas}
     \begin{itemize}
-        \item The variance of the prediction $\hat{y}_0 = \tilde{\mathbf{x}}_0^\top \hat{\symbf{\beta}}$ follows from $\mathrm{Cov}(\hat{\symbf{\beta}}) = \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}$:
+        \item The variance of the prediction $\hat{y}^\ast = (\tilde{\mathbf{x}}^\ast)^\top \hat{\symbf{\beta}}$ follows from $\mathrm{Cov}(\hat{\symbf{\beta}}) = \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}$:
     \end{itemize}
     \[
-        \mathrm{Var}(\hat{y}_0) = \sigma^2\, \tilde{\mathbf{x}}_0^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}_0
+        \mathrm{Var}(\hat{y}^\ast) = \sigma^2\, (\tilde{\mathbf{x}}^\ast)^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}^\ast
     \]
     \begin{itemize}
-        \item 95\% \textbf{confidence interval} for $f(\mathbf{x}_0)$: $\hat{y}_0 \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{\tilde{\mathbf{x}}_0^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}_0}$
-        \item 95\% \textbf{prediction interval} for $y_0$: $\hat{y}_0 \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{1 + \tilde{\mathbf{x}}_0^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}_0}$; the extra 1 under the root is the variance of the new error $\varepsilon$
-        \item The prediction interval never shrinks below $\pm t_{0.975}\, \hat\sigma$, however much data we have; the confidence interval shrinks to zero width as $n$ grows, and both are widest for $\mathbf{x}_0$ far from the centre of the data
+        \item 95\% \textbf{confidence interval} for $f(\mathbf{x}^\ast)$: $\hat{y}^\ast \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{(\tilde{\mathbf{x}}^\ast)^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}^\ast}$
+        \item 95\% \textbf{prediction interval} for $y^\ast$: $\hat{y}^\ast \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{1 + (\tilde{\mathbf{x}}^\ast)^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}^\ast}$; the extra 1 under the root is the variance of the new error $\varepsilon^\ast$
+        \item The prediction interval never shrinks below $\pm t_{0.975}\, \hat\sigma$, however much data we have; the confidence interval shrinks to zero width as $n$ grows, and both are widest for $\mathbf{x}^\ast$ far from the centre of the data
     \end{itemize}
 \end{frame}
 
@@ -562,9 +562,9 @@
     \begin{columns}[T]
         \begin{column}{0.55\textwidth}
             \begin{itemize}
-                \item Sales on TV at TV $= 100$: $\hat{y}_0 = 11.79$, 95\% CI $[11.27,\, 12.30]$, 95\% PI $[5.34,\, 18.23]$
-                \item The confidence band is narrowest at the mean TV budget and widens towards the edges; the prediction band stays wide because $\varepsilon$ dominates
-                \item Adding radio $= 20$ (TV + radio model): $\hat{y}_0 = 11.26$, CI $[10.99,\, 11.53]$, PI $[7.93,\, 14.58]$, narrower because RSE fell from 3.26 to 1.68
+                \item Sales on TV at TV $= 100$: $\hat{y}^\ast = 11.79$, 95\% CI $[11.27,\, 12.30]$, 95\% PI $[5.34,\, 18.23]$
+                \item The confidence band is narrowest at the mean TV budget and widens towards the edges; the prediction band stays wide because $\varepsilon^\ast$ dominates
+                \item Adding radio $= 20$ (TV + radio model): $\hat{y}^\ast = 11.26$, CI $[10.99,\, 11.53]$, PI $[7.93,\, 14.58]$, narrower because RSE fell from 3.26 to 1.68
             \end{itemize}
         \end{column}
         \begin{column}{0.43\textwidth}
@@ -733,6 +733,27 @@
         \item The interaction ($p = 0.249$) is not significant: no strong evidence that the income slopes differ between students and non-students
         \item $R^2 = 0.280$, $\mathrm{RSE} = 391.6$ on $396$ degrees of freedom; $F = 51.30$ on $(3, 396)$, $p < 0.0001$
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Notation compared with the ISLP book}
+    This slide index observations with a superscript and features with a subscript. The table maps this to the notation of ISLP (James et al.).
+    \begin{center}
+        \small
+        \begin{tabular}{lll}
+            \toprule
+            quantity & these notes & ISLP \\
+            \midrule
+            feature $j$ of observation $i$ & $x_j^{(i)}$ & $x_{ij}$ \\
+            feature vector of observation $i$ & $\mathbf{x}^{(i)}$ & $x_i$ \\
+            label of observation $i$ & $y^{(i)}$ & $y_i$ \\
+            residual of observation $i$ & $e^{(i)}$ & $e_i$ \\
+            feature matrix (no intercept column) & $\mathbf{X}$ & $\mathbf{X}$ \\
+            design matrix (with column of ones) & $\tilde{\mathbf{X}}$ & $\mathbf{X}$ \\
+            new observation & $\mathbf{x}^\ast$, $y^\ast$ & $x_0$, $y_0$ \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
 \end{frame}
 
 

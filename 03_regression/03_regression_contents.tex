@@ -162,33 +162,37 @@
 
 \begin{frame}{Mean and variance of the slope estimate}
     \begin{itemize}
-        \item $\hat\beta_1$ is a linear combination of the labels: $\hat\beta_1 = \sum_i w^{(i)} y^{(i)}$ with weights $w^{(i)} = (x^{(i)} - \bar{x})/S_{xx}$, since $\sum_i (x^{(i)} - \bar{x})\bar{y} = 0$
-        \item The weights satisfy $\sum_i w^{(i)} = 0$, $\sum_i w^{(i)} x^{(i)} = 1$ and $\sum_i (w^{(i)})^2 = 1/S_{xx}$
-        \item \textbf{Unbiased}: $\mathbb{E}[\hat\beta_1] = \sum_i w^{(i)} (\beta_0 + \beta_1 x^{(i)}) = \beta_0 \cdot 0 + \beta_1 \cdot 1 = \beta_1$
-        \item \textbf{Variance} (constant variance, uncorrelated errors): $\mathrm{Var}(\hat\beta_1) = \sum_i (w^{(i)})^2 \sigma^2 = \sigma^2 / S_{xx}$
-        \item \textbf{Gauss--Markov}: among all linear unbiased estimators of $\beta_1$, least squares has the smallest variance; with normal errors, $\hat\beta_1 \sim N(\beta_1, \sigma^2 / S_{xx})$ exactly
+        % \item $\hat\beta_1$ is a linear combination of the labels: $\hat\beta_1 = \sum_i w^{(i)} y^{(i)}$ with weights $w^{(i)} = (x^{(i)} - \bar{x})/S_{xx}$, since $\sum_i (x^{(i)} - \bar{x})\bar{y} = 0$
+        % \item The weights satisfy $\sum_i w^{(i)} = 0$, $\sum_i w^{(i)} x^{(i)} = 1$ and $\sum_i (w^{(i)})^2 = 1/S_{xx}$
+        % \item \textbf{Unbiased}: $\mathbb{E}[\hat\beta_1] = \sum_i w^{(i)} (\beta_0 + \beta_1 x^{(i)}) = \beta_0 \cdot 0 + \beta_1 \cdot 1 = \beta_1$
+        % \item \textbf{Variance} (constant variance, uncorrelated errors): $\mathrm{Var}(\hat\beta_1) = \sum_i (w^{(i)})^2 \sigma^2 = \sigma^2 / S_{xx}$
+        % \item \textbf{Gauss--Markov}: among all linear unbiased estimators of $\beta_1$, least squares has the smallest variance; with normal errors, $\hat\beta_1 \sim N(\beta_1, \sigma^2 / S_{xx})$ exactly
+        \item \textbf{Unbiased}: $\mathbb{E}[\hat\beta_1] = \beta_1$
+        \item \textbf{Variance}: $\mathrm{Var}(\hat\beta_1) = \sigma^2 / S_{xx}$
     \end{itemize}
 \end{frame}
 
 
-\begin{frame}{Standard errors of the coefficients}
+\begin{frame}{Variance of the estimators}
     \[
-        \mathrm{SE}(\hat\beta_1)^2 = \frac{\sigma^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \mathrm{SE}(\hat\beta_0)^2 = \sigma^2 \bigg[\frac{1}{n} + \frac{\bar{x}^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}\bigg]
+        \mathrm{V}(\hat\beta_1) = \frac{\sigma^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \mathrm{V}(\hat\beta_0) = \sigma^2 \bigg[\frac{1}{n} + \frac{\bar{x}^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}\bigg]
     \]
     \begin{itemize}
         \item Here $\sigma^2 = \mathrm{Var}(\varepsilon)$ is the variance of the errors; standard errors shrink with more data, less noise, and more spread-out $x^{(i)}$
-        \item $\sigma^2$ is unknown and is estimated from the residuals by $\mathrm{RSE}^2 = \mathrm{RSS}/(n-2)$; replacing $\sigma$ by RSE gives the estimated standard errors reported by software
-        \item These formulas assume the errors are uncorrelated with constant variance $\sigma^2$ (checked with residual plots in the next lecture)
-        \item Advertising, sales on TV: $\mathrm{SE}(\hat\beta_0) = 0.4578$ and $\mathrm{SE}(\hat\beta_1) = 0.0027$
+        \item $\sigma^2$ is unknown and is estimated from the residuals %by $\mathrm{RSE}^2 = \mathrm{RSS}/(n-2)$; replacing $\sigma$ by RSE gives the estimated standard errors reported by software
+        \item These formulas assume the errors are uncorrelated with constant variance $\sigma^2$ %(checked with residual plots in the next lecture)
+        % \item Advertising, sales on TV: $\mathrm{SE}(\hat\beta_0) = 0.4578$ and $\mathrm{SE}(\hat\beta_1) = 0.0027$
+        \item The standard error (SE) of the estimates are found taking the square roots of the variances
     \end{itemize}
 \end{frame}
 
 
-\begin{frame}{Estimating the error variance: why $n-2$?}
+\begin{frame}{Estimating the error variance}
     \begin{itemize}
         \item The errors $\varepsilon^{(i)}$ are unobserved, so $\sigma^2$ is estimated from the residuals $e^{(i)}$
-        \item The residuals are not free: they satisfy two linear constraints, $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$, so only $n-2$ of them can vary independently
-        \item As a result $\mathbb{E}[\mathrm{RSS}] = (n-2)\sigma^2$, and $\hat\sigma^2 = \mathrm{RSS}/(n-2) = \mathrm{RSE}^2$ is an unbiased estimator; dividing by $n$ would underestimate $\sigma^2$
+        % \item The residuals are not free: they satisfy two linear constraints, $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$, so only $n-2$ of them can vary independently
+        \item It can be shown that $\mathbb{E}[\mathrm{RSS}] = (n-2)\sigma^2$, therefore, $\hat\sigma^2 = \mathrm{RSS}/(n-2)$ is an unbiased estimator of \(\sigma\)
+        \item The residual standard error (RSE) is then given by \(\mathrm{RSE} = \sqrt{\mathrm{RSS}/(n-2)}\)
         \item Two parameters were estimated from the data, so two degrees of freedom are used up; with $p$ features the divisor becomes $n-p-1$
         \item Advertising, sales on TV: $\mathrm{RSS} = 2102.53$ and $n - 2 = 198$ give $\hat\sigma^2 = 10.62$ and $\mathrm{RSE} = 3.26$
     \end{itemize}

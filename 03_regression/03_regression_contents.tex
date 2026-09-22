@@ -188,7 +188,7 @@
         \item $\sigma^2$ is unknown and is estimated from the residuals %by $\mathrm{RSE}^2 = \mathrm{RSS}/(n-2)$; replacing $\sigma$ by RSE gives the estimated standard errors reported by software
         \item These formulas assume the errors are uncorrelated with constant variance $\sigma^2$ %(checked with residual plots in the next lecture)
         % \item Advertising, sales on TV: $\mathrm{SE}(\hat\beta_0) = 0.4578$ and $\mathrm{SE}(\hat\beta_1) = 0.0027$
-        \item The standard error (SE) of the estimates are found taking the square roots of the variances
+        \item The standard errors (SE) of the estimates are found taking the square roots of the variances
     \end{itemize}
 \end{frame}
 
@@ -290,8 +290,8 @@
     \begin{itemize}
         \item Degrees of freedom add up: total $n-1$ = regression $1$ + residual $n-2$; a mean square is a sum of squares divided by its df, so $\mathrm{MS}_{\text{res}} = \mathrm{RSE}^2 = 10.62$
         \item $F = \mathrm{MS}_{\text{reg}} / \mathrm{MS}_{\text{res}}$ tests $H_0\colon \beta_1 = 0$; with normal errors $F \sim F_{1,\, n-2}$ under $H_0$
-        \item Why it works: $\mathbb{E}[\mathrm{MS}_{\text{res}}] = \sigma^2$ and $\mathbb{E}[\mathrm{MS}_{\text{reg}}] = \sigma^2 + \beta_1^2 S_{xx}$, so $F$ is near 1 under $H_0$ and grows with $|\beta_1|$
-        \item In simple regression $F = t^2$: $17.67^2 = 312.14$, so the ANOVA test and the $t$-test give the same $p$-value
+        % \item Why it works: $\mathbb{E}[\mathrm{MS}_{\text{res}}] = \sigma^2$ and $\mathbb{E}[\mathrm{MS}_{\text{reg}}] = \sigma^2 + \beta_1^2 S_{xx}$, so $F$ is near 1 under $H_0$ and grows with $|\beta_1|$
+        % \item In simple regression $F = t^2$: $17.67^2 = 312.14$, so the ANOVA test and the $t$-test give the same $p$-value
     \end{itemize}
 \end{frame}
 

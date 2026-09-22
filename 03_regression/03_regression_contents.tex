@@ -114,10 +114,10 @@
 \end{frame}
 
 
-\begin{frame}[allowframebreaks]{OLS for simple regression: solving the normal equations}
-    Write $S_{xx} = \sum_i (x^{(i)} - \bar{x})^2$ and $S_{xy} = \sum_i (x^{(i)} - \bar{x})(y^{(i)} - \bar{y})$.
+\begin{frame}{OLS for simple regression: solving the normal equations}
+    % Write $S_{xx} = \sum_i (x^{(i)} - \bar{x})^2$ and $S_{xy} = \sum_i (x^{(i)} - \bar{x})(y^{(i)} - \bar{y})$.
     \begin{itemize}
-        \item Dividing the first normal equation by $n$ gives $\bar{y} = \beta_0 + \beta_1 \bar{x}$, so $\hat\beta_0 = \bar{y} - \hat\beta_1 \bar{x}$
+        \item Dividing the first normal equation by $n$ gives $\bar{y} = \beta_0 + \beta_1 \bar{x}$, so $\boxed{\hat\beta_0 = \bar{y} - \hat\beta_1 \bar{x}}$
         \item Substituting into the second gives
         \begin{align*}
             \sum_i x^{(i)} (y^{(i)} - \bar{y}) &= \hat\beta_1 \sum_i x^{(i)} (x^{(i)} - \bar{x}) \\
@@ -126,9 +126,9 @@
             &= \frac{S_{xy}}{S_{xx}}
         \end{align*}
     \end{itemize}
-    \[
-        \hat\beta_1 = \frac{S_{xy}}{S_{xx}} = \frac{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)\big(y^{(i)} - \bar{y}\big)}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \hat\beta_0 = \bar{y} - \hat\beta_1 \bar{x}
-    \]
+    % \[
+    %     \hat\beta_1 = \frac{S_{xy}}{S_{xx}} = \frac{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)\big(y^{(i)} - \bar{y}\big)}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \hat\beta_0 = \bar{y} - \hat\beta_1 \bar{x}
+    % \]
     % \begin{itemize}
     %     \item This is a minimum: the Hessian of RSS is $2 \begin{bmatrix} n & \sum_i x^{(i)} \\ \sum_i x^{(i)} & \sum_i (x^{(i)})^2 \end{bmatrix}$ with determinant $4 n S_{xx} > 0$ unless all $x^{(i)}$ are equal, so RSS is strictly convex and the solution is unique
     % \end{itemize}
@@ -358,12 +358,12 @@
     \[
         \hat{\symbf{\beta}} = \big(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}\big)^{-1} \tilde{\mathbf{X}}^\top \mathbf{y}
     \]
-    \begin{itemize}
-        \item Invertible $\Leftrightarrow$ the $p+1$ columns of $\tilde{\mathbf{X}}$ are linearly independent: this needs $n \ge p+1$ and no feature that is an exact linear combination of the others
-        \item It is a minimum: the Hessian $2\, \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}$ is positive definite, since $\mathbf{v}^\top \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} \mathbf{v} = \|\tilde{\mathbf{X}} \mathbf{v}\|^2 > 0$ for every $\mathbf{v} \neq \mathbf{0}$
+    % \begin{itemize}
+        % \item Invertible $\Leftrightarrow$ the $p+1$ columns of $\tilde{\mathbf{X}}$ are linearly independent: this needs $n \ge p+1$ and no feature that is an exact linear combination of the others
+        % \item It is a minimum: the Hessian $2\, \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}$ is positive definite, since $\mathbf{v}^\top \tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} \mathbf{v} = \|\tilde{\mathbf{X}} \mathbf{v}\|^2 > 0$ for every $\mathbf{v} \neq \mathbf{0}$
         % \item Check with $p = 1$: $\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}} = \begin{bmatrix} n & \sum_i x^{(i)} \\ \sum_i x^{(i)} & \sum_i (x^{(i)})^2 \end{bmatrix}$ and $\tilde{\mathbf{X}}^\top \mathbf{y} = \begin{bmatrix} \sum_i y^{(i)} \\ \sum_i x^{(i)} y^{(i)} \end{bmatrix}$ are exactly the simple regression normal equations
         % \item Software solves the normal equations with a QR or SVD decomposition rather than an explicit inverse, which is numerically more stable
-    \end{itemize}
+    % \end{itemize}
 \end{frame}
 
 
@@ -406,7 +406,7 @@
         \mathrm{Cov}(\hat{\symbf{\beta}}) = (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top (\sigma^2 \mathbf{I}) \tilde{\mathbf{X}} (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} = \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}
     \]
     \begin{itemize}
-        \item With normal errors $\hat{\symbf{\beta}} \sim N\big(\symbf{\beta}, \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}\big)$; $\mathrm{SE}(\hat\beta_j) = \hat\sigma \sqrt{[(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}]_{jj}}$ with $\hat\sigma^2 = \mathrm{RSS}/(n-p-1)$, and $t_j = \hat\beta_j / \mathrm{SE}(\hat\beta_j) \sim t_{n-p-1}$ under $H_0\colon \beta_j = 0$
+        \item If errors follow the normal distribution, then $\hat{\symbf{\beta}} \sim N\big(\symbf{\beta}, \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}\big)$; $\mathrm{SE}(\hat\beta_j) = \hat\sigma \sqrt{[(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}]_{jj}}$ with $\hat\sigma^2 = \mathrm{RSS}/(n-p-1)$, and $t_j = \hat\beta_j / \mathrm{SE}(\hat\beta_j) \sim t_{n-p-1}$ under $H_0\colon \beta_j = 0$
     \end{itemize}
 \end{frame}
 
@@ -742,15 +742,15 @@
         \small
         \begin{tabular}{lll}
             \toprule
-            quantity & these notes & ISLP \\
+            Quantity & This lecture & ISLP \\
             \midrule
-            feature $j$ of observation $i$ & $x_j^{(i)}$ & $x_{ij}$ \\
-            feature vector of observation $i$ & $\mathbf{x}^{(i)}$ & $x_i$ \\
-            label of observation $i$ & $y^{(i)}$ & $y_i$ \\
-            residual of observation $i$ & $e^{(i)}$ & $e_i$ \\
-            feature matrix (no intercept column) & $\mathbf{X}$ & $\mathbf{X}$ \\
-            design matrix (with column of ones) & $\tilde{\mathbf{X}}$ & $\mathbf{X}$ \\
-            new observation & $\mathbf{x}^\ast$, $y^\ast$ & $x_0$, $y_0$ \\
+            Feature $j$ of observation $i$ & $x_j^{(i)}$ & $x_{ij}$ \\
+            Feature vector of observation $i$ & $\mathbf{x}^{(i)}$ & $x_i$ \\
+            Label of observation $i$ & $y^{(i)}$ & $y_i$ \\
+            Residual of observation $i$ & $e^{(i)}$ & $e_i$ \\
+            Feature matrix (no intercept column) & $\mathbf{X}$ & $\mathbf{X}$ \\
+            Design matrix (with column of ones) & $\tilde{\mathbf{X}}$ & $\mathbf{X}$ \\
+            New observation & $\mathbf{x}^\ast$, $y^\ast$ & $x_0$, $y_0$ \\
             \bottomrule
         \end{tabular}
     \end{center}

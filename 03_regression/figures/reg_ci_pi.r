@@ -23,7 +23,7 @@ p <- ggplot(ad, aes(TV, Sales)) +
                               fill = "steelblue", alpha = 0.45) +
     geom_point(size = 0.5, colour = "grey30") +
     geom_line(data = conf_band, aes(TV, fit), inherit.aes = FALSE, colour = "red", linewidth = 0.6) +
-    labs(title = "95confidence and prediction bands",
+    labs(title = "95% CI and PI bands",
          x = "TV budget (thousands of dollars)", y = "sales (thousands of units)")
 
 p

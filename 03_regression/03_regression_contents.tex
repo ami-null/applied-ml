@@ -136,22 +136,22 @@
 \end{frame}
 
 
-\begin{frame}{Properties of the least squares line}
-    \begin{itemize}
-        \item The line passes through the point of means $(\bar{x}, \bar{y})$, by the first normal equation; Advertising: $7.033 + 0.04754 \times 147.04 = 14.02 = \bar{y}$
-        \item The normal equations say $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$: the residuals sum to zero and are orthogonal to the feature; consequently $\sum_i \hat{y}^{(i)} e^{(i)} = 0$ and the fitted values have mean $\bar{y}$
-        \item The slope is the correlation rescaled: $\hat\beta_1 = r\, s_y / s_x$, where $r$ is the sample correlation and $s_x, s_y$ are the sample standard deviations; Advertising: $0.7822 \times 5.217 / 85.85 = 0.0475$
-        \item Since $|r| \le 1$, a one-standard-deviation increase in $x$ goes with an increase of only $r$ standard deviations in $\hat{y}$: the origin of the name \emph{regression} (towards the mean)
-    \end{itemize}
-\end{frame}
-
-
 \begin{frame}{Interpreting the coefficients}
     \begin{itemize}
         \item Fitted line for the Advertising data: $\widehat{\text{sales}} = 7.03 + 0.0475 \times \text{TV}$ (sales in thousands of units, TV budget in thousands of dollars)
         \item $\hat\beta_1 = 0.0475$: an additional \$1,000 of TV budget is associated with about $0.0475 \times 1000 = 47.5$ additional units sold
         \item $\hat\beta_0 = 7.03$: about 7,030 units are predicted when the TV budget is zero; the smallest TV budget in the data is \$700, so the intercept sits at the edge of the data
         \item The fit describes association in the observed markets; a causal reading needs more than a fitted line, because budgets were not assigned at random
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Properties of the least squares line}
+    \begin{itemize}
+        \item The line passes through the point of means $(\bar{x}, \bar{y})$, by the first normal equation; Advertising: $7.033 + 0.04754 \times 147.04 = 14.02 = \bar{y}$
+        \item The normal equations say $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$: the residuals sum to zero and are orthogonal to the feature; consequently $\sum_i \hat{y}^{(i)} e^{(i)} = 0$ and the fitted values have mean $\bar{y}$
+        \item The slope is the correlation rescaled: $\hat\beta_1 = r\, s_y / s_x$, where $r$ is the sample correlation and $s_x, s_y$ are the sample standard deviations; Advertising: $0.7822 \times 5.217 / 85.85 = 0.0475$
+        \item Since $|r| \le 1$, a one-standard-deviation increase in $x$ goes with an increase of only $r$ standard deviations in $\hat{y}$: the origin of the name \emph{regression} (towards the mean)
     \end{itemize}
 \end{frame}
 
@@ -185,7 +185,7 @@
         \mathrm{V}(\hat\beta_1) = \frac{\sigma^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \mathrm{V}(\hat\beta_0) = \sigma^2 \bigg[\frac{1}{n} + \frac{\bar{x}^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}\bigg]
     \]
     \begin{itemize}
-        \item Here $\sigma^2 = \mathrm{Var}(\varepsilon)$ is the variance of the errors; standard errors shrink with more data, less noise, and more spread-out $x^{(i)}$
+        \item Here $\sigma^2 = \mathrm{Var}(\varepsilon)$ is the variance of the errors%; standard errors shrink with more data, less noise, and more spread-out $x^{(i)}$
         \item $\sigma^2$ is unknown and is estimated from the residuals %by $\mathrm{RSE}^2 = \mathrm{RSS}/(n-2)$; replacing $\sigma$ by RSE gives the estimated standard errors reported by software
         \item These formulas assume the errors are uncorrelated with constant variance $\sigma^2$ %(checked with residual plots in the next lecture)
         % \item Advertising, sales on TV: $\mathrm{SE}(\hat\beta_0) = 0.4578$ and $\mathrm{SE}(\hat\beta_1) = 0.0027$
@@ -198,9 +198,9 @@
     \begin{itemize}
         \item The errors $\varepsilon^{(i)}$ are unobserved, so $\sigma^2$ is estimated from the residuals $e^{(i)}$
         % \item The residuals are not free: they satisfy two linear constraints, $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$, so only $n-2$ of them can vary independently
-        \item Recall: \(\mathrm{RSS} = \sum_{i=1}^{n} \big(e^{(i)}\big)^2 = \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2\)
-        \item It can be shown that $\mathbb{E}[\mathrm{RSS}] = (n-2)\sigma^2$, therefore, $\boxed{\hat\sigma^2 = \mathrm{RSS}/(n-2) = \mathrm{MSE}}$ is an unbiased estimator of \(\sigma^2\) (here, MSE means mean squared error)
-        \item The residual standard error (RSE) is then given by \(\mathrm{RSE} = \sqrt{\mathrm{RSS}/(n-2)}\)
+        \item An unbiased estimator of \(\sigma^2\) is given by the Mean Squared Error, $\mathrm{MSE} = \boxed{\hat\sigma^2 = \mathrm{RSS}/(n-2)}$
+        \item Recall, Residual Sum of Squares, \(\mathrm{RSS} = \sum_{i=1}^{n} \big(e^{(i)}\big)^2 = \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2\)
+        \item The residual standard error (RSE) is then given by \(\mathrm{RSE} = \sqrt{MSE} = \sqrt{\mathrm{RSS}/(n-2)}\)
         \item Two parameters were estimated from the data, so two degrees of freedom are used up; with $p$ features the divisor becomes $n-p-1$
         \item Advertising, sales on TV: $\mathrm{RSS} = 2102.53$ and $n - 2 = 198$ give $\hat\sigma^2 = 10.62$ and $\mathrm{RSE} = 3.26$
     \end{itemize}

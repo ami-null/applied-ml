@@ -19,7 +19,8 @@
     \end{center}
     \begin{itemize}
         \item Each row is one \textbf{observation} (a market): $n = 200$ observations
-        \item The columns TV, radio, newspaper are the \textbf{features} (predictors, inputs, independent variables): $p = 3$, budgets in thousands of dollars
+        \item The columns TV, radio, newspaper are the \textbf{features} (predictors, inputs, independent variables): budgets in thousands of dollars
+        \item Number of columns/features/predictors:  $p = 3$
         \item The column sales is the \textbf{label} (response, output, target, dependent variable): what we want to predict, in thousands of units
     \end{itemize}
 \end{frame}
@@ -197,7 +198,8 @@
     \begin{itemize}
         \item The errors $\varepsilon^{(i)}$ are unobserved, so $\sigma^2$ is estimated from the residuals $e^{(i)}$
         % \item The residuals are not free: they satisfy two linear constraints, $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$, so only $n-2$ of them can vary independently
-        \item It can be shown that $\mathbb{E}[\mathrm{RSS}] = (n-2)\sigma^2$, therefore, $\hat\sigma^2 = \mathrm{RSS}/(n-2)$ is an unbiased estimator of \(\sigma^2\)
+        \item Recall: \(\mathrm{RSS} = \sum_{i=1}^{n} \big(e^{(i)}\big)^2 = \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2\)
+        \item It can be shown that $\mathbb{E}[\mathrm{RSS}] = (n-2)\sigma^2$, therefore, $\boxed{\hat\sigma^2 = \mathrm{RSS}/(n-2) = \mathrm{MSE}}$ is an unbiased estimator of \(\sigma^2\) (here, MSE means mean squared error)
         \item The residual standard error (RSE) is then given by \(\mathrm{RSE} = \sqrt{\mathrm{RSS}/(n-2)}\)
         \item Two parameters were estimated from the data, so two degrees of freedom are used up; with $p$ features the divisor becomes $n-p-1$
         \item Advertising, sales on TV: $\mathrm{RSS} = 2102.53$ and $n - 2 = 198$ give $\hat\sigma^2 = 10.62$ and $\mathrm{RSE} = 3.26$
@@ -205,9 +207,16 @@
 \end{frame}
 
 
+\begin{frame}{Standard Error of the estimators}
+    \[
+        \mathrm{SE}(\hat\beta_1) = \sqrt{\frac{\mathrm{MSE}}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}}, \qquad \mathrm{SE}(\hat\beta_0) = \sqrt{\mathrm{MSE} \bigg[\frac{1}{n} + \frac{\bar{x}^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}\bigg]}
+    \]
+\end{frame}
+
+
 \begin{frame}{Confidence intervals and hypothesis tests (recap)}
     \begin{itemize}
-        \item \textbf{95\% confidence interval} for $\beta_1$: approximately $\hat\beta_1 \pm 2 \cdot \mathrm{SE}(\hat\beta_1)$ (exactly, the $0.975$ quantile of the $t_{n-2}$ distribution replaces 2)
+        \item \textbf{95\% confidence interval} for $\beta_1$: approximately $\hat\beta_1 \pm t_{n-2,\frac{\alpha}{2}} \cdot \mathrm{SE}(\hat\beta_1)$
         \item \textbf{Hypothesis test}: $H_0\colon \beta_1 = 0$ (no relationship) against $H_a\colon \beta_1 \neq 0$, using $t = \hat\beta_1 / \mathrm{SE}(\hat\beta_1)$, which follows a $t_{n-2}$ distribution if $H_0$ is true
         \item The \textbf{$p$-value} is the probability of a $|t|$ at least this large if $H_0$ were true; a small $p$-value (say below 0.05) is evidence against $H_0$
         \item Advertising, sales on TV: 95\% confidence interval for $\beta_1$ is $[0.0422,\, 0.0528]$

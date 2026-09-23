@@ -585,7 +585,7 @@
 \end{frame}
 
 
-\section{Qualitative Predictors and Interactions}
+\section{Qualitative Predictors}
 
 
 \begin{frame}{Qualitative features: dummy variables}
@@ -648,7 +648,7 @@
         \end{tabular}
     \end{center}
     \begin{itemize}
-        \item Regression on the $k-1$ dummy variables reproduces \textbf{one-way ANOVA}: the regression sum of squares is the between-group sum of squares and the residual sum of squares is the within-group sum of squares
+        \item Regression on the $k-1$ dummy variables reproduces \textbf{one-way ANOVA}: the regression sum of squares is the between-group sum of squares and the residual sum of squares is the within-group sum of squares (ANOVA means analysis of variance)
         \item The $F$-test of $H_0\colon \beta_1 = \beta_2 = 0$ is the test that all group means are equal; it does not depend on which level is the baseline
         \item Credit: the group means (531.0, 512.3, 518.5) differ far less than the person-to-person variation within groups, so $F = 0.043$ and $R^2 = 18454/84339912 \approx 0.0002$
     \end{itemize}

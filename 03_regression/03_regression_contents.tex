@@ -546,8 +546,8 @@
     \]
     \begin{itemize}
         \item Uncertainty from estimating the coefficients (reducible): $\hat{f}$ differs from the true $f$; the \textbf{confidence interval} covers the \emph{average} response $f(\mathbf{x}^\ast)$ over many observations with these features
-        \item Model bias: a linear model is an approximation of reality; the intervals assume it is correct (checked with residual plots in the next lecture)
         \item Irreducible error: a single response is $y^\ast = f(\mathbf{x}^\ast) + \varepsilon^\ast$ even if $f$ were known; the \textbf{prediction interval} covers an \emph{individual} response and is always wider than the confidence interval
+        \item Model bias: a linear model is an approximation of reality; the intervals assume it is correct (checked with residual plots in the next lecture)
     \end{itemize}
 \end{frame}
 
@@ -562,7 +562,22 @@
     \begin{itemize}
         \item 95\% \textbf{confidence interval} for $f(\mathbf{x}^\ast)$: $\hat{y}^\ast \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{(\tilde{\mathbf{x}}^\ast)^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}^\ast}$
         \item 95\% \textbf{prediction interval} for $y^\ast$: $\hat{y}^\ast \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{1 + (\tilde{\mathbf{x}}^\ast)^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}^\ast}$; the extra 1 under the root is the variance of the new error $\varepsilon^\ast$
-        \item The prediction interval never shrinks below $\pm t_{0.975}\, \hat\sigma$, however much data we have; the confidence interval shrinks to zero width as $n$ grows, and both are widest for $\mathbf{x}^\ast$ far from the centre of the data
+        % \item The prediction interval never shrinks below $\pm t_{0.975}\, \hat\sigma$, however much data we have; the confidence interval shrinks to zero width as $n$ grows, and both are widest for $\mathbf{x}^\ast$ far from the centre of the data
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Confidence and prediction intervals: simple regression}
+    \begin{itemize}
+        \item For a new feature value $x^\ast$, the prediction is $\hat{y}^\ast = \hat\beta_0 + \hat\beta_1 x^\ast$, with variance
+    \end{itemize}
+    \[
+        \mathrm{Var}(\hat{y}^\ast) = \sigma^2 \bigg[\frac{1}{n} + \frac{(x^\ast - \bar{x})^2}{S_{xx}}\bigg], \qquad S_{xx} = \sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2
+    \]
+    \begin{itemize}
+        \item 95\% \textbf{confidence interval} for $f(x^\ast) = \beta_0 + \beta_1 x^\ast$: $\hat{y}^\ast \pm t_{0.975,\, n-2}\, \hat\sigma \sqrt{\dfrac{1}{n} + \dfrac{(x^\ast - \bar{x})^2}{S_{xx}}}$
+        \item 95\% \textbf{prediction interval} for $y^\ast$: $\hat{y}^\ast \pm t_{0.975,\, n-2}\, \hat\sigma \sqrt{1 + \dfrac{1}{n} + \dfrac{(x^\ast - \bar{x})^2}{S_{xx}}}$
+        \item Both are narrowest at $x^\ast = \bar{x}$ and widen as $x^\ast$ moves away from it; this is the special case $p = 1$ of the general formulas
     \end{itemize}
 \end{frame}
 

@@ -168,19 +168,19 @@
 
 \begin{frame}{Diagnostic checklist}
     \begin{center}
-        \small
+        \footnotesize
         \renewcommand{\arraystretch}{1.1}
         \setlength{\tabcolsep}{4pt}
-        \begin{tabular}{lll}
+        \begin{tabular}{llp{5cm}}
             \toprule
-            problem & symptom & remedy \\
+            Problem & Symptom & Remedy \\
             \midrule
-            non-linearity & curve in residuals vs fitted & transform features, interactions \\
-            correlated errors & tracking of residuals over time & time-series or mixed models \\
-            non-constant variance & funnel in residuals vs fitted & transform $y$, weighted least squares \\
-            outliers & $|r^{(i)}| > 3$ & investigate, fix or remove errors \\
-            high leverage & $h^{(i)}$ far above $(p+1)/n$ & check the point, refit without it \\
-            collinearity & VIF above 5 or 10 & drop or combine features \\
+            Non-linearity & Curve in residuals vs fitted & Transform features, interactions \\
+            Correlated errors & Tracking of residuals over time & Time-series or mixed models \\
+            Non-constant variance & Funnel in residuals vs fitted & Transform $y$, weighted least squares \\
+            Outliers & $|r^{(i)}| > 3$ & Investigate, fix or remove errors \\
+            High leverage & $h^{(i)}$ far above $(p+1)/n$ & Check the point, refit without it \\
+            Collinearity & VIF above 5 or 10 & Drop or combine features \\
             \bottomrule
         \end{tabular}
     \end{center}
@@ -195,18 +195,18 @@
 
 \begin{frame}{Measures of the quality of fit}
     \begin{center}
-        \small
+        \footnotesize
         \renewcommand{\arraystretch}{1.05}
         \begin{tabular}{lll}
             \toprule
             measure & definition & comment \\
             \midrule
-            MSE & $\frac{1}{n} \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2 = \mathrm{RSS}/n$ & squared units of $y$ \\
-            RMSE & $\sqrt{\mathrm{MSE}}$ & units of $y$ \\
-            MAE & $\frac{1}{n} \sum_{i=1}^{n} \big|y^{(i)} - \hat{y}^{(i)}\big|$ & units of $y$, less sensitive to outliers \\
-            RSE & $\sqrt{\mathrm{RSS}/(n-p-1)}$ & units of $y$, estimates $\sigma$ \\
-            $R^2$ & $1 - \mathrm{RSS}/\mathrm{TSS}$ & unit-free, never falls with more features \\
-            adjusted $R^2$ & $1 - \dfrac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$ & unit-free, penalizes each added feature \\
+            MSE & $\frac{1}{n} \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2 = \mathrm{RSS}/n$ & Squared units of $y$ \\
+            RMSE & $\sqrt{\mathrm{MSE}}$ & Units of $y$ \\
+            MAE & $\frac{1}{n} \sum_{i=1}^{n} \big|y^{(i)} - \hat{y}^{(i)}\big|$ & Units of $y$, less sensitive to outliers \\
+            RSE & $\sqrt{\mathrm{RSS}/(n-p-1)}$ & Units of $y$, estimates $\sigma$ \\
+            $R^2$ & $1 - \mathrm{RSS}/\mathrm{TSS}$ & Unit-free, never falls with more features \\
+            Adjusted $R^2$ & $1 - \dfrac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$ & Unit-free, penalizes each added feature \\
             \bottomrule
         \end{tabular}
     \end{center}

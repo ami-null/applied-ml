@@ -1,0 +1,272 @@
+\section{Classification Methods}
+
+
+\subsection{Classification Problems and Decision Boundaries}
+
+
+\begin{frame}{The Classification Problem}
+    \begin{itemize}
+        \item The response $y^{(i)}$ is qualitative: it takes one of $K$ classes, $y^{(i)} \in \{1, \dots, K\}$, or $y^{(i)} \in \{0, 1\}$ when $K = 2$.
+        \item Training data: $\{(\mathbf{x}^{(i)}, y^{(i)})\}_{i=1}^{n}$ with feature vectors $\mathbf{x}^{(i)} = (x_1^{(i)}, \dots, x_p^{(i)})^\top \in \mathbb{R}^p$.
+        \item Goal: learn a classifier $f : \mathbb{R}^p \to \{1, \dots, K\}$ such that $\hat{y}_0 = f(\mathbf{x}_0)$ is correct for a new observation $\mathbf{x}_0$.
+        \item Examples: spam vs.\ not spam, loan default, land-cover class from spectral bands, disease present vs.\ absent.
+        \item Regression predicts a quantitative response; classification predicts a category, usually through an estimated probability for each class.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Why Not Linear Regression?}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \begin{sitemize}
+                \item Coding a binary response as $y^{(i)} \in \{0, 1\}$ and fitting $\hat{y} = \hat{\beta}_0 + \hat{\symbf{\beta}}^\top \mathbf{x}$ gives fitted values that are not confined to $[0, 1]$, so they are not valid probabilities.
+                \item For $K > 2$, coding the classes as $1, 2, 3, \dots$ imposes an ordering and equal spacing that the classes do not have.
+                \item We need a model whose output always lies in $[0, 1]$.
+            \end{sitemize}
+        \end{column}
+        \begin{column}{0.52\textwidth}
+            \includegraphics[width=\linewidth,height=4.6cm,keepaspectratio]{figures/cls_linear_vs_logistic}
+            \par{\scriptsize \texttt{Default} data: the linear fit is negative for small balances, the logistic fit stays in $[0, 1]$.}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+
+\begin{frame}{Classifiers Estimate Class Probabilities}
+    \begin{itemize}
+        \item Conditional class probability: $p_k(\mathbf{x}) = P(y = k \mid \mathbf{x})$ for $k = 1, \dots, K$, with $\sum_{k=1}^{K} p_k(\mathbf{x}) = 1$.
+        \item Bayes classifier: assign $\mathbf{x}$ to the most probable class, $f^*(\mathbf{x}) = \arg\max_{k}\, p_k(\mathbf{x})$.
+        \item Error rate on $n$ observations: $\frac{1}{n} \sum_{i=1}^{n} \mathbb{1}\{y^{(i)} \neq \hat{y}^{(i)}\}$.
+        \item The Bayes classifier has the smallest possible expected error rate, the Bayes error rate $1 - \mathbb{E}_{\mathbf{x}}\!\left[\max_k p_k(\mathbf{x})\right]$, but it cannot be used in practice because $p_k(\mathbf{x})$ is unknown.
+        \item Practical classifiers approximate $p_k(\mathbf{x})$: logistic regression with a parametric function, k-NN with class proportions among nearby training points.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Decision Boundaries}
+    \begin{sitemize}
+        \item A classifier splits the feature space $\mathbb{R}^p$ into regions $R_k = \{\mathbf{x} : f(\mathbf{x}) = k\}$; the decision boundary is where regions meet.
+        \item For two classes, the Bayes decision boundary is $\{\mathbf{x} : p_1(\mathbf{x}) = 0.5\}$.
+        \item A linear boundary is a hyperplane, $\beta_0 + \symbf{\beta}^\top \mathbf{x} = 0$; a nonlinear boundary is curved.
+    \end{sitemize}
+    \begin{center}
+        \includegraphics[height=3.4cm]{figures/cls_boundaries_linear_nonlinear}
+    \end{center}
+\end{frame}
+
+
+\subsection{Logistic Regression}
+
+
+\begin{frame}{The Logistic Regression Model}
+    \begin{itemize}
+        \item Binary response $y^{(i)} \in \{0, 1\}$; model the probability $p(\mathbf{x}) = P(y = 1 \mid \mathbf{x})$.
+        \item Pass a linear score through the logistic (sigmoid) function $\sigma(z) = 1 / (1 + e^{-z})$:
+        \[
+            p(\mathbf{x}) = \sigma(\beta_0 + \symbf{\beta}^\top \mathbf{x}) = \frac{1}{1 + e^{-(\beta_0 + \symbf{\beta}^\top \mathbf{x})}}, \qquad \symbf{\beta} = (\beta_1, \dots, \beta_p)^\top.
+        \]
+        \item Properties: $\sigma(z) \in (0, 1)$, $\sigma(0) = 0.5$, $\sigma$ is increasing, and $\sigma(-z) = 1 - \sigma(z)$.
+        \item Fitted probabilities $\hat{p}(\mathbf{x})$ are always valid, and the fitted curve is S-shaped rather than a straight line.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Odds and Log-Odds}
+\begin{itemize}
+    \item Odds: $\dfrac{p(\mathbf{x})}{1 - p(\mathbf{x})} \in (0, \infty)$; for example $p = 0.8$ gives odds of $4$ (four to one in favour of $y = 1$).
+    \item Rearranging the model, the log-odds (logit) is linear in $\mathbf{x}$:
+    \[
+        \log \frac{p(\mathbf{x})}{1 - p(\mathbf{x})} = \beta_0 + \symbf{\beta}^\top \mathbf{x}.
+    \]
+    \item Increasing $x_j$ by one unit with the other features fixed adds $\beta_j$ to the log-odds, i.e.\ multiplies the odds by $e^{\beta_j}$.
+    \item The change in $p(\mathbf{x})$ itself is not constant: it depends on where on the S-curve $\mathbf{x}$ currently sits.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Estimation: Maximum Likelihood}
+\begin{itemize}
+    \item Model $y^{(i)} \mid \mathbf{x}^{(i)} \sim \text{Bernoulli}(p^{(i)})$ with $p^{(i)} = p(\mathbf{x}^{(i)})$, observations independent.
+    \item Log-likelihood:
+    \[
+        \ell(\beta_0, \symbf{\beta}) = \sum_{i=1}^{n} \Big[ y^{(i)} \log p^{(i)} + \big(1 - y^{(i)}\big) \log \big(1 - p^{(i)}\big) \Big].
+    \]
+    \item Maximizing $\ell$ is the same as minimizing the cross-entropy loss $-\ell / n$.
+    \item No closed-form solution, unlike least squares: the maximum is found iteratively by Newton--Raphson (IRLS), which is what \texttt{glm()} in R uses.
+    \item Let $\tilde{\mathbf{x}}^{(i)} = (1, \mathbf{x}^{(i)\top})^\top$, $\tilde{\symbf{\beta}} = (\beta_0, \symbf{\beta}^\top)^\top$, and $\tilde{\mathbf{X}} \in \mathbb{R}^{n \times (p+1)}$ with rows $\tilde{\mathbf{x}}^{(i)\top}$. The gradient is $\nabla \ell(\tilde{\symbf{\beta}}) = \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p})$, with $\mathbf{y} = (y^{(i)})_{i=1}^n$ and $\mathbf{p} = (p^{(i)})_{i=1}^n$.
+\end{itemize}
+\dual{}{
+\paragraph{Derivation of the gradient and the Newton step.}
+Let $z^{(i)} = \tilde{\symbf{\beta}}^\top \tilde{\mathbf{x}}^{(i)}$, so $p^{(i)} = \sigma(z^{(i)})$ and $\sigma'(z) = \sigma(z)\big(1 - \sigma(z)\big)$. The contribution of observation $i$ to $\ell$ is $\ell^{(i)} = y^{(i)} \log p^{(i)} + (1 - y^{(i)}) \log (1 - p^{(i)})$, and
+\[
+    \frac{\partial \ell^{(i)}}{\partial z^{(i)}} = \Big( \frac{y^{(i)}}{p^{(i)}} - \frac{1 - y^{(i)}}{1 - p^{(i)}} \Big) p^{(i)} \big(1 - p^{(i)}\big) = y^{(i)} - p^{(i)}.
+\]
+By the chain rule, $\partial \ell^{(i)} / \partial \tilde{\symbf{\beta}} = (y^{(i)} - p^{(i)}) \tilde{\mathbf{x}}^{(i)}$, and summing over $i$ gives $\nabla \ell(\tilde{\symbf{\beta}}) = \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p})$. Differentiating once more gives the Hessian $-\tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}}$ with $\mathbf{W} = \operatorname{diag}\big(p^{(i)} (1 - p^{(i)})\big)$, which is negative definite when $\tilde{\mathbf{X}}$ has full column rank, so $\ell$ is strictly concave. Newton--Raphson therefore iterates
+\[
+    \tilde{\symbf{\beta}}^{\text{new}} = \tilde{\symbf{\beta}} + \big( \tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}} \big)^{-1} \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p}),
+\]
+which equals a weighted least-squares fit with weights $\mathbf{W}$ and working response $\tilde{\mathbf{X}} \tilde{\symbf{\beta}} + \mathbf{W}^{-1} (\mathbf{y} - \mathbf{p})$; this is why the algorithm is called iteratively reweighted least squares (IRLS).
+}
+\end{frame}
+
+\begin{frame}{Predictions and the Decision Boundary}
+\begin{columns}[T]
+\begin{column}{0.56\textwidth}
+\begin{itemize}
+    \item Predict $\hat{y} = 1$ if $\hat{p}(\mathbf{x}) > \tau$, else $\hat{y} = 0$; the default is $\tau = 0.5$.
+    \item For $\tau = 0.5$, $\hat{y} = 1 \iff \hat{\beta}_0 + \hat{\symbf{\beta}}^\top \mathbf{x} > 0$, so the boundary $\hat{\beta}_0 + \hat{\symbf{\beta}}^\top \mathbf{x} = 0$ is a hyperplane.
+    \item Logistic regression is a linear classifier, although $p(\mathbf{x})$ is nonlinear in $\mathbf{x}$.
+    \item Another $\tau$ gives $\hat{\beta}_0 + \hat{\symbf{\beta}}^\top \mathbf{x} = \log \frac{\tau}{1 - \tau}$, a parallel hyperplane.
+\end{itemize}
+\end{column}
+\begin{column}{0.44\textwidth}
+\includegraphics[width=\linewidth,height=4.8cm,keepaspectratio]{figures/cls_logistic_boundary}
+\par{\scriptsize Black: $\hat{p} = 0.5$; grey: $0.1, 0.3, 0.7, 0.9$.}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Worked Example: Default Data}
+\begin{itemize}
+    \item \texttt{Default}: $10{,}000$ credit card customers, response \texttt{default} ($333$ defaults), predictors \texttt{balance}, \texttt{income}, \texttt{student}.
+    \item Fit: \texttt{glm(default \textasciitilde{} balance, data = Default, family = binomial)}.
+\end{itemize}
+\begin{center}
+{\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lrrrr}
+\toprule
+ & Estimate & Std.\ error & $z$ & $p$-value \\
+\midrule
+Intercept & $-10.6513$ & $0.3612$ & $-29.49$ & $< 2 \times 10^{-16}$ \\
+\texttt{balance} & $0.00550$ & $0.00022$ & $24.95$ & $< 2 \times 10^{-16}$ \\
+\bottomrule
+\end{tabular}
+}
+\end{center}
+\begin{itemize}
+    \item $e^{100 \hat{\beta}_1} \approx 1.73$: each additional \$100 of balance multiplies the odds of default by about $1.73$ (95\% CI $[1.66, 1.81]$).
+    \item Predicted default probability: $\hat{p}(\text{balance} = 1000) \approx 0.006$ and $\hat{p}(\text{balance} = 2000) \approx 0.586$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Multiple Logistic Regression and Confounding}
+\begin{sitemize}
+    \item Additional predictors enter the log-odds linearly, $\log \frac{p(\mathbf{x})}{1 - p(\mathbf{x})} = \beta_0 + \beta_1 x_1 + \dots + \beta_p x_p$, and each $\beta_j$ is the effect of $x_j$ on the log-odds holding the other predictors fixed.
+    \item A categorical predictor enters through dummy variables, for example $x = 1$ for a student and $x = 0$ otherwise.
+    \item In \texttt{Default}, the student coefficient is $+0.405$ ($p < 0.001$) when student is the only predictor, but $-0.647$ ($p = 0.006$) once balance and income are included.
+    \item Students carry higher balances on average (about \$988 vs.\ \$772) and higher balances raise default risk, so students default more overall but less than non-students with the same balance; as in multiple linear regression, the marginal and the conditional effect can differ in sign.
+\end{sitemize}
+\end{frame}
+
+\begin{frame}{Multinomial Regression}
+\begin{itemize}
+    \item For $K > 2$ classes, model every class probability with the softmax function, $P(y = k \mid \mathbf{x}) = \exp(\beta_{k0} + \symbf{\beta}_k^\top \mathbf{x}) \big/ \sum_{l=1}^{K} \exp(\beta_{l0} + \symbf{\beta}_l^\top \mathbf{x})$ for $k = 1, \dots, K$.
+    \item Identifiability: a model is identifiable if distinct parameters always give distinct probabilities. This one is not: adding any constant vector to every $(\beta_{k0}, \symbf{\beta}_k)$ leaves all $K$ probabilities unchanged, since the shift cancels between numerator and denominator.
+    \item Fix a reference class, usually $K$, by setting $\beta_{K0} = 0$, $\symbf{\beta}_K = \mathbf{0}$; this pins down a unique parameterization for the remaining $K - 1$ classes.
+    \item Interpretation: relative to the reference class, $\log \big[ P(y = k \mid \mathbf{x}) / P(y = K \mid \mathbf{x}) \big] = \beta_{k0} + \symbf{\beta}_k^\top \mathbf{x}$, so $\beta_{kj}$ is the change in the log-odds of class $k$ vs.\ class $K$ per unit increase in $x_j$, and $e^{\beta_{kj}}$ is the multiplicative change in that odds ratio.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Nonlinear Decision Boundaries}
+\begin{itemize}
+    \item Add transformed features such as $x_1^2$, $x_2^2$, $x_1 x_2$ to the linear score; the model stays linear in the parameters, exactly as in polynomial regression.
+    \item Example: the circle $x_1^2 + x_2^2 = r^2$ is a linear boundary in the features $(x_1^2, x_2^2)$.
+    \item More generally, replace $\mathbf{x}$ with a feature map $\phi(\mathbf{x})$ and fit a linear boundary in $\phi(\mathbf{x})$-space; any boundary that is linear in some feature map can be captured this way.
+    \item A richer feature map fits the training boundary more closely but risks overfitting; how many terms to add is the same trade-off as choosing polynomial degree.
+\end{itemize}
+\end{frame}
+
+
+\subsection{\texorpdfstring{$k$}{k}-Nearest Neighbors}
+
+
+\begin{frame}{\texorpdfstring{$k$}{k}-Nearest Neighbors Classifier}
+\begin{itemize}
+    \item k-NN is nonparametric: there is no model to fit, and predictions use the training data directly.
+    \item For a new point $\mathbf{x}_0$ and a chosen integer $k$, let $\mathcal{N}_0$ be the set of indices of the $k$ training points closest to $\mathbf{x}_0$.
+    \item Estimate the class probabilities by the class proportions in the neighbourhood:
+    \[
+        \hat{p}_j(\mathbf{x}_0) = \frac{1}{k} \sum_{i \in \mathcal{N}_0} \mathbb{1}\{y^{(i)} = j\}.
+    \]
+    \item Classify by majority vote, $\hat{y}_0 = \arg\max_j \hat{p}_j(\mathbf{x}_0)$, with ties broken at random.
+    \item Example: with $k = 3$ and two of the three nearest neighbours in class $1$, $\hat{p}_1(\mathbf{x}_0) = 2/3$ and $\hat{y}_0 = 1$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Distance and Feature Scaling}
+\begin{itemize}
+    \item Closeness is measured by a distance; the default is Euclidean, $d(\mathbf{a}, \mathbf{b}) = \lVert \mathbf{a} - \mathbf{b} \rVert_2 = \sqrt{\sum_{j=1}^{p} (a_j - b_j)^2}$.
+    \item Alternatives: Manhattan, $\sum_{j=1}^{p} |a_j - b_j|$, and the Minkowski family $\big( \sum_{j=1}^{p} |a_j - b_j|^q \big)^{1/q}$, which contains both ($q = 1$ and $q = 2$).
+    \item Features with a large spread dominate the distance: in \texttt{Default}, \texttt{income} has a standard deviation of about \$13{,}300 and \texttt{balance} about \$480, so raw distances are driven almost entirely by \texttt{income}, the weaker predictor of default.
+    \item Standardize before computing distances, $z_j^{(i)} = (x_j^{(i)} - \bar{x}_j) / s_j$, where $\bar{x}_j$ and $s_j$ are the sample mean and standard deviation of feature $j$; preprocessing is treated in detail in a later lecture.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The Effect of \texorpdfstring{$k$}{k}}
+\begin{itemize}
+    \item Small $k$ ($k = 1$): jagged boundary following individual points; training error is $0$, which says nothing about new data.
+    \item Large $k$: smooth, rigid boundary that can miss genuine curvature; $k = n$ predicts the majority class everywhere.
+    \item $k$ is a tuning parameter; choosing it needs held-out data (a later lecture).
+\end{itemize}
+\begin{center}
+\includegraphics[height=3.1cm]{figures/cls_knn_k}
+\end{center}
+\end{frame}
+
+\begin{frame}{k-NN: Strengths and Weaknesses}
+\begin{itemize}
+    \item Strengths: no fitting step, no assumption about the shape of the boundary, a single tuning parameter $k$, easy to explain.
+    \item Cost: every prediction computes distances to all $n$ training points, $O(np)$ per query, and the whole training set must be stored.
+    \item Curse of dimensionality: as $p$ grows the data become sparse and the ``nearest'' neighbours are no longer near; irrelevant features add noise to every distance.
+    \item No coefficients: k-NN gives predictions but no summary of how each feature affects the outcome, unlike $e^{\beta_j}$ in logistic regression.
+    \item Sensitive to feature scaling, as on the previous slide.
+\end{itemize}
+\end{frame}
+
+
+\subsection{Comparison and Summary}
+
+
+\begin{frame}{Logistic Regression vs.\ \texorpdfstring{$k$}{k}-NN on the Same Data}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{itemize}
+    \item Same simulated data (curved true boundary); boundaries drawn at $\hat{p} = 0.5$.
+    \item Logistic regression: a straight line, misses the curvature.
+    \item k-NN ($k = 15$): follows the curve, locally jagged.
+    \item Which is better depends on the true boundary and the sample size; judging it needs held-out data.
+\end{itemize}
+\end{column}
+\begin{column}{0.52\textwidth}
+\includegraphics[width=\linewidth,height=5cm,keepaspectratio]{figures/cls_logistic_vs_knn}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Logistic Regression vs.\ \texorpdfstring{$k$}{k}-NN}
+\begin{center}
+{\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}lp{0.33\textwidth}p{0.33\textwidth}@{}}
+\toprule
+ & Logistic regression & $k$-NN \\
+\midrule
+Type & Parametric: $\beta_0, \symbf{\beta}$ & Nonparametric: stores the training data \\
+Decision boundary & Linear, unless features are added & Flexible, controlled by $k$ \\
+Fitting & Iterative maximum likelihood & None \\
+Cost per prediction & $O(p)$ & $O(np)$ \\
+Interpretation & Odds ratios $e^{\beta_j}$, $z$-tests, confidence intervals & No coefficients \\
+Main weakness & Misses nonlinear structure unless features are engineered & Feature scaling, irrelevant features, high dimensions \\
+\bottomrule
+\end{tabular}
+}
+\end{center}
+\end{frame}
+
+\begin{frame}{Summary}
+\begin{itemize}
+    \item Classification predicts a category by estimating the class probabilities $p_k(\mathbf{x})$; the Bayes classifier is the target, and the decision boundary partitions the feature space into class regions.
+    \item Logistic regression: log-odds linear in $\mathbf{x}$, coefficients fitted by maximum likelihood, linear boundary, coefficients read as odds ratios; extends to $K > 2$ classes and to nonlinear boundaries through added features.
+    \item k-NN: majority vote among the $k$ closest training points, flexible boundary controlled by $k$, needs feature scaling, degrades in high dimensions.
+    \item Still open: how to choose $k$ and how to compare classifiers on data not used for fitting.
+\end{itemize}
+\end{frame}

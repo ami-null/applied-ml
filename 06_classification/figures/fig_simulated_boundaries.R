@@ -22,7 +22,7 @@ circle <- data.frame(x1 = sqrt(1.2) * cos(t_seq), x2 = sqrt(1.2) * sin(t_seq),
 line   <- data.frame(x1 = c(-3, 3), x2 = c(3, -3), panel = "Linear boundary")
 
 p <- ggplot(d, aes(x1, x2)) +
-    geom_point(aes(colour = y), size = 0.9) +
+    geom_point(aes(colour = y), size = 0.5, alpha = 0.5) +
     geom_path(data = circle) +
     geom_path(data = line) +
     facet_wrap(~ panel) +
@@ -34,7 +34,7 @@ p <- ggplot(d, aes(x1, x2)) +
 p
 
 ggsave("cls_boundaries_linear_nonlinear.pdf", p,
-       width = 8.6, height = 3.4, units = "cm")
+       width = 8.6, height = 4.5, units = "cm")
 
 # ── Figure: fitted logistic boundary and probability contours (set.seed(2)) ──
 # cls_logistic_boundary.pdf
@@ -57,10 +57,10 @@ p <- ggplot() +
     geom_point(data = d, aes(x1, x2, colour = y), size = 1) +
     scale_colour_manual(values = c("0" = "#0072B2", "1" = "#D55E00")) +
     coord_fixed(xlim = c(-3, 3), ylim = c(-3, 3)) +
-    theme_minimal(base_size = 9) +
+    theme_minimal(base_size = 11) +
     theme(legend.position = "none")
 
 p
 
 ggsave("cls_logistic_boundary.pdf", p,
-       width = 4.8, height = 4.8, units = "cm")
+       width = 8, height = 8, units = "cm")

@@ -42,9 +42,9 @@ p <- ggplot(Default, aes(x = balance, y = y)) +
     scale_colour_manual(values = c(Linear = "#D55E00", Logistic = "#0072B2")) +
     scale_linetype_manual(values = c(Linear = "dashed", Logistic = "solid")) +
     labs(x = "Balance", y = "Default (0/1)", colour = NULL, linetype = NULL) +
-    theme_minimal(base_size = 9) +
+    theme_minimal(base_size = 11) +
     theme(legend.position = "bottom")
 
 p
 
-ggsave("cls_linear_vs_logistic.pdf", p, width = 6, height = 4.6, units = "cm")
+ggsave("cls_linear_vs_logistic.pdf", p, width = 8, height = 6, units = "cm")

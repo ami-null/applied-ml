@@ -1,32 +1,182 @@
-\section{Residual Analysis and Diagnostics}
+\section{Regression Model and Its Assumptions}
 
 
-\begin{frame}{Residuals and model assumptions}
+\begin{frame}{The multiple linear regression model}
     \begin{itemize}
-        \item Residual vector $\mathbf{e} = \mathbf{y} - \hat{\mathbf{y}}$ with entries $e^{(i)} = y^{(i)} - \hat{y}^{(i)}$; least squares gives $\tilde{\mathbf{X}}^\top \mathbf{e} = \mathbf{0}$, so the residuals sum to zero and are uncorrelated with every feature
-        \item Standard errors, confidence and prediction intervals, and tests rely on assumptions about the errors: the relationship is linear in the coefficients, the errors $\varepsilon^{(i)}$ are uncorrelated, they have constant variance $\sigma^2$, and (for exact small-sample inference) they are normal
-        \item \textbf{Residual analysis} checks these assumptions with plots; the main tool is the plot of residuals against fitted values: random scatter around zero is good, a curve signals non-linearity, a funnel signals non-constant variance
-        \item Three further problems: outliers, high-leverage observations, and collinearity
+        \item We observe $n$ pairs $(\mathbf{x}^{(i)}, y^{(i)})$, $i = 1, \dots, n$, with $p$ features in each $\mathbf{x}^{(i)}$
+        \item The model, written for each observation:
+    \end{itemize}
+    \[
+        y^{(i)} = \beta_0 + \beta_1 x_1^{(i)} + \cdots + \beta_p x_p^{(i)} + \varepsilon^{(i)}
+    \]
+    \begin{itemize}
+        \item In matrix form, $\mathbf{y} = \tilde{\mathbf{X}}\symbf{\beta} + \symbf{\varepsilon}$, where $\tilde{\mathbf{X}}$ is the $n \times (p+1)$ design matrix whose $i$-th row is $(1, x_1^{(i)}, \dots, x_p^{(i)})$
+        \item The coefficients are estimated by least squares; inference (standard errors, intervals, tests) needs the assumptions on the next two slides
     \end{itemize}
 \end{frame}
 
 
-\begin{frame}{Residuals and the hat matrix}
+\begin{frame}{Assumptions of the MLR model (1/2): the mean and the features}
     \begin{itemize}
-        \item Fitted values and residuals are linear functions of the labels: $\hat{\mathbf{y}} = \mathbf{H}\mathbf{y}$ and $\mathbf{e} = (\mathbf{I} - \mathbf{H})\mathbf{y}$, with the \textbf{hat matrix} $\mathbf{H} = \tilde{\mathbf{X}} (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top$ (symmetric, idempotent, $\mathrm{tr}(\mathbf{H}) = p+1$)
-        \item Since $(\mathbf{I} - \mathbf{H})\tilde{\mathbf{X}} = \mathbf{0}$, the residuals depend on the errors only: $\mathbf{e} = (\mathbf{I} - \mathbf{H})\symbf{\varepsilon}$
-        \item Hence $\mathbb{E}[\mathbf{e}] = \mathbf{0}$ and $\mathrm{Cov}(\mathbf{e}) = \sigma^2 (\mathbf{I} - \mathbf{H})$; reading off the diagonal,
+        \item \textbf{Linearity}: the mean of $y$ is linear in the coefficients, $\mathbb{E}[y^{(i)} \mid \mathbf{x}^{(i)}] = \beta_0 + \sum_{j=1}^{p} \beta_j x_j^{(i)}$
+        \item \textbf{Zero-mean errors}: $\mathbb{E}[\varepsilon^{(i)} \mid \tilde{\mathbf{X}}] = 0$, so the errors are unrelated to the features
+        \item \textbf{No perfect collinearity}: $\tilde{\mathbf{X}}$ has full column rank $p+1$, so $(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}$ exists and the coefficients are uniquely determined
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Assumptions of the MLR model (2/2): the errors}
+    \begin{itemize}
+        \item \textbf{Uncorrelated errors}: $\mathrm{Cov}(\varepsilon^{(i)}, \varepsilon^{(k)}) = 0$ for $i \neq k$
+        \item \textbf{Constant variance (homoscedasticity)}: $\mathrm{Var}(\varepsilon^{(i)}) = \sigma^2$ for every $i$
+        \item \textbf{Normal errors}: $\varepsilon^{(i)} \sim \mathcal{N}(0, \sigma^2)$; needed for exact small-sample intervals and tests, not for the estimates themselves
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{These assumptions may not hold}
+    \begin{itemize}
+        \item Real data often violate one or more of them: the true relation is curved, errors are correlated (over time or within units), the spread of the errors changes with the level of $y$, a few observations are unusual, or features are nearly collinear
+        \item Consequences: wrong predictions (non-linearity); wrong standard errors, intervals and $p$-values (correlated errors, non-constant variance, non-normal errors); unstable coefficients (collinearity); a few points distorting the whole fit (outliers, high leverage)
+        \item So after fitting, the assumptions have to be checked, not assumed
+    \end{itemize}
+\end{frame}
+
+
+\section{Model Diagnostics}
+
+
+\begin{frame}{What is model diagnostics?}
+    \begin{itemize}
+        \item \textbf{Model diagnostics}: checks made after fitting to see whether the model assumptions hold, and whether the fit depends on a few observations or on redundant features
+        \item The checks use quantities computed from the fit: residuals, studentized residuals, leverages and variance inflation factors
+        \item Three questions: Is the linear model adequate? Which observations are unusual? Are some features redundant?
+        \item Diagnostics examine whether the fit can be trusted; performance measures (later in this lecture) examine how well it fits
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Coefficient estimates and fitted values}
+    \begin{itemize}
+        \item Least squares chooses $\symbf{\beta}$ to minimize $\mathrm{RSS} = \sum_{i=1}^{n} \big(y^{(i)} - \beta_0 - \sum_{j=1}^{p} \beta_j x_j^{(i)}\big)^2$, which gives
+    \end{itemize}
+    \[
+        \hat{\symbf{\beta}} = (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{y}
+    \]
+    \begin{itemize}
+        \item The fitted values are obtained by plugging $\hat{\symbf{\beta}}$ into the model:
+    \end{itemize}
+    \[
+        \hat{\mathbf{y}} = \tilde{\mathbf{X}}\hat{\symbf{\beta}}, \qquad \hat{y}^{(i)} = \hat\beta_0 + \sum_{j=1}^{p} \hat\beta_j x_j^{(i)}
+    \]
+\end{frame}
+
+
+\begin{frame}{The hat matrix}
+    \begin{itemize}
+        \item Substituting $\hat{\symbf{\beta}}$ into $\hat{\mathbf{y}} = \tilde{\mathbf{X}}\hat{\symbf{\beta}}$ expresses the fitted values as a linear map of the labels:
+    \end{itemize}
+    \[
+        \hat{\mathbf{y}} = \tilde{\mathbf{X}} (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{y} = \mathbf{H}\mathbf{y}, \qquad \mathbf{H} = \tilde{\mathbf{X}} (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top
+    \]
+    \begin{itemize}
+        \item $\mathbf{H}$ is the \textbf{hat matrix}: $n \times n$, symmetric and idempotent ($\mathbf{H}^2 = \mathbf{H}$), with $\mathrm{tr}(\mathbf{H}) = p+1$
+        \item $\mathbf{H}$ depends only on the features in $\tilde{\mathbf{X}}$, never on $\mathbf{y}$
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{The residual vector}
+    \begin{itemize}
+        \item The residual for observation $i$ is the gap between the observed and fitted value, $e^{(i)} = y^{(i)} - \hat{y}^{(i)}$; in vector form $\mathbf{e} = \mathbf{y} - \hat{\mathbf{y}}$
+        \item Using $\hat{\mathbf{y}} = \mathbf{H}\mathbf{y}$, the residual vector is a linear function of $\mathbf{y}$:
+    \end{itemize}
+    \[
+        \mathbf{e} = \mathbf{y} - \mathbf{H}\mathbf{y} = (\mathbf{I} - \mathbf{H})\,\mathbf{y}
+    \]
+    \begin{itemize}
+        \item The residuals estimate the unobservable errors: $\varepsilon^{(i)}$ is never known, $e^{(i)}$ is computed from the data
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{The residual vector is a random vector}
+    \begin{itemize}
+        \item $\mathbf{e}$ is a function of the random errors $\symbf{\varepsilon}$, so each $e^{(i)}$ is a random variable and $\mathbf{e}$ is a random vector
+        \item Its mean is $\mathbb{E}[\mathbf{e}] = \mathbf{0}$; its spread is described by the \textbf{variance--covariance matrix}
+    \end{itemize}
+    \[
+        \mathrm{Cov}(\mathbf{e}) = \mathbb{E}\big[(\mathbf{e} - \mathbb{E}[\mathbf{e}])(\mathbf{e} - \mathbb{E}[\mathbf{e}])^\top\big] = \sigma^2 (\mathbf{I} - \mathbf{H})
+    \]
+    \begin{itemize}
+        \item $\mathrm{Cov}(\mathbf{e})$ is $n \times n$ and symmetric
+        \item Diagonal entries are the individual variances: $\mathrm{Var}(e^{(i)}) = \sigma^2 (1 - h^{(i)})$
+        \item Off-diagonal entries are the pairwise covariances: $\mathrm{Cov}(e^{(i)}, e^{(k)}) = -\sigma^2 H_{ik}$ for $i \neq k$
+        \item The errors are uncorrelated, but the residuals generally are not, because $H_{ik} \neq 0$
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{The variance--covariance matrix of the residuals}
+    \begin{itemize}
+        \item $\mathrm{Cov}(\mathbf{e}) = \sigma^2(\mathbf{I} - \mathbf{H})$ is an $n \times n$ symmetric matrix
+    \end{itemize}
+    \[
+        \mathrm{Cov}(\mathbf{e}) = \sigma^2 \begin{pmatrix}
+            \textcolor{blue}{1 - h^{(1)}} & -H_{12} & -H_{13} & \cdots & -H_{1n} \\
+            -H_{21} & \textcolor{blue}{1 - h^{(2)}} & -H_{23} & \cdots & -H_{2n} \\
+            -H_{31} & -H_{32} & \textcolor{blue}{1 - h^{(3)}} & \cdots & -H_{3n} \\
+            \vdots & \vdots & \vdots & \ddots & \vdots \\
+            -H_{n1} & -H_{n2} & -H_{n3} & \cdots & \textcolor{blue}{1 - h^{(n)}}
+        \end{pmatrix}
+    \]
+    \begin{itemize}
+        \item Blue diagonal: the individual variances $\mathrm{Var}(e^{(i)}) = \sigma^2(1 - h^{(i)})$
+        \item Black off-diagonal: the pairwise covariances $\mathrm{Cov}(e^{(i)}, e^{(k)}) = -\sigma^2 H_{ik}$ for $i \neq k$
+        % \item Every row sums to zero, because the intercept column makes $(\mathbf{I} - \mathbf{H})\tilde{\mathbf{X}} = \mathbf{0}$
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Where the hat matrix is used: leverage}
+    \begin{itemize}
+        \item The diagonal of the covariance matrix (previous slides) gives the variance of each residual:
     \end{itemize}
     \[
         \mathrm{Var}\big(e^{(i)}\big) = \sigma^2 \big(1 - h^{(i)}\big), \qquad h^{(i)} = H_{ii}
     \]
     \begin{itemize}
-        \item Even when all errors have the same variance, the residuals do not: observations with large \textbf{leverage} $h^{(i)}$ have residuals with smaller variance, because the fit is pulled towards them; the leverages add up to $\sum_i h^{(i)} = p+1$
+        \item $h^{(i)}$ is the \textbf{leverage} of observation $i$; it depends only on the features, and the leverages add up to $\sum_{i=1}^{n} h^{(i)} = p+1$
+        \item Even with constant error variance, residuals have unequal variances: high-leverage observations have smaller residual variance, because the fit is pulled towards them
     \end{itemize}
 \end{frame}
 
 
-\begin{frame}{Standardized (studentized) residuals}
+\begin{frame}{What is residual analysis?}
+    \begin{itemize}
+        \item \textbf{Residual analysis}: examining the residuals $\mathbf{e}$ (or transformed versions of them) to judge whether the assumptions of the model hold
+        \item If the assumptions hold, the residuals should look like random noise: centred at zero, with constant spread, no pattern against the fitted values, the features, or the observation order
+        \item Main plots: residuals against fitted values, residuals against each feature, residuals against observation order, and the normal QQ plot of the residuals
+        \item Observation-level quantities (leverage and studentized residuals) refine the check; they need the hat matrix, shown next
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Where the hat matrix is used: leverage}
+    \begin{itemize}
+        \item Since $\mathbf{e} = (\mathbf{I} - \mathbf{H})\symbf{\varepsilon}$, we have $\mathbb{E}[\mathbf{e}] = \mathbf{0}$ and $\mathrm{Cov}(\mathbf{e}) = \sigma^2 (\mathbf{I} - \mathbf{H})$; reading off the diagonal,
+    \end{itemize}
+    \[
+        \mathrm{Var}\big(e^{(i)}\big) = \sigma^2 \big(1 - h^{(i)}\big), \qquad h^{(i)} = H_{ii}
+    \]
+    \begin{itemize}
+        \item $h^{(i)}$ is the \textbf{leverage} of observation $i$; it depends only on the features, and the leverages add up to $\sum_{i=1}^{n} h^{(i)} = p+1$
+        \item Even with constant error variance, residuals have unequal variances: high-leverage observations have smaller residual variance, because the fit is pulled towards them
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Where the hat matrix is used: studentized residuals}
     \begin{itemize}
         \item Raw residuals have unequal variances and carry the units of $y$; dividing by the estimated standard deviation fixes both:
     \end{itemize}
@@ -34,9 +184,10 @@
         r^{(i)} = \frac{e^{(i)}}{\hat\sigma \sqrt{1 - h^{(i)}}}, \qquad \hat\sigma = \mathrm{RSE}
     \]
     \begin{itemize}
+        \item The leverage $h^{(i)} = H_{ii}$ comes from the hat matrix, so the studentized residual uses both the residual and the hat matrix
         \item Each $r^{(i)}$ has variance close to 1 and no units, so residuals can be compared across observations and across models
-        \item With normal errors about 99.7\% of the $r^{(i)}$ fall within $\pm 3$: an observation with $|r^{(i)}| > 3$ is unusual, but among 400 observations one such value is expected by chance
-        \item ISLP calls $r^{(i)}$ the studentized residual%; in R it is computed by \texttt{rstandard()}
+        \item With normal errors about 99.7\% of the $r^{(i)}$ fall within $\pm 3$: an observation with $|r^{(i)}| > 3$ is unusual, although among 400 observations one such value is expected by chance
+        \item The studentized residual is also called the standardized residual; in R it is computed by \texttt{rstandard()}
     \end{itemize}
 \end{frame}
 
@@ -47,106 +198,144 @@
 }
 
 
-% \begin{frame}[allowframebreaks]{Four standard diagnostic plots}
-%     \begin{columns}[T]
-%         \begin{column}{0.40\textwidth}
-%             \begin{itemize}
-%                 \item \textbf{Residuals vs fitted}: curve = non-linearity, funnel = non-constant variance
-%                 \item \textbf{Normal QQ plot}: points near the line = roughly normal errors
-%                 \item \textbf{Scale-location}: upward trend = non-constant variance
-%                 \item \textbf{Residuals vs leverage}: flags unusual observations
-%                 \item Shown: Auto, mpg on horsepower, weight and year
-%             \end{itemize}
-%         \end{column}
-%         \begin{column}{0.58\textwidth}
-%             \begin{center}
-%                 \includegraphics[width=\linewidth]{figures/reg_diag_four.pdf}
-%             \end{center}
-%         \end{column}
-%     \end{columns}
-% \end{frame}
-
-
-\begin{frame}[allowframebreaks]{Problem 1: non-linearity}
+\begin{frame}{Problem 1: non-linearity, what to check}
     \begin{itemize}
-        \item If the true relationship is non-linear, predictions and inference are unreliable; the residual plot shows a pattern, often a U-shape
-        \item Advertising, additive TV + radio model: positive residuals at the smallest and largest fitted values, negative in between, a sign of missing synergy
-        \item With the TV $\times$ radio interaction the curvature weakens and RSE falls from 1.68 to 0.94; a few large negative residuals remain
-        \item Remedies: transform features ($\log x$, $\sqrt{x}$), add interaction terms, or fit a more flexible model
+        \item \textbf{Plot}: residuals $e^{(i)}$ against fitted values $\hat{y}^{(i)}$, with a horizontal line at zero
+        \item \textbf{If} the points follow a curve (U-shape or inverted U), \textbf{then} the linearity assumption is violated
+        \item \textbf{If} the points scatter randomly around zero with no pattern, \textbf{then} linearity is plausible
+        \item \textbf{Consequence}: predictions are biased in the ranges where the curve lies, and inference is unreliable
+        \item \textbf{Remedies}: transform features ($\log x$, $\sqrt{x}$), add interaction terms, or fit a more flexible model
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 1: non-linearity, example}
     \begin{center}
         \includegraphics[width=0.95\linewidth]{figures/reg_diag_nonlinear.pdf}
     \end{center}
+    \begin{itemize}
+        \item Dataset: Advertising, $n = 200$ markets (sales in thousands of units; TV and radio budgets in thousands of dollars)
+        \item Left panel: additive model, $\text{sales} = \beta_0 + \beta_1\,\text{TV} + \beta_2\,\text{radio} + \varepsilon$; right panel: the same model with a TV $\times$ radio term
+        \item Additive model: residuals are positive at the smallest and largest fitted values and negative in between, a U-shape that signals missing synergy between TV and radio
+        \item With the interaction the curvature weakens and RSE falls from 1.68 to 0.94; a few large negative residuals remain
+    \end{itemize}
 \end{frame}
 
 
-\begin{frame}[allowframebreaks]{Problem 2: correlated errors}
+\begin{frame}{Problem 2: correlated errors, what to check}
     \begin{itemize}
-        \item The errors are assumed uncorrelated; this fails for time series (neighbouring errors alike) and for repeated measurements on the same unit
-        \item Consequence: standard errors are too small, so intervals are too narrow and $p$-values too small
-        \item Detection: plot residuals in observation order; tracking (neighbouring residuals alike) signals positive correlation ($\rho$ = correlation of successive errors)
-        \item Remedy: time-series or mixed models (out of the scope this lecture)
+        \item \textbf{Plot}: residuals $e^{(t)}$ against observation order $t$, with a horizontal line at zero
+        \item \textbf{If} neighbouring residuals are alike, with long runs of the same sign, \textbf{then} the uncorrelated-errors assumption is violated (successive errors are positively correlated)
+        \item \textbf{If} the signs change at random from one observation to the next, \textbf{then} there is no evidence of correlation
+        \item \textbf{Consequence}: standard errors are too small, so intervals are too narrow and $p$-values too small
+        \item \textbf{Remedy}: time-series or mixed models, which are outside the scope of this lecture
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 2: correlated errors, example}
     \begin{center}
         \includegraphics[width=0.95\linewidth]{figures/reg_diag_autocorr.pdf}
     \end{center}
+    \begin{itemize}
+        \item Dataset (simulated): $n = 100$ observations from $y^{(t)} = 1 + 0.05\,t + \varepsilon^{(t)}$, fitted by least squares with a linear trend in $t$
+        \item Errors follow an AR(1) process, $\varepsilon^{(t)} = \rho\,\varepsilon^{(t-1)} + u^{(t)}$, with $\rho = 0$, $0.5$, $0.9$; here $\rho$ is the correlation of successive errors
+        \item $\rho = 0$ gives random scatter around zero; $\rho = 0.9$ gives long runs above and below zero
+    \end{itemize}
 \end{frame}
 
 
-\begin{frame}[allowframebreaks]{Problem 3: non-constant variance}
+\begin{frame}{Problem 3: non-constant variance, what to check}
     \begin{itemize}
-        \item \textbf{Heteroscedasticity}: $\mathrm{Var}(\varepsilon^{(i)})$ changes with the level of the response (a funnel in the residual plot), making standard errors, intervals and tests unreliable
-        \item Auto, mpg on horsepower, weight and year: the residual standard deviation grows from 2.35 to 2.48, 3.47 and 3.88 across the four quartiles of the fitted values
-        \item Remedy 1, transform the response ($\log y$ or $\sqrt{y}$; concave transformations shrink large values more): for $\log(\text{mpg})$ the spread is nearly constant (0.116, 0.117, 0.130, 0.107); coefficients then describe multiplicative effects
-        \item Remedy 2, weighted least squares: minimize $\sum_i w^{(i)} (e^{(i)})^2$ with weights $w^{(i)} \propto 1/\mathrm{Var}(\varepsilon^{(i)})$, giving $\hat{\symbf{\beta}} = (\tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{W} \mathbf{y}$ with $\mathbf{W} = \mathrm{diag}(w^{(i)})$
+        \item \textbf{Plot}: residuals $e^{(i)}$ against fitted values $\hat{y}^{(i)}$
+        \item \textbf{If} the vertical spread grows or shrinks with the fitted value (a funnel), \textbf{then} the constant-variance assumption is violated
+        \item \textbf{If} the vertical spread is about the same across the whole range, \textbf{then} constant variance is plausible
+        \item \textbf{Consequence}: standard errors, intervals and tests become unreliable
+        \item \textbf{Remedy 1}: transform $y$ ($\log y$ or $\sqrt{y}$)
+        \item \textbf{Remedy 2}: weighted least squares with $w^{(i)} \propto 1/\mathrm{Var}(\varepsilon^{(i)})$, giving $\hat{\symbf{\beta}} = (\tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{W} \mathbf{y}$ with $\mathbf{W} = \mathrm{diag}(w^{(i)})$
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 3: non-constant variance, example}
     \begin{center}
         \includegraphics[width=0.95\linewidth]{figures/reg_diag_variance.pdf}
     \end{center}
+    \begin{itemize}
+        \item Dataset and model: Auto, $n = 392$ cars; $\text{mpg} = \beta_0 + \beta_1\,\text{horsepower} + \beta_2\,\text{weight} + \beta_3\,\text{year} + \varepsilon$ ($p = 3$)
+        \item Left panel: $\log(\text{mpg})$ as response; right panel: mpg as response; the y-scales are free
+        \item The mpg residuals fan out as the fitted value grows; their standard deviation grows from 2.35 to 2.48, 3.47 and 3.88 across the four quartiles of the fitted values
+        \item For $\log(\text{mpg})$ the spread is nearly constant (0.116, 0.117, 0.130, 0.107), so the coefficients describe multiplicative effects
+    \end{itemize}
 \end{frame}
 
 
-\begin{frame}[allowframebreaks]{Problem 4: outliers}
+\begin{frame}{Problem 4: outliers, what to check}
     \begin{itemize}
-        \item An \textbf{outlier} is an observation whose $y^{(i)}$ is far from the fitted value (a recording error or a genuinely unusual case)
-        \item At a typical $x$ it hardly moves the line, but it inflates RSE and lowers $R^2$
-        \item Flag observations with $|r^{(i)}| > 3$, using the standardized residual $r^{(i)} = e^{(i)} / \big(\hat\sigma \sqrt{1 - h^{(i)}}\big)$
-        \item Investigate before deleting; Auto fit: 6 of 392 cars have $|r^{(i)}| > 3$, and the largest ($r^{(i)} = 4.20$) is the most economical car in the data (46.6 mpg), far above its prediction
+        \item \textbf{Plot}: studentized residuals $r^{(i)}$ against fitted values $\hat{y}^{(i)}$, with horizontal lines at $\pm 3$
+        \item \textbf{If} a point lies beyond $\pm 3$, \textbf{then} it is a suspected outlier: its error is far outside the pattern shown by the rest of the data
+        \item \textbf{Consequence}: an outlier inflates RSE and lowers $R^2$, and it can pull the fit towards itself
+        \item \textbf{Action}: investigate the point (data-entry error or a genuine case) before deleting anything; refit and compare
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 4: outliers, example}
     \begin{center}
         \includegraphics[width=0.95\linewidth]{figures/reg_diag_outlier.pdf}
     \end{center}
+    \begin{itemize}
+        \item Dataset (simulated): 50 points with $x \sim U(-2, 2)$ and $y = 1 + 2x + \varepsilon$, $\varepsilon \sim N(0, 0.7^2)$, plus one added point at $x = 0.3$, $y = 7.6$, six units above the line
+        \item Left: fit with (red) and without (blue) the added point; right: studentized residuals against fitted values, with the outlier in red
+        \item Real data, Auto (model of Problem 3): 6 of 392 cars have $|r^{(i)}| > 3$; the largest, $r^{(i)} = 4.20$, is the most economical car in the data (46.6 mpg), far above its predicted value of about 32 mpg
+    \end{itemize}
 \end{frame}
 
 
-\begin{frame}[allowframebreaks]{Problem 5: high-leverage observations}
+\begin{frame}{Problem 5: high-leverage observations, what to check}
     \begin{itemize}
-        \item A \textbf{high-leverage} observation has unusual features $\mathbf{x}^{(i)}$ and pulls the fit towards itself; leverage $h^{(i)}$ depends only on the features, never on $y^{(i)}$
-        \item $1/n \le h^{(i)} \le 1$ with average $(p+1)/n$; values far above the average signal high leverage, and with a large residual the point is \emph{influential}: removing it changes the fit a lot
-        \item Auto fit: the largest leverage is $h^{(i)} = 0.095$ (a 225-horsepower car), 9.3 times the average $4/392 = 0.0102$
+        \item \textbf{Plot}: studentized residuals $r^{(i)}$ against leverage $h^{(i)}$, with a vertical line at the average $(p+1)/n$ and horizontal lines at $\pm 3$
+        \item \textbf{If} points lie far to the right of the average-leverage line, \textbf{then} they have high leverage: unusual feature values that can pull the fit towards themselves
+        \item \textbf{If} a high-leverage point also has a large residual, \textbf{then} it is \emph{influential}: removing it changes the fit a lot
+        \item High leverage alone is not a violation of an assumption; the plot checks whether one point controls the fit
+        \item \textbf{Remedy}: check the point, refit without it, and report both fits
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 5: high-leverage observations, example}
     \begin{center}
         \includegraphics[width=0.95\linewidth]{figures/reg_diag_leverage.pdf}
     \end{center}
+    \begin{itemize}
+        \item Dataset (simulated): the 50 points of Problem 4 without the outlier, plus one added point at $x = 5$, $y = 2$; the model $y = \beta_0 + \beta_1 x + \varepsilon$ is fitted to all 51 points
+        \item Left: fit with (red) and without (blue) the added point; right: studentized residuals against leverage
+        \item The added point has the most extreme $x$, so its leverage is high; its studentized residual is also large and negative, so it is influential and the fitted line tilts visibly towards it
+        \item Real data, Auto (model of Problem 3): the largest leverage is $h^{(i)} = 0.095$ (a 225-horsepower car), 9.3 times the average $4/392$
+    \end{itemize}
 \end{frame}
 
 
-\mode<article>{
-    \paragraph{Leverage in simple regression.}
-    With one feature the leverage has a closed form, $h^{(i)} = \frac{1}{n} + \frac{(x^{(i)} - \bar{x})^2}{\sum_{k=1}^{n} (x^{(k)} - \bar{x})^2}$: it grows with the squared distance of $x^{(i)}$ from the mean $\bar{x}$.
-}
-
-
-\begin{frame}[allowframebreaks]{Problem 6: collinearity}
+\begin{frame}{Problem 6: collinearity, what to check}
     \begin{itemize}
-        \item \textbf{Collinearity}: features are highly correlated, so their separate effects on $y$ cannot be told apart ($\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}}$ is nearly singular)
-        \item Credit: limit and rating have $r = 0.997$, limit and age only $r = 0.10$
-        \item Consequences: unstable coefficients and inflated standard errors; an important feature can look insignificant
-        \item Balance on age + limit: $\mathrm{SE}(\hat\beta_{\text{limit}}) = 0.0050$, $p < 0.0001$; on rating + limit: $0.0638$ (13 times larger), $p = 0.70$
+        \item \textbf{Plot}: a scatterplot of each pair of features $x_j$ against $x_k$, with the correlation $r_{jk}$ in the title
+        \item \textbf{If} the points lie almost on a straight line ($|r_{jk}|$ close to 1), \textbf{then} the two features carry nearly the same information, and the no-perfect-collinearity assumption is nearly violated
+        \item Confirm with the VIF: values above 5 or 10 signal collinearity
+        \item \textbf{Consequence}: unstable coefficients, inflated standard errors, and important features that look insignificant
+        \item \textbf{Remedy}: drop one of the redundant features, or combine them
     \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 6: collinearity, example}
     \begin{center}
         \includegraphics[width=0.95\linewidth]{figures/reg_credit_collinearity.pdf}
     \end{center}
+    \begin{itemize}
+        \item Dataset: Credit, $n = 400$ customers; response Balance, with features limit, rating and age
+        \item Left: limit against age, $r = 0.10$, a diffuse cloud; right: limit against rating, $r = 0.997$, points lying almost on a line
+        \item For Balance on age + limit, $\mathrm{SE}(\hat\beta_{\text{limit}}) = 0.0050$ ($p < 0.0001$); for rating + limit, $0.0638$, 13 times larger, with $p = 0.70$
+    \end{itemize}
 \end{frame}
 
 
@@ -166,6 +355,30 @@
 \end{frame}
 
 
+\begin{frame}{Problem 7: non-normal errors, what to check}
+    \begin{itemize}
+        \item \textbf{Plot}: normal QQ plot of the studentized residuals $r^{(i)}$: sorted residuals against the quantiles of $\mathcal{N}(0,1)$, with a reference line
+        \item \textbf{If} the points follow the line, \textbf{then} normal errors are plausible
+        \item \textbf{If} both ends bend away from the line, \textbf{then} the tails are heavier than normal: there are more extreme residuals than the normal model allows
+        \item \textbf{If} only one end bends away, \textbf{then} the errors are skewed
+        \item \textbf{Consequence}: exact small-sample intervals and tests are unreliable; with large $n$ the central limit theorem keeps estimates and inference roughly valid
+        \item \textbf{Remedies}: transform $y$, use robust regression, or bootstrap the inference
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}[allowframebreaks]{Problem 7: non-normal errors, example}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{figures/reg_diag_normal_qq.pdf}
+    \end{center}
+    \begin{itemize}
+        \item Left: simulated normal errors, $n = 200$; the points follow the line, which is what a normal QQ plot should look like
+        \item Right: Auto, $n = 392$, model of Problem 3; the upper tail rises above the line, with the largest residual at 4.20 against about 3.0 expected under normality; the lower tail is less extreme than normal
+        \item Skewness 0.67 and excess kurtosis 1.56: right-skewed with heavier tails; the largest residuals come from the high-mpg cars of Problem 4
+    \end{itemize}
+\end{frame}
+
+
 \begin{frame}{Diagnostic checklist}
     \begin{center}
         \footnotesize
@@ -179,13 +392,14 @@
             Correlated errors & Tracking of residuals over time & Time-series or mixed models \\
             Non-constant variance & Funnel in residuals vs fitted & Transform $y$, weighted least squares \\
             Outliers & $|r^{(i)}| > 3$ & Investigate, fix or remove errors \\
-            High leverage & $h^{(i)}$ far above $(p+1)/n$ & Check the point, refit without it \\
+            High leverage & $h^{(i)}$ far above $(p+1)/n$, large $|r^{(i)}|$ & Check the point, refit without it \\
             Collinearity & VIF above 5 or 10 & Drop or combine features \\
+            Non-normal errors & Both ends or one end off the line in QQ plot & Transform $y$, robust or bootstrap inference \\
             \bottomrule
         \end{tabular}
     \end{center}
     \begin{itemize}
-        \item Check in this order: residual plots first, then unusual observations, then collinearity; every fix changes the model, so refit and repeat the diagnostics
+        \item Check in this order: residual plots first, then normality, then unusual observations, then collinearity; every fix changes the model, so refit and repeat the diagnostics
     \end{itemize}
 \end{frame}
 
@@ -201,27 +415,17 @@
             \toprule
             measure & definition & comment \\
             \midrule
-            MSE & $\frac{1}{n} \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2 = \mathrm{RSS}/n$ & Squared units of $y$ \\
-            RMSE & $\sqrt{\mathrm{MSE}}$ & Units of $y$ \\
+            MSE & $\mathrm{RSS}/(n-p-1)$ & Squared units of $y$ \\
+            RSE & $\sqrt{MSE}$ & Units of $y$, estimates $\sigma$ \\
             MAE & $\frac{1}{n} \sum_{i=1}^{n} \big|y^{(i)} - \hat{y}^{(i)}\big|$ & Units of $y$, less sensitive to outliers \\
-            RSE & $\sqrt{\mathrm{RSS}/(n-p-1)}$ & Units of $y$, estimates $\sigma$ \\
             $R^2$ & $1 - \mathrm{RSS}/\mathrm{TSS}$ & Unit-free, never falls with more features \\
             Adjusted $R^2$ & $1 - \dfrac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}$ & Unit-free, penalizes each added feature \\
             \bottomrule
         \end{tabular}
     \end{center}
+    where \(\mathrm{RSS} = \sum_{i=1}^{n} \big(y^{(i)} - \hat{y}^{(i)}\big)^2\).
     \begin{itemize}
-        \item MSE and RMSE punish large errors heavily (squares); MAE weighs all errors linearly, so a few outliers move it less
-    \end{itemize}
-\end{frame}
-
-
-\begin{frame}{RSE versus RMSE: why divide by $n-p-1$?}
-    \begin{itemize}
-        \item RMSE averages the squared residuals over $n$; RSE divides by the degrees of freedom $n-p-1$ instead, because $p+1$ coefficients were fitted to the same data
-        \item $\mathbb{E}[\mathrm{RSS}] = (n-p-1)\sigma^2$, so $\mathrm{RSE}^2 = \mathrm{RSS}/(n-p-1)$ is unbiased for $\sigma^2$, while $\mathrm{MSE} = \mathrm{RSS}/n$ underestimates it by the factor $(n-p-1)/n$
-        \item Advertising, TV + radio + newspaper: $\mathrm{RSS} = 556.83$ gives $\mathrm{MSE} = 2.78$ ($\mathrm{RMSE} = 1.669$) but $\mathrm{RSE}^2 = 2.84$ ($\mathrm{RSE} = 1.686$)
-        \item The gap grows with the number of features: with many features relative to $n$, the residuals look much smaller than the true errors, an early sign that in-sample fit is optimistic
+        \item MSE and RSE punish large errors heavily (squares); MAE weighs all errors linearly, so a few outliers move it less
     \end{itemize}
 \end{frame}
 
@@ -250,7 +454,8 @@
 
 \begin{frame}[allowframebreaks]{Adjusted R-squared with useless features}
     \begin{itemize}
-        \item Figure: pure-noise features are added one block at a time to the TV + radio model
+        \item Dataset: Advertising, $n = 200$; model: sales on TV + radio, with pure-noise features added to it, drawn independently of sales
+        \item Plot: $R^2$ and $R^2_{\text{adj}}$ against the number of noise features added cumulatively, in steps of 5 up to 100
         \item $R^2$ can only rise, here from 0.897 to about 0.95 with 100 noise features; $R^2_{\text{adj}}$ stays near 0.90 and shows no systematic gain
     \end{itemize}
     \begin{center}
@@ -287,30 +492,11 @@
 \end{frame}
 
 
-\begin{frame}[allowframebreaks]{Training error versus test error}
-    \begin{columns}[T]
-        \begin{column}{0.55\textwidth}
-            \begin{itemize}
-                \item \textbf{Training MSE}: $\frac{1}{n} \sum_i \big(y^{(i)} - \hat{f}(\mathbf{x}^{(i)})\big)^2$ on the data used to fit $\hat{f}$; all earlier measures are training measures
-                \item \textbf{Test MSE}: the same average over new observations not used in fitting
-                \item More features always lower the training MSE; once the informative ones are in, the rest fit noise and the test MSE rises: \textbf{overfitting}
-                \item Simulation: 50 observations, 45 features, 5 informative
-            \end{itemize}
-        \end{column}
-        \begin{column}{0.43\textwidth}
-            \begin{center}
-                \includegraphics[width=\linewidth]{figures/reg_train_test.pdf}
-            \end{center}
-        \end{column}
-    \end{columns}
-\end{frame}
-
-
 \begin{frame}{Summary}
     \begin{itemize}
-        \item \textbf{Residuals}: $\mathbf{e} = (\mathbf{I} - \mathbf{H})\symbf{\varepsilon}$ with $\mathrm{Var}(e^{(i)}) = \sigma^2 (1 - h^{(i)})$; standardized residuals $r^{(i)} = e^{(i)}/(\hat\sigma\sqrt{1-h^{(i)}})$
-        \item \textbf{Diagnostics}: residual plots reveal non-linearity, correlated errors and non-constant variance; standardized residuals flag outliers, leverage flags unusual feature values, VIF flags collinearity
-        \item \textbf{Performance}: MSE, RMSE, MAE, RSE, $R^2$ and adjusted $R^2$ measure the fit to the training data; RSE and adjusted $R^2$ account for the degrees of freedom
-        \item \textbf{Training vs test}: training error keeps falling as features are added, test error does not
+        \item \textbf{Assumptions}: linearity, zero-mean errors, full column rank, uncorrelated errors, constant variance and (for exact inference) normal errors; these may not hold, so they must be checked
+        \item \textbf{Residuals}: $\mathbf{e} = (\mathbf{I} - \mathbf{H})\mathbf{y}$, with $\mathrm{Var}(e^{(i)}) = \sigma^2 (1 - h^{(i)})$; studentized residuals $r^{(i)} = e^{(i)}/(\hat\sigma\sqrt{1-h^{(i)}})$
+        \item \textbf{Diagnostics}: residual plots reveal non-linearity, correlated errors and non-constant variance; studentized residuals flag outliers, leverage flags unusual feature values, VIF flags collinearity
+        \item \textbf{Performance}: MSE, RMSE, MAE, RSE, $R^2$ and adjusted $R^2$ measure the fit to the training data; RSE and adjusted $R^2$ account for the degrees of freedom; training error keeps falling as features are added, test error does not
     \end{itemize}
 \end{frame}

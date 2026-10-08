@@ -72,7 +72,8 @@
         \item One feature $x$ and a quantitative label $y$, related by a straight line plus error: $y = \beta_0 + \beta_1 x + \varepsilon$
         \item $\beta_0$ is the \textbf{intercept} (the value of $y$ when $x = 0$), $\beta_1$ is the \textbf{slope} (the change in $y$ for a one-unit increase in $x$); together they are the \textbf{coefficients}
         \item Estimate the coefficients from the training data (hat = estimated): $\hat\beta_0, \hat\beta_1$; predict with $\hat{y} = \hat\beta_0 + \hat\beta_1 x$
-        \item \textbf{Fitted value} of observation $i$: $\hat{y}^{(i)} = \hat\beta_0 + \hat\beta_1 x^{(i)}$; \textbf{residual}: $e^{(i)} = y^{(i)} - \hat{y}^{(i)}$; residuals are computed from data, the errors $\varepsilon^{(i)}$ are never observed
+        \item \textbf{Fitted value} of observation $i$: $\hat{y}^{(i)} = \hat\beta_0 + \hat\beta_1 x^{(i)}$
+        \item \textbf{residual}: $e^{(i)} = y^{(i)} - \hat{y}^{(i)}$; residuals are computed from data, the errors $\varepsilon^{(i)}$ are never observed
         \item Example: $\text{sales} \approx \beta_0 + \beta_1 \times \text{TV}$
     \end{itemize}
 \end{frame}
@@ -151,7 +152,6 @@
         \item The line passes through the point of means $(\bar{x}, \bar{y})$, by the first normal equation; Advertising: $7.033 + 0.04754 \times 147.04 = 14.02 = \bar{y}$
         \item The normal equations say $\sum_i e^{(i)} = 0$ and $\sum_i x^{(i)} e^{(i)} = 0$: the residuals sum to zero and are orthogonal to the feature; consequently $\sum_i \hat{y}^{(i)} e^{(i)} = 0$ and the fitted values have mean $\bar{y}$
         \item The slope is the correlation rescaled: $\hat\beta_1 = r\, s_y / s_x$, where $r$ is the sample correlation and $s_x, s_y$ are the sample standard deviations; Advertising: $0.7822 \times 5.217 / 85.85 = 0.0475$
-        \item Since $|r| \le 1$, a one-standard-deviation increase in $x$ goes with an increase of only $r$ standard deviations in $\hat{y}$: the origin of the name \emph{regression} (towards the mean)
     \end{itemize}
 \end{frame}
 
@@ -180,18 +180,18 @@
 \end{frame}
 
 
-\begin{frame}{Variance of the estimators}
-    \[
-        \mathrm{V}(\hat\beta_1) = \frac{\sigma^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \mathrm{V}(\hat\beta_0) = \sigma^2 \bigg[\frac{1}{n} + \frac{\bar{x}^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}\bigg]
-    \]
-    \begin{itemize}
-        \item Here $\sigma^2 = \mathrm{Var}(\varepsilon)$ is the variance of the errors%; standard errors shrink with more data, less noise, and more spread-out $x^{(i)}$
-        \item $\sigma^2$ is unknown and is estimated from the residuals %by $\mathrm{RSE}^2 = \mathrm{RSS}/(n-2)$; replacing $\sigma$ by RSE gives the estimated standard errors reported by software
-        \item These formulas assume the errors are uncorrelated with constant variance $\sigma^2$ %(checked with residual plots in the next lecture)
-        % \item Advertising, sales on TV: $\mathrm{SE}(\hat\beta_0) = 0.4578$ and $\mathrm{SE}(\hat\beta_1) = 0.0027$
-        \item The standard errors (SE) of the estimates are found taking the square roots of the variances
-    \end{itemize}
-\end{frame}
+% \begin{frame}{Variance of the estimators}
+%     \[
+%         \mathrm{V}(\hat\beta_1) = \frac{\sigma^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}, \qquad \mathrm{V}(\hat\beta_0) = \sigma^2 \bigg[\frac{1}{n} + \frac{\bar{x}^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}\bigg]
+%     \]
+%     \begin{itemize}
+%         \item Here $\sigma^2 = \mathrm{Var}(\varepsilon)$ is the variance of the errors%; standard errors shrink with more data, less noise, and more spread-out $x^{(i)}$
+%         \item $\sigma^2$ is unknown and is estimated from the residuals %by $\mathrm{RSE}^2 = \mathrm{RSS}/(n-2)$; replacing $\sigma$ by RSE gives the estimated standard errors reported by software
+%         \item These formulas assume the errors are uncorrelated with constant variance $\sigma^2$ %(checked with residual plots in the next lecture)
+%         % \item Advertising, sales on TV: $\mathrm{SE}(\hat\beta_0) = 0.4578$ and $\mathrm{SE}(\hat\beta_1) = 0.0027$
+%         \item The standard errors (SE) of the estimates are found taking the square roots of the variances
+%     \end{itemize}
+% \end{frame}
 
 
 \begin{frame}{Estimating the error variance}
@@ -211,6 +211,11 @@
     \[
         \mathrm{SE}(\hat\beta_1) = \sqrt{\frac{\mathrm{MSE}}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}}, \qquad \mathrm{SE}(\hat\beta_0) = \sqrt{\mathrm{MSE} \bigg[\frac{1}{n} + \frac{\bar{x}^2}{\sum_{i=1}^{n} \big(x^{(i)} - \bar{x}\big)^2}\bigg]}
     \]
+
+    \begin{itemize}
+        \item The standard errors provide insight into the uncertainty in estimating the regression parameters
+        \item SE is used to perform Inference (t test, F test, confidence intervals)
+    \end{itemize}
 \end{frame}
 
 
@@ -415,7 +420,7 @@
         \mathrm{Cov}(\hat{\symbf{\beta}}) = (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top (\sigma^2 \mathbf{I}) \tilde{\mathbf{X}} (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} = \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}
     \]
     \begin{itemize}
-        \item If errors follow the normal distribution, then $\hat{\symbf{\beta}} \sim N\big(\symbf{\beta}, \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}\big)$; $\mathrm{SE}(\hat\beta_j) = \hat\sigma \sqrt{[(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}]_{jj}}$ with $\hat\sigma^2 = \mathrm{RSS}/(n-p-1)$, and $t_j = \hat\beta_j / \mathrm{SE}(\hat\beta_j) \sim t_{n-p-1}$ under $H_0\colon \beta_j = 0$
+        \item If errors follow the normal distribution, then $\hat{\symbf{\beta}} \sim N\big(\symbf{\beta}, \sigma^2 (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}\big)$; $\mathrm{SE}(\hat\beta_j) = \hat\sigma \sqrt{[(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1}]_{jj}}$ with $\hat\sigma^2 = \mathrm{MSE} = \mathrm{RSS}/(n-p-1)$, and $t_j = \hat\beta_j / \mathrm{SE}(\hat\beta_j) \sim t_{n-p-1}$ under $H_0\colon \beta_j = 0$
     \end{itemize}
 \end{frame}
 
@@ -563,6 +568,7 @@
         \item 95\% \textbf{confidence interval} for $f(\mathbf{x}^\ast)$: $\hat{y}^\ast \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{(\tilde{\mathbf{x}}^\ast)^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}^\ast}$
         \item 95\% \textbf{prediction interval} for $y^\ast$: $\hat{y}^\ast \pm t_{0.975,\, n-p-1}\, \hat\sigma \sqrt{1 + (\tilde{\mathbf{x}}^\ast)^\top (\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{x}}^\ast}$; the extra 1 under the root is the variance of the new error $\varepsilon^\ast$
         % \item The prediction interval never shrinks below $\pm t_{0.975}\, \hat\sigma$, however much data we have; the confidence interval shrinks to zero width as $n$ grows, and both are widest for $\mathbf{x}^\ast$ far from the centre of the data
+        \item Recall that \(\hat\sigma = \sqrt{\mathrm{MSE}} = \sqrt{\mathrm{SSR}/(n-p-1)}\)
     \end{itemize}
 \end{frame}
 

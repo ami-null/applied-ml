@@ -140,31 +140,7 @@
 
 \begin{frame}{Where the hat matrix is used: leverage}
     \begin{itemize}
-        \item The diagonal of the covariance matrix (previous slides) gives the variance of each residual:
-    \end{itemize}
-    \[
-        \mathrm{Var}\big(e^{(i)}\big) = \sigma^2 \big(1 - h^{(i)}\big), \qquad h^{(i)} = H_{ii}
-    \]
-    \begin{itemize}
-        \item $h^{(i)}$ is the \textbf{leverage} of observation $i$; it depends only on the features, and the leverages add up to $\sum_{i=1}^{n} h^{(i)} = p+1$
-        \item Even with constant error variance, residuals have unequal variances: high-leverage observations have smaller residual variance, because the fit is pulled towards them
-    \end{itemize}
-\end{frame}
-
-
-\begin{frame}{What is residual analysis?}
-    \begin{itemize}
-        \item \textbf{Residual analysis}: examining the residuals $\mathbf{e}$ (or transformed versions of them) to judge whether the assumptions of the model hold
-        \item If the assumptions hold, the residuals should look like random noise: centred at zero, with constant spread, no pattern against the fitted values, the features, or the observation order
-        \item Main plots: residuals against fitted values, residuals against each feature, residuals against observation order, and the normal QQ plot of the residuals
-        \item Observation-level quantities (leverage and studentized residuals) refine the check; they need the hat matrix, shown next
-    \end{itemize}
-\end{frame}
-
-
-\begin{frame}{Where the hat matrix is used: leverage}
-    \begin{itemize}
-        \item Since $\mathbf{e} = (\mathbf{I} - \mathbf{H})\symbf{\varepsilon}$, we have $\mathbb{E}[\mathbf{e}] = \mathbf{0}$ and $\mathrm{Cov}(\mathbf{e}) = \sigma^2 (\mathbf{I} - \mathbf{H})$; reading off the diagonal,
+        \item The diagonal of $\mathrm{Cov}(\mathbf{e}) = \sigma^2 (\mathbf{I} - \mathbf{H})$ (previous slide) gives the variance of each residual:
     \end{itemize}
     \[
         \mathrm{Var}\big(e^{(i)}\big) = \sigma^2 \big(1 - h^{(i)}\big), \qquad h^{(i)} = H_{ii}
@@ -196,6 +172,19 @@
     \paragraph{Externally studentized residuals.}
     A variant replaces $\hat\sigma$ by $\hat\sigma_{(i)}$, the estimate computed with observation $i$ left out. It removes the influence of a suspicious point on its own residual and follows a $t_{n-p-2}$ distribution exactly under normal errors. In R this is \texttt{rstudent()}; for moderate $n$ the two versions rarely lead to different conclusions.
 }
+
+
+\section{Residual Analysis}
+
+
+\begin{frame}{What is residual analysis?}
+    \begin{itemize}
+        \item \textbf{Residual analysis}: examining the residuals $\mathbf{e}$ (or transformed versions of them) to judge whether the assumptions of the model hold
+        \item If the assumptions hold, the residuals should look like random noise: centred at zero, with constant spread, no pattern against the fitted values, the features, or the observation order
+        \item Main plots: residuals against fitted values, residuals against each feature, residuals against observation order, and the normal QQ plot of the residuals
+        \item Observation-level quantities (leverage and studentized residuals) refine the check; they need the hat matrix, shown next
+    \end{itemize}
+\end{frame}
 
 
 \begin{frame}{Problem 1: non-linearity, what to check}
@@ -238,9 +227,10 @@
         \includegraphics[width=0.95\linewidth]{figures/reg_diag_autocorr.pdf}
     \end{center}
     \begin{itemize}
-        \item Dataset (simulated): $n = 100$ observations from $y^{(t)} = 1 + 0.05\,t + \varepsilon^{(t)}$, fitted by least squares with a linear trend in $t$
-        \item Errors follow an AR(1) process, $\varepsilon^{(t)} = \rho\,\varepsilon^{(t-1)} + u^{(t)}$, with $\rho = 0$, $0.5$, $0.9$; here $\rho$ is the correlation of successive errors
-        \item $\rho = 0$ gives random scatter around zero; $\rho = 0.9$ gives long runs above and below zero
+        \item The above plots are from simulated datasets
+        \item In the left plot, there is no autcorrelation among the errors, i.e., the observations are independent
+        \item In the middple plot, autocorrelation is moderate (0.5). The residuals get stuck on one side of the horizontal axis
+        \item In the right plot, autocorrelation is very high (0.9), the residuals get stuck on one side of the horizontal for much longer
     \end{itemize}
 \end{frame}
 
@@ -252,7 +242,7 @@
         \item \textbf{If} the vertical spread is about the same across the whole range, \textbf{then} constant variance is plausible
         \item \textbf{Consequence}: standard errors, intervals and tests become unreliable
         \item \textbf{Remedy 1}: transform $y$ ($\log y$ or $\sqrt{y}$)
-        \item \textbf{Remedy 2}: weighted least squares with $w^{(i)} \propto 1/\mathrm{Var}(\varepsilon^{(i)})$, giving $\hat{\symbf{\beta}} = (\tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{W} \mathbf{y}$ with $\mathbf{W} = \mathrm{diag}(w^{(i)})$
+        \item \textbf{Remedy 2}: weighted least squares
     \end{itemize}
 \end{frame}
 
@@ -262,7 +252,7 @@
         \includegraphics[width=0.95\linewidth]{figures/reg_diag_variance.pdf}
     \end{center}
     \begin{itemize}
-        \item Dataset and model: Auto, $n = 392$ cars; $\text{mpg} = \beta_0 + \beta_1\,\text{horsepower} + \beta_2\,\text{weight} + \beta_3\,\text{year} + \varepsilon$ ($p = 3$)
+        \item Dataset and model: `Auto' dataset, $n = 392$ cars; $\text{mpg} = \beta_0 + \beta_1\,\text{horsepower} + \beta_2\,\text{weight} + \beta_3\,\text{year} + \varepsilon$
         \item Left panel: $\log(\text{mpg})$ as response; right panel: mpg as response; the y-scales are free
         \item The mpg residuals fan out as the fitted value grows; their standard deviation grows from 2.35 to 2.48, 3.47 and 3.88 across the four quartiles of the fitted values
         \item For $\log(\text{mpg})$ the spread is nearly constant (0.116, 0.117, 0.130, 0.107), so the coefficients describe multiplicative effects
@@ -287,7 +277,7 @@
     \begin{itemize}
         \item Dataset (simulated): 50 points with $x \sim U(-2, 2)$ and $y = 1 + 2x + \varepsilon$, $\varepsilon \sim N(0, 0.7^2)$, plus one added point at $x = 0.3$, $y = 7.6$, six units above the line
         \item Left: fit with (red) and without (blue) the added point; right: studentized residuals against fitted values, with the outlier in red
-        \item Real data, Auto (model of Problem 3): 6 of 392 cars have $|r^{(i)}| > 3$; the largest, $r^{(i)} = 4.20$, is the most economical car in the data (46.6 mpg), far above its predicted value of about 32 mpg
+        % \item Real data, Auto (model of Problem 3): 6 of 392 cars have $|r^{(i)}| > 3$; the largest, $r^{(i)} = 4.20$, is the most economical car in the data (46.6 mpg), far above its predicted value of about 32 mpg
     \end{itemize}
 \end{frame}
 
@@ -379,29 +369,29 @@
 \end{frame}
 
 
-\begin{frame}{Diagnostic checklist}
-    \begin{center}
-        \footnotesize
-        \renewcommand{\arraystretch}{1.1}
-        \setlength{\tabcolsep}{4pt}
-        \begin{tabular}{llp{5cm}}
-            \toprule
-            Problem & Symptom & Remedy \\
-            \midrule
-            Non-linearity & Curve in residuals vs fitted & Transform features, interactions \\
-            Correlated errors & Tracking of residuals over time & Time-series or mixed models \\
-            Non-constant variance & Funnel in residuals vs fitted & Transform $y$, weighted least squares \\
-            Outliers & $|r^{(i)}| > 3$ & Investigate, fix or remove errors \\
-            High leverage & $h^{(i)}$ far above $(p+1)/n$, large $|r^{(i)}|$ & Check the point, refit without it \\
-            Collinearity & VIF above 5 or 10 & Drop or combine features \\
-            Non-normal errors & Both ends or one end off the line in QQ plot & Transform $y$, robust or bootstrap inference \\
-            \bottomrule
-        \end{tabular}
-    \end{center}
-    \begin{itemize}
-        \item Check in this order: residual plots first, then normality, then unusual observations, then collinearity; every fix changes the model, so refit and repeat the diagnostics
-    \end{itemize}
-\end{frame}
+% \begin{frame}{Diagnostic checklist}
+%     \begin{center}
+%         \footnotesize
+%         \renewcommand{\arraystretch}{1.1}
+%         \setlength{\tabcolsep}{4pt}
+%         \begin{tabular}{llp{5cm}}
+%             \toprule
+%             Problem & Symptom & Remedy \\
+%             \midrule
+%             Non-linearity & Curve in residuals vs fitted & Transform features, interactions \\
+%             Correlated errors & Tracking of residuals over time & Time-series or mixed models \\
+%             Non-constant variance & Funnel in residuals vs fitted & Transform $y$, weighted least squares \\
+%             Outliers & $|r^{(i)}| > 3$ & Investigate, fix or remove errors \\
+%             High leverage & $h^{(i)}$ far above $(p+1)/n$, large $|r^{(i)}|$ & Check the point, refit without it \\
+%             Collinearity & VIF above 5 or 10 & Drop or combine features \\
+%             Non-normal errors & Both ends or one end off the line in QQ plot & Transform $y$, robust or bootstrap inference \\
+%             \bottomrule
+%         \end{tabular}
+%     \end{center}
+%     \begin{itemize}
+%         \item Check in this order: residual plots first, then normality, then unusual observations, then collinearity; every fix changes the model, so refit and repeat the diagnostics
+%     \end{itemize}
+% \end{frame}
 
 
 \section{Regression Performance Measures}

@@ -339,23 +339,83 @@
 \begin{frame}{Maximizing the Log-Likelihood}
     \begin{itemize}
         \item $L$ is the probability the model assigns to the data we actually observed: a larger value means the parameters explain the data better. It is not the probability that the parameters are correct.
-        \item Stack the labels and the fitted probabilities into $\mathbf{y} = (y^{(i)})_{i=1}^n$ and $\mathbf{p} = (p^{(i)})_{i=1}^n$, where $p^{(i)} = \sigma(\symbf{\beta}^\top \tilde{\mathbf{x}}^{(i)})$.
-        \item The gradient of the log-likelihood is $\nabla \ell(\symbf{\beta}) = \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p})$.
-        \item Setting it to zero gives the score equations $\tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p}) = \mathbf{0}$. They resemble the normal equations of least squares, but $\mathbf{p}$ is nonlinear in $\symbf{\beta}$, so there is no closed-form solution.
-        \item $\ell$ is concave, so any solution is a global maximum. It is found iteratively by Newton--Raphson (IRLS), which is what \texttt{glm()} in R uses.
+        \item First we have to derive the gradient of the log-likelihood function, which is called the Score function.
+        \item Setting it to zero gives the score equations.
+        \item $\mathbf{p}$ is nonlinear in $\symbf{\beta}$, so there is no closed-form solution.
+        \item $\ell$ is concave, so any solution is a global maximum. It is found iteratively by the Newton--Raphson method.
     \end{itemize}
-    \dual{}{
-        \paragraph{Derivation of the gradient and the Newton step.}
-        Let $z^{(i)} = \symbf{\beta}^\top \tilde{\mathbf{x}}^{(i)}$, so $p^{(i)} = \sigma(z^{(i)})$ and $\sigma'(z) = \sigma(z)\big(1 - \sigma(z)\big)$. The contribution of observation $i$ to $\ell$ is $\ell^{(i)} = y^{(i)} \log p^{(i)} + (1 - y^{(i)}) \log (1 - p^{(i)})$, and
-        \[
-            \frac{\partial \ell^{(i)}}{\partial z^{(i)}} = \Big( \frac{y^{(i)}}{p^{(i)}} - \frac{1 - y^{(i)}}{1 - p^{(i)}} \Big) p^{(i)} \big(1 - p^{(i)}\big) = y^{(i)} - p^{(i)}.
-        \]
-        By the chain rule, $\partial \ell^{(i)} / \partial \symbf{\beta} = (y^{(i)} - p^{(i)}) \tilde{\mathbf{x}}^{(i)}$, and summing over $i$ gives $\nabla \ell(\symbf{\beta}) = \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p})$. Differentiating once more gives the Hessian $-\tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}}$ with $\mathbf{W} = \operatorname{diag}\big(p^{(i)} (1 - p^{(i)})\big)$, which is negative definite when $\tilde{\mathbf{X}}$ has full column rank, so $\ell$ is strictly concave. Newton--Raphson therefore iterates
-        \[
-            \symbf{\beta}^{\text{new}} = \symbf{\beta} + \big( \tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}} \big)^{-1} \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p}),
-        \]
-        which equals a weighted least-squares fit with weights $\mathbf{W}$ and working response $\tilde{\mathbf{X}} \symbf{\beta} + \mathbf{W}^{-1} (\mathbf{y} - \mathbf{p})$; this is why the algorithm is called iteratively reweighted least squares (IRLS).
+\end{frame}
+
+
+\begin{frame}{Score Function: Derivation}
+    \mode<presentation>{
+        \footnotesize
+        \setlength{\abovedisplayskip}{2pt}
+        \setlength{\belowdisplayskip}{2pt}
+        \setlength{\abovedisplayshortskip}{2pt}
+        \setlength{\belowdisplayshortskip}{2pt}
+        \setlength{\jot}{0pt}
     }
+    \begin{itemize}
+        \item With $z^{(i)} = \symbf{\beta}^\top \tilde{\mathbf{x}}^{(i)}$ and $p^{(i)} = \sigma(z^{(i)})$, the chain rule gives, for $j = 0, \dots, p$,
+        \[
+            \frac{\partial \ell}{\partial \beta_j} = \sum_{i=1}^{n} \frac{\partial \ell^{(i)}}{\partial p^{(i)}} \cdot \frac{\partial p^{(i)}}{\partial z^{(i)}} \cdot \frac{\partial z^{(i)}}{\partial \beta_j}.
+        \]
+        \item Expanding each term:
+        \[
+            \begin{aligned}
+                \frac{\partial \ell^{(i)}}{\partial p^{(i)}} &= \frac{y^{(i)}}{p^{(i)}} - \frac{1 - y^{(i)}}{1 - p^{(i)}} = \frac{y^{(i)} - p^{(i)}}{p^{(i)} \big(1 - p^{(i)}\big)}, \\[-2pt]
+                \frac{\partial p^{(i)}}{\partial z^{(i)}} &= \frac{e^{-z^{(i)}}}{\big(1 + e^{-z^{(i)}}\big)^2} = \frac{1}{1 + e^{-z^{(i)}}} \cdot \frac{e^{-z^{(i)}}}{1 + e^{-z^{(i)}}} = p^{(i)} \big(1 - p^{(i)}\big), \\[-2pt]
+                \frac{\partial z^{(i)}}{\partial \beta_j} &= \tilde{x}_j^{(i)}, \qquad \tilde{x}_0^{(i)} = 1.
+            \end{aligned}
+        \]
+        \item The factor $p^{(i)} (1 - p^{(i)})$ cancels; stacking over $j = 0, \dots, p$ gives the score vector:
+        \[
+            \frac{\partial \ell}{\partial \beta_j} = \sum_{i=1}^{n} \big(y^{(i)} - p^{(i)}\big) \tilde{x}_j^{(i)}
+            \quad \Longrightarrow \quad
+            \nabla \ell(\symbf{\beta}) = \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p}).
+        \]
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Hessian and Concavity}
+    \begin{itemize}
+        \item The score equations have no closed-form solution, so we need the second derivatives of $\ell$.
+        \item Differentiating the score once more gives the entries of the Hessian:
+        \[
+            \frac{\partial^2 \ell}{\partial \beta_j \, \partial \beta_k} = -\sum_{i=1}^{n} p^{(i)} \big(1 - p^{(i)}\big) \, \tilde{x}_j^{(i)} \tilde{x}_k^{(i)}.
+        \]
+        \item In matrix form, $\mathbf{H}(\symbf{\beta}) = -\tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}}$, where $\mathbf{W} = \operatorname{diag}\big(p^{(i)}(1 - p^{(i)})\big)$ is an $n \times n$ diagonal matrix of positive weights.
+        \item With positive weights and full column rank $\tilde{\mathbf{X}}$, $\mathbf{H}$ is negative definite, so $\ell$ is concave.
+        \item So the score equations have at most one solution, and it is the global maximum.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Newton--Raphson}
+    \begin{itemize}
+        \item Idea: at the current $\symbf{\beta}$, replace $\ell$ by a quadratic that matches its gradient and Hessian, then jump to the maximum of that quadratic.
+        \item This gives the update
+        \[
+            \symbf{\beta}^{\text{new}} = \symbf{\beta} - \mathbf{H}^{-1} \nabla \ell = \symbf{\beta} + \big( \tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}} \big)^{-1} \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p}).
+        \]
+        \item Algorithm: start from $\symbf{\beta} = \mathbf{0}$, compute $\mathbf{p}$ and $\mathbf{W}$, apply the update, and repeat until $\symbf{\beta}$ stops changing.
+        \item $\mathbf{p}$ and $\mathbf{W}$ depend on $\symbf{\beta}$, so they are recomputed at every step.
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Iteratively Reweighted Least Squares}
+    \begin{itemize}
+        \item The Newton update can be written as a weighted least-squares fit:
+        \[
+            \symbf{\beta}^{\text{new}} = \big( \tilde{\mathbf{X}}^\top \mathbf{W} \tilde{\mathbf{X}} \big)^{-1} \tilde{\mathbf{X}}^\top \mathbf{W} \mathbf{z}, \qquad \mathbf{z} = \tilde{\mathbf{X}} \symbf{\beta} + \mathbf{W}^{-1} (\mathbf{y} - \mathbf{p}).
+        \]
+        \item Compare with ordinary least squares, $(\tilde{\mathbf{X}}^\top \tilde{\mathbf{X}})^{-1} \tilde{\mathbf{X}}^\top \mathbf{y}$: the same formula, with weights $\mathbf{W}$ and working response $\mathbf{z}$ in place of $\mathbf{y}$.
+        \item The weights $p^{(i)}(1 - p^{(i)})$ are largest at $p^{(i)} = 0.5$ and small near $0$ or $1$.
+        \item $\mathbf{W}$ and $\mathbf{z}$ change at every iteration, hence ``iteratively reweighted''.% This is the algorithm behind \texttt{glm()}.
+    \end{itemize}
 \end{frame}
 
 

@@ -30,6 +30,7 @@
             \end{sitemize}
         \end{column}
         \begin{column}{0.52\textwidth}
+            \centering
             \includegraphics[width=\linewidth,height=6cm,keepaspectratio]{figures/cls_linear_vs_logistic}
             \par{\scriptsize \texttt{Default} data: the linear fit is negative for small balances, the logistic fit stays in $[0, 1]$.}
         \end{column}
@@ -378,6 +379,7 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.44\textwidth}
+            \centering
             \includegraphics[width=\linewidth,height=8cm,keepaspectratio]{figures/cls_logistic_boundary}
             \par{\scriptsize Black: $\hat{p} = 0.5$; grey: $0.1, 0.3, 0.7, 0.9$.}
         \end{column}
@@ -388,7 +390,7 @@
 \begin{frame}{Worked Example: Default Data}
     \begin{itemize}
         \item \texttt{Default}: $10{,}000$ credit card customers, response \texttt{default} ($333$ defaults), predictors \texttt{balance}, \texttt{income}, \texttt{student}.
-        \item Fit: \texttt{glm(default \textasciitilde{} balance, data = Default, family = binomial)}.
+        % \item Fit: \texttt{glm(default \textasciitilde{} balance, data = Default, family = binomial)}.
     \end{itemize}
     \begin{center}
         {\small
@@ -585,6 +587,7 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.52\textwidth}
+            \centering
             \includegraphics[width=\linewidth,height=8cm,keepaspectratio]{figures/cls_logistic_vs_knn}
         \end{column}
     \end{columns}

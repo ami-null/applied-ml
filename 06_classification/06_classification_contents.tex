@@ -429,22 +429,22 @@
 \end{frame}
 
 
-\begin{frame}{The Logistic Decision Boundary}
-    \begin{columns}[T]
-        \begin{column}{0.56\textwidth}
-            \begin{itemize}
-                \item For $\tau = 0.5$, $\hat{y}^\ast = 1 \iff \hat{\symbf{\beta}}^\top \tilde{\mathbf{x}}^\ast > 0$ (since $\sigma(z) > 0.5 \iff z > 0$), so the boundary $\hat{\symbf{\beta}}^\top \tilde{\mathbf{x}} = 0$ is a hyperplane.
-                \item Logistic regression is a linear classifier, although $p(\mathbf{x})$ is nonlinear in $\mathbf{x}$.
-                \item Another $\tau$ gives $\hat{\symbf{\beta}}^\top \tilde{\mathbf{x}} = \log \frac{\tau}{1 - \tau}$, a parallel hyperplane.
-            \end{itemize}
-        \end{column}
-        \begin{column}{0.44\textwidth}
-            \centering
-            \includegraphics[width=\linewidth,height=8cm,keepaspectratio]{figures/cls_logistic_boundary}
-            \par{\scriptsize Black: $\hat{p} = 0.5$; grey: $0.1, 0.3, 0.7, 0.9$.}
-        \end{column}
-    \end{columns}
-\end{frame}
+% \begin{frame}{The Logistic Decision Boundary}
+%     \begin{columns}[T]
+%         \begin{column}{0.56\textwidth}
+%             \begin{itemize}
+%                 \item For $\tau = 0.5$, $\hat{y}^\ast = 1 \iff \hat{\symbf{\beta}}^\top \tilde{\mathbf{x}}^\ast > 0$ (since $\sigma(z) > 0.5 \iff z > 0$), so the boundary $\hat{\symbf{\beta}}^\top \tilde{\mathbf{x}} = 0$ is a hyperplane.
+%                 \item Logistic regression is a linear classifier, although $p(\mathbf{x})$ is nonlinear in $\mathbf{x}$.
+%                 \item Another $\tau$ gives $\hat{\symbf{\beta}}^\top \tilde{\mathbf{x}} = \log \frac{\tau}{1 - \tau}$, a parallel hyperplane.
+%             \end{itemize}
+%         \end{column}
+%         \begin{column}{0.44\textwidth}
+%             \centering
+%             \includegraphics[width=\linewidth,height=8cm,keepaspectratio]{figures/cls_logistic_boundary}
+%             \par{\scriptsize Black: $\hat{p} = 0.5$; grey: $0.1, 0.3, 0.7, 0.9$.}
+%         \end{column}
+%     \end{columns}
+% \end{frame}
 
 
 \begin{frame}{Worked Example: Default Data}
@@ -515,48 +515,62 @@
 \end{frame}
 
 
-\begin{frame}{Identifiability and the Reference Class}
+\begin{frame}{Reference Class and Interpretation}
     \begin{itemize}
-        \item A model is identifiable if distinct parameter values always give distinct probabilities. Otherwise the data cannot single out one estimate, and the likelihood has no unique maximizer.
-        \item The softmax model is not identifiable: adding the same vector $\mathbf{c} \in \mathbb{R}^{p+1}$ to every $\symbf{\beta}_k$ multiplies the numerator and every term of the denominator by $e^{\mathbf{c}^\top \tilde{\mathbf{x}}}$. The factor cancels and all $K$ probabilities are unchanged.
-        \item Fix a reference class, usually $K$, by setting $\symbf{\beta}_K = \mathbf{0}$. Exactly one parameter set in each group of equivalent sets satisfies this.
-        \item The remaining $K - 1$ classes each have $p + 1$ free parameters.
-    \end{itemize}
-\end{frame}
-
-
-\begin{frame}{Interpreting Multinomial Coefficients}
-    \begin{itemize}
-        \item Relative to the reference class,
+        \item We need a reference class: fix one class $r$ and set $\symbf{\beta}_r = \mathbf{0}$. The other $K - 1$ classes keep their own coefficient vectors.
+        \item Relative to the reference class, for every class $k \neq r$,
         \[
-            \log \frac{P(y = k \mid \mathbf{x})}{P(y = K \mid \mathbf{x})} = \symbf{\beta}_k^\top \tilde{\mathbf{x}}, \qquad k = 1, \dots, K - 1.
+            \log \frac{P(y = k \mid \mathbf{x})}{P(y = r \mid \mathbf{x})} = \symbf{\beta}_k^\top \tilde{\mathbf{x}}.
         \]
-        \item So $\beta_{kj}$ is the change in the log-odds of class $k$ versus class $K$ per unit increase in $x_j$ with the other features fixed, and $e^{\beta_{kj}}$ multiplies the odds of class $k$ relative to class $K$.
+        \item So $\beta_{kj}$ is the change in the log-odds of class $k$ versus class $r$ per unit increase in $x_j$ with the other features fixed, and $e^{\beta_{kj}}$ multiplies the odds of class $k$ relative to class $r$, which is why $e^{\beta_{kj}}$ is also called the odds ratio corresponding to feature $j$.
         \item The coefficients depend on the choice of reference class; the fitted probabilities do not.
         \item For $K = 2$ with class $2$ as the reference, $P(y = 1 \mid \mathbf{x}) = \sigma(\symbf{\beta}_1^\top \tilde{\mathbf{x}})$: ordinary logistic regression.
     \end{itemize}
 \end{frame}
 
 
-\begin{frame}{Nonlinear Decision Boundaries}
-    \begin{itemize}
-        \item Add transformed features such as $x_1^2$, $x_2^2$, $x_1 x_2$ to the linear score; the model stays linear in the parameters, exactly as in polynomial regression.
-        \item Example:
-        \[
-            \log \frac{p(\mathbf{x})}{1 - p(\mathbf{x})} = \beta_0 + \beta_1 x_1^2 + \beta_2 x_2^2.
-        \]
-        \item If $\beta_1 = \beta_2$ and $\beta_0$ has the opposite sign, the boundary is the circle $x_1^2 + x_2^2 = r^2$ with $r^2 = -\beta_0 / \beta_1$, which is a linear boundary in the features $(x_1^2, x_2^2)$.
-    \end{itemize}
-\end{frame}
+% \begin{frame}{Identifiability and the Reference Class}
+%     \begin{itemize}
+%         \item A model is identifiable if distinct parameter values always give distinct probabilities. Otherwise the data cannot single out one estimate, and the likelihood has no unique maximizer.
+%         \item The softmax model is not identifiable: adding the same vector $\mathbf{c} \in \mathbb{R}^{p+1}$ to every $\symbf{\beta}_k$ multiplies the numerator and every term of the denominator by $e^{\mathbf{c}^\top \tilde{\mathbf{x}}}$. The factor cancels and all $K$ probabilities are unchanged.
+%         \item Fix a reference class, usually $K$, by setting $\symbf{\beta}_K = \mathbf{0}$. Exactly one parameter set in each group of equivalent sets satisfies this.
+%         \item The remaining $K - 1$ classes each have $p + 1$ free parameters.
+%     \end{itemize}
+% \end{frame}
 
 
-\begin{frame}{Feature Maps and Overfitting}
-    \begin{itemize}
-        \item More generally, replace $\mathbf{x}$ with a feature map $\phi(\mathbf{x})$ and fit logistic regression on $\phi(\mathbf{x})$: the boundary is linear in $\phi(\mathbf{x})$-space and nonlinear in $\mathbf{x}$-space.
-        \item The likelihood, the fitting algorithm and the interpretation of coefficients carry over unchanged.
-        \item A richer feature map fits the training boundary more closely but risks overfitting; how many terms to add is the same trade-off as choosing the polynomial degree.
-    \end{itemize}
-\end{frame}
+% \begin{frame}{Interpreting Multinomial Coefficients}
+%     \begin{itemize}
+%         \item Relative to the reference class,
+%         \[
+%             \log \frac{P(y = k \mid \mathbf{x})}{P(y = K \mid \mathbf{x})} = \symbf{\beta}_k^\top \tilde{\mathbf{x}}, \qquad k = 1, \dots, K - 1.
+%         \]
+%         \item So $\beta_{kj}$ is the change in the log-odds of class $k$ versus class $K$ per unit increase in $x_j$ with the other features fixed, and $e^{\beta_{kj}}$ multiplies the odds of class $k$ relative to class $K$.
+%         \item The coefficients depend on the choice of reference class; the fitted probabilities do not.
+%         \item For $K = 2$ with class $2$ as the reference, $P(y = 1 \mid \mathbf{x}) = \sigma(\symbf{\beta}_1^\top \tilde{\mathbf{x}})$: ordinary logistic regression.
+%     \end{itemize}
+% \end{frame}
+
+
+% \begin{frame}{Nonlinear Decision Boundaries}
+%     \begin{itemize}
+%         \item Add transformed features such as $x_1^2$, $x_2^2$, $x_1 x_2$ to the linear score; the model stays linear in the parameters, exactly as in polynomial regression.
+%         \item Example:
+%         \[
+%             \log \frac{p(\mathbf{x})}{1 - p(\mathbf{x})} = \beta_0 + \beta_1 x_1^2 + \beta_2 x_2^2.
+%         \]
+%         \item If $\beta_1 = \beta_2$ and $\beta_0$ has the opposite sign, the boundary is the circle $x_1^2 + x_2^2 = r^2$ with $r^2 = -\beta_0 / \beta_1$, which is a linear boundary in the features $(x_1^2, x_2^2)$.
+%     \end{itemize}
+% \end{frame}
+
+
+% \begin{frame}{Feature Maps and Overfitting}
+%     \begin{itemize}
+%         \item More generally, replace $\mathbf{x}$ with a feature map $\phi(\mathbf{x})$ and fit logistic regression on $\phi(\mathbf{x})$: the boundary is linear in $\phi(\mathbf{x})$-space and nonlinear in $\mathbf{x}$-space.
+%         \item The likelihood, the fitting algorithm and the interpretation of coefficients carry over unchanged.
+%         \item A richer feature map fits the training boundary more closely but risks overfitting; how many terms to add is the same trade-off as choosing the polynomial degree.
+%     \end{itemize}
+% \end{frame}
 
 
 \section{\texorpdfstring{$k$}{k}-Nearest Neighbors}

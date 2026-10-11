@@ -1,7 +1,4 @@
-\section{Classification Methods}
-
-
-\subsection{Classification Problems and Decision Boundaries}
+\section{Classification Problems and Decision Boundaries}
 
 
 \begin{frame}{The Classification Problem}
@@ -55,6 +52,7 @@
 
 \begin{frame}{Conditional Class Probabilities}
     \begin{itemize}
+        \item Suppose we want to predict whether customers of a bank will repay their loans or will default on it.
         \item For a fixed $\mathbf{x}$ the class is still random: customers with identical balance, income and student status do not all default, or all repay.
         \item The conditional class probability $p_k(\mathbf{x}) = P(y = k \mid \mathbf{x})$ is the probability that the response is class $k$ given the feature vector $\mathbf{x}$. Read it as the long-run proportion of observations with exactly this $\mathbf{x}$ that belong to class $k$.
         \item The probabilities of all classes sum to one: $\sum_{k=1}^{K} p_k(\mathbf{x}) = 1$.
@@ -137,7 +135,7 @@
 \end{frame}
 
 
-\subsection{Logistic Regression}
+\section{Logistic Regression}
 
 
 \begin{frame}{Modeling a Binary Response}
@@ -218,9 +216,12 @@
 \end{frame}
 
 
+\section{Likelihood Function}
+
+
 \begin{frame}{Estimation: The Likelihood Idea}
     \begin{itemize}
-        \item Least squares is built for a quantitative response with additive errors; for a Bernoulli response we use a different principle, maximum likelihood.
+        \item Least squares is built for a quantitative response with additive errors; for a Bernoulli response we use a different principle called maximum likelihood estimation.
         \item Idea: choose the parameter values under which the observed data would have been most probable.
         \item The likelihood is the probability of the observed data, viewed as a function of the parameters with the data held fixed.
         \item The maximum likelihood estimate is the parameter value that maximizes the likelihood.
@@ -230,7 +231,7 @@
 
 \begin{frame}{Likelihood: A Coin-Flip Example}
     \begin{itemize}
-        \item A coin lands heads with unknown probability $\theta$. We flip it $10$ times and observe a particular sequence with $7$ heads and $3$ tails.
+        \item An unfair coin lands heads with unknown probability $\theta$. We flip it $10$ times and observe a particular sequence with $7$ heads and $3$ tails.
         \item The flips are independent, so the probability of this sequence is the likelihood $L(\theta) = \theta^{7} (1 - \theta)^{3}$.
         \item Comparing values: $L(0.5) \approx 0.00098$ and $L(0.7) \approx 0.00222$. The data are more than twice as probable under $\theta = 0.7$.
         \item The likelihood is maximized at $\hat{\theta} = 7/10$, the observed proportion of heads: maximum likelihood agrees with intuition.
@@ -243,6 +244,43 @@
         \]
         With $m$ heads in $n$ flips the same steps give $\hat{\theta} = m / n$.
     }
+\end{frame}
+
+
+\begin{frame}{Likelihood: The Coin-Flip Likelihood Curve}
+    \begin{center}
+        \begin{tikzpicture}
+            \begin{axis}[
+                width=9cm, height=5.5cm, font=\footnotesize,
+                xlabel={$\theta$}, ylabel={$L(\theta)$},
+                xmin=0, xmax=1, ymin=0, ymax=0.0026,
+                xtick={0, 0.5, 0.7, 1},
+                ytick={0, 0.001, 0.002},
+                scaled y ticks=false,
+                yticklabel style={/pgf/number format/fixed, /pgf/number format/precision=3},
+                axis lines=left,
+                clip=false
+            ]
+                \addplot[thick, mDarkTeal, domain=0:1, samples=200, smooth] {x^7 * (1 - x)^3};
+
+                % drop lines
+                \draw[dashed, gray] (axis cs:0.5,0) -- (axis cs:0.5,0.0009766);
+                \draw[dashed, gray] (axis cs:0.7,0) -- (axis cs:0.7,0.0022235);
+                \draw[dashed, gray] (axis cs:0,0.0009766) -- (axis cs:0.5,0.0009766);
+                \draw[dashed, gray] (axis cs:0,0.0022235) -- (axis cs:0.7,0.0022235);
+
+                % points
+                \addplot[only marks, mark=*, mark size=2pt, mDarkTeal] coordinates {(0.5,0.0009766) (0.7,0.0022235)};
+
+                \node[anchor=south east] at (axis cs:0.5,0.0009766) {$L(0.5) \approx 0.00098$};
+                \node[anchor=south west] at (axis cs:0.7,0.0022235) {$L(0.7) \approx 0.00222$};
+            \end{axis}
+        \end{tikzpicture}
+    \end{center}
+    \begin{itemize}
+        \item The curve peaks at $\hat{\theta} = 0.7$, the observed proportion of heads.
+        \item $L(0.7) / L(0.5) \approx 2.3$: the data are more than twice as probable under $\theta = 0.7$ than under a fair coin.
+    \end{itemize}
 \end{frame}
 
 
@@ -287,18 +325,19 @@
 \end{frame}
 
 
-\begin{frame}{Why Maximize?}
-    \begin{itemize}
-        \item $L$ is the probability the model assigns to the data we actually observed: a larger value means the parameters explain the data better. It is not the probability that the parameters are correct.
-        \item Each term of $\ell$ is the logarithm of a probability, hence at most $0$; the best fit gives the value of $\ell$ closest to $0$.
-        \item For one observation with $y^{(i)} = 1$ the term is $\log p^{(i)}$: near $0$ when $p^{(i)}$ is near $1$, and tending to $-\infty$ as $p^{(i)} \to 0$. Confident wrong predictions are penalized heavily.
-        \item Machine learning usually minimizes a loss: maximizing $\ell$ is the same as minimizing the cross-entropy loss $-\ell / n$.
-    \end{itemize}
-\end{frame}
+% \begin{frame}{Why Maximize?}
+%     \begin{itemize}
+        
+%         \item Each term of $\ell$ is the logarithm of a probability, hence at most $0$; the best fit gives the value of $\ell$ closest to $0$.
+%         \item For one observation with $y^{(i)} = 1$ the term is $\log p^{(i)}$: near $0$ when $p^{(i)}$ is near $1$, and tending to $-\infty$ as $p^{(i)} \to 0$. Confident wrong predictions are penalized heavily.
+%         \item Machine learning usually minimizes a loss: maximizing $\ell$ is the same as minimizing the cross-entropy loss $-\ell / n$.
+%     \end{itemize}
+% \end{frame}
 
 
 \begin{frame}{Maximizing the Log-Likelihood}
     \begin{itemize}
+        \item $L$ is the probability the model assigns to the data we actually observed: a larger value means the parameters explain the data better. It is not the probability that the parameters are correct.
         \item Stack the labels and the fitted probabilities into $\mathbf{y} = (y^{(i)})_{i=1}^n$ and $\mathbf{p} = (p^{(i)})_{i=1}^n$, where $p^{(i)} = \sigma(\symbf{\beta}^\top \tilde{\mathbf{x}}^{(i)})$.
         \item The gradient of the log-likelihood is $\nabla \ell(\symbf{\beta}) = \tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p})$.
         \item Setting it to zero gives the score equations $\tilde{\mathbf{X}}^\top (\mathbf{y} - \mathbf{p}) = \mathbf{0}$. They resemble the normal equations of least squares, but $\mathbf{p}$ is nonlinear in $\symbf{\beta}$, so there is no closed-form solution.
@@ -399,6 +438,9 @@
 \end{frame}
 
 
+\section{Classification with More than Two Classes}
+
+
 \begin{frame}{Multinomial Regression}
     \begin{itemize}
         \item For $K > 2$ classes, model every class probability with the softmax function:
@@ -455,7 +497,7 @@
 \end{frame}
 
 
-\subsection{\texorpdfstring{$k$}{k}-Nearest Neighbors}
+\section{\texorpdfstring{$k$}{k}-Nearest Neighbors}
 
 
 \begin{frame}{\texorpdfstring{$k$}{k}-Nearest Neighbors Classifier}
@@ -529,7 +571,7 @@
 \end{frame}
 
 
-\subsection{Comparison and Summary}
+\section{Comparison and Summary}
 
 
 \begin{frame}{Logistic Regression vs.\ \texorpdfstring{$k$}{k}-NN on the Same Data}

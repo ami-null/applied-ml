@@ -57,7 +57,7 @@
 \begin{frame}{Example: polynomial fits to simulated data}
     \begin{figure}
         \centering
-        \includegraphics[width=\linewidth]{figures/sim_fits.pdf}
+        \includegraphics[width=0.75\linewidth]{figures/sim_fits.pdf}
     \end{figure}
     \begin{itemize}
         \item Data: $y = \sin(2\pi x) + \epsilon$ with $\epsilon \sim N(0, 0.3^2)$ and $n = 30$; fits are polynomials of degree 1, 3 and 10
@@ -184,13 +184,13 @@
 
 \begin{frame}{The trade-off in simulation}
     \begin{columns}[T]
-        \begin{column}{0.55\textwidth}
+        \begin{column}{0.45\textwidth}
             \begin{figure}
                 \centering
                 \includegraphics[width=\linewidth]{figures/sim_biasvar_decomp.pdf}
             \end{figure}
         \end{column}
-        \begin{column}{0.43\textwidth}
+        \begin{column}{0.53\textwidth}
             \begin{itemize}
                 \item Estimated from 500 simulated training sets, averaged over $x^\ast \in [0,1]$
                 \item Squared bias falls and variance rises with the polynomial degree
@@ -253,11 +253,17 @@
 \begin{frame}{Validation set approach}
     \begin{figure}
         \centering
-        \includegraphics[width=0.92\linewidth]{figures/auto_validation_splits.pdf}
+        \includegraphics[width=0.9\linewidth]{figures/auto_validation_splits.pdf}
     \end{figure}
     \begin{itemize}
         \item Randomly split the data into two halves; fit on one, compute the MSE on the other
-        \item The estimate, and even the best degree, changes from split to split (right panel)
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Drawbacks of the validation set approach}
+    \begin{itemize}
+        \item The estimate, and even the best degree, changes from split to split (right panel of the previous slide)
         \item Only part of the data is used for fitting, so the validation MSE tends to overestimate the test MSE
     \end{itemize}
 \end{frame}
@@ -274,6 +280,12 @@
     \begin{itemize}
         \item $\hat{y}^{(i)}_{(-i)}$ is the prediction for $\mathbf{x}^{(i)}$ from the model fitted without observation $i$
         \item Each fit uses $n-1$ points, so the bias of the estimate is small, and there is no randomness in the splits
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{LOOCV for least squares}
+    \begin{itemize}
         \item For least squares with hat values $h_i$, one fit suffices:
     \end{itemize}
     \[
@@ -339,10 +351,16 @@
 \begin{frame}{Cross-validation on \texttt{Auto}}
     \begin{figure}
         \centering
-        \includegraphics[width=0.92\linewidth]{figures/auto_cv_curves.pdf}
+        \includegraphics[width=0.9\linewidth]{figures/auto_cv_curves.pdf}
     \end{figure}
     \begin{itemize}
         \item CV error drops from about 24.2 (linear) to about 19.2 (quadratic), with no clear gain beyond degree 2
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Reading the cross-validation curves}
+    \begin{itemize}
         \item Ten-fold CV curves from different random partitions agree closely, unlike the validation set curves
         \item The location of the minimum matters more than the exact level of the estimate
     \end{itemize}
@@ -371,19 +389,20 @@
         \begin{column}{0.5\textwidth}
             \begin{center}
                 \begin{tikzpicture}[
-                        cell/.style={draw, minimum width=2.0cm, minimum height=1.0cm, align=center, font=\small},
-                        lab/.style={font=\footnotesize\bfseries, align=center}
+                        cell/.style={draw, minimum width=1.8cm, minimum height=1.0cm, align=center, font=\small},
+                        lab/.style={font=\footnotesize\bfseries, align=center},
+                        rowlab/.style={font=\footnotesize\bfseries, anchor=east, text width=1.7cm, align=right}
                     ]
                     \node[cell, fill=green!20] at (0,0)      {TP};
-                    \node[cell, fill=red!15]   at (2.0,0)    {FP};
+                    \node[cell, fill=red!15]   at (1.8,0)    {FP};
                     \node[cell, fill=red!15]   at (0,-1.0)   {FN};
-                    \node[cell, fill=green!20] at (2.0,-1.0) {TN};
+                    \node[cell, fill=green!20] at (1.8,-1.0) {TN};
                     \node[lab] at (0,0.75)     {Positive};
-                    \node[lab] at (2.0,0.75)   {Negative};
-                    \node[lab] at (1.0,1.25)   {True class};
-                    \node[lab, anchor=east] at (-1.1,0)    {Positive};
-                    \node[lab, anchor=east] at (-1.1,-1.0) {Negative};
-                    \node[lab, rotate=90] at (-2.6,-0.5)   {Predicted class};
+                    \node[lab] at (1.8,0.75)   {Negative};
+                    \node[lab] at (0.9,1.3)    {True class};
+                    \node[rowlab] at (-1.0,0)    {Positive};
+                    \node[rowlab] at (-1.0,-1.0) {Negative};
+                    \node[lab, rotate=90, anchor=south] at (-3.05,-0.5) {Predicted class};
                 \end{tikzpicture}
             \end{center}
         \end{column}
@@ -404,24 +423,25 @@
         \begin{column}{0.5\textwidth}
             \begin{center}
                 \begin{tikzpicture}[scale=0.8, every node/.append style={transform shape},
-                        cell/.style={draw, minimum width=2.0cm, minimum height=1.0cm, align=center, font=\small},
+                        cell/.style={draw, minimum width=1.8cm, minimum height=1.0cm, align=center, font=\small},
                         lab/.style={font=\footnotesize\bfseries, align=center},
+                        rowlab/.style={font=\footnotesize\bfseries, anchor=east, text width=2.1cm, align=right},
                         tot/.style={font=\scriptsize, gray}
                     ]
                     \node[cell, fill=green!20] at (0,0)      {105};
-                    \node[cell, fill=red!15]   at (2.0,0)    {40};
+                    \node[cell, fill=red!15]   at (1.8,0)    {40};
                     \node[cell, fill=red!15]   at (0,-1.0)   {228};
-                    \node[cell, fill=green!20] at (2.0,-1.0) {9627};
+                    \node[cell, fill=green!20] at (1.8,-1.0) {9627};
                     \node[lab] at (0,0.75)     {Default};
-                    \node[lab] at (2.0,0.75)   {No default};
-                    \node[lab] at (1.0,1.25)   {True class};
-                    \node[lab, anchor=east] at (-1.1,0)    {Default};
-                    \node[lab, anchor=east] at (-1.1,-1.0) {No default};
-                    \node[lab, rotate=90] at (-3.5,-0.5)   {Predicted class};
+                    \node[lab] at (1.8,0.75)   {No default};
+                    \node[lab] at (0.9,1.3)    {True class};
+                    \node[rowlab] at (-1.0,0)    {Default};
+                    \node[rowlab] at (-1.0,-1.0) {No default};
+                    \node[lab, rotate=90, anchor=south] at (-3.45,-0.5) {Predicted class};
                     \node[tot] at (0,-1.7)   {333};
-                    \node[tot] at (2.0,-1.7) {9667};
-                    \node[tot, anchor=west] at (3.1,0)    {145};
-                    \node[tot, anchor=west] at (3.1,-1.0) {9855};
+                    \node[tot] at (1.8,-1.7) {9667};
+                    \node[tot, anchor=west] at (2.85,0)    {145};
+                    \node[tot, anchor=west] at (2.85,-1.0) {9855};
                 \end{tikzpicture}
             \end{center}
         \end{column}
@@ -452,6 +472,8 @@
 
 
 \begin{frame}{Precision, recall and specificity}
+
+    {\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{2pt}
     \begin{align*}
         \text{Precision} &= \frac{TP}{TP + FP}
             && \text{flagged cases that are truly positive} \\
@@ -459,7 +481,10 @@
             && \text{true positives that we find} \\
         \text{Specificity} &= \frac{TN}{TN + FP}
             && \text{true negatives that we clear}
-    \end{align*}
+    \end{align*}}
+
+    \svspace{0.5em}
+    
     \begin{itemize}
         \item \texttt{Default} at threshold 0.5: precision $= 105/145 \approx 0.72$, recall $= 105/333 \approx 0.32$, specificity $= 9627/9667 \approx 0.996$
         \item High accuracy and high specificity hide that two thirds of the defaulters are missed
@@ -485,7 +510,10 @@
             \end{itemize}
         \end{column}
     \end{columns}
-    \svspace{1em}
+\end{frame}
+
+
+\begin{frame}{Precision vs. recall: more examples}
     \begin{itemize}
         \item Targeting cash transfers to poor households: low recall excludes eligible households, low precision leaks money to the non-poor
         \item Specificity matters when clearing negatives is the goal, e.g.\ avoiding unnecessary treatment
@@ -496,15 +524,15 @@
 \begin{frame}{Which metric should I use?}
     \begin{center}
         \small
-        \begin{tabular}{p{5.6cm}p{5.0cm}}
+        \begin{tabular}{@{}l@{\hspace{1.5em}}l@{}}
             \toprule
             Situation & Metric to emphasize \\
             \midrule
             Balanced classes, similar error costs & Accuracy \\
             False positives are costly & Precision, specificity \\
             False negatives are costly & Recall (sensitivity) \\
-            Rare positives, both errors matter & $F_1$ score, precision--recall curve \\
-            Comparing classifiers over all thresholds & ROC curve and AUC \\
+            Rare positives, both errors matter & $F_1$, precision--recall curve \\
+            Comparing over all thresholds & ROC curve and AUC \\
             \bottomrule
         \end{tabular}
     \end{center}
@@ -539,14 +567,20 @@
 
 
 \begin{frame}{Metrics as a function of the threshold}
-    \begin{figure}
-        \centering
-        \includegraphics[width=0.75\linewidth]{figures/default_threshold_metrics.pdf}
-    \end{figure}
-    \begin{itemize}
-        \item Recall decreases monotonically in $\tau$; precision tends to increase, but not monotonically
-        \item Accuracy is highest at large $\tau$ simply because most cases are negative
-    \end{itemize}
+    \begin{columns}[T]
+        \begin{column}{0.58\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\linewidth]{figures/default_threshold_metrics.pdf}
+            \end{figure}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \begin{itemize}
+                \item Recall decreases monotonically in $\tau$; precision tends to increase, but not monotonically
+                \item Accuracy is highest at large $\tau$ simply because most cases are negative
+            \end{itemize}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}{The $F_1$ score}
@@ -562,13 +596,19 @@
 \end{frame}
 
 
-\begin{frame}{ROC curve, precision--recall curve and AUC}
+\begin{frame}{ROC curve and precision--recall curve}
     \begin{figure}
         \centering
-        \includegraphics[width=0.92\linewidth]{figures/default_roc_pr.pdf}
+        \includegraphics[width=0.9\linewidth]{figures/default_roc_pr.pdf}
     \end{figure}
     \begin{itemize}
         \item ROC: true positive rate (recall) against false positive rate as $\tau$ varies; AUC $\approx 0.95$ here (training data)
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Interpreting AUC}
+    \begin{itemize}
         \item AUC is the probability that a random positive receives a higher $\hat{p}$ than a random negative; 0.5 is chance, 1 is perfect
         \item With rare positives the precision--recall curve is more informative; its chance level is the prevalence (about 3.3\%)
     \end{itemize}
@@ -596,24 +636,22 @@
         \item Penalize the training fit for model size instead of using held-out data; $d$ = number of predictors, $p$ = number of estimated parameters
     \end{itemize}
     \[
-        R^2_{\text{adj}} = 1 - \frac{\mathrm{RSS}/(n - d - 1)}{\mathrm{TSS}/(n - 1)},
-        \qquad
+        R^2_{\text{adj}} = 1 - \frac{\mathrm{RSS}/(n - d - 1)}{\mathrm{TSS}/(n - 1)}
+    \]
+    \[
         \mathrm{AIC} = -2\log\hat{L} + 2p,
         \qquad
         \mathrm{BIC} = -2\log\hat{L} + p\log n
     \]
     \begin{center}
         \mode<presentation>{\small}
-        \begin{tabular}{crrr}
+        \begin{tabular}{@{}lrrrrrr@{}}
             \toprule
-            Degree & $R^2_{\text{adj}}$ & AIC & BIC \\
+            Degree & 1 & 2 & 3 & 4 & 5 & 6 \\
             \midrule
-            1 & 0.605 & 2363.3 & 2375.2 \\
-            2 & 0.686 & 2274.4 & \textbf{2290.2} \\
-            3 & 0.686 & 2275.5 & 2295.4 \\
-            4 & 0.686 & 2276.1 & 2299.9 \\
-            5 & 0.693 & 2268.7 & 2296.5 \\
-            6 & \textbf{0.695} & \textbf{2266.7} & 2298.4 \\
+            $R^2_{\text{adj}}$ & 0.605 & 0.686 & 0.686 & 0.686 & 0.693 & \textbf{0.695} \\
+            AIC & 2363.3 & 2274.4 & 2275.5 & 2276.1 & 2268.7 & \textbf{2266.7} \\
+            BIC & 2375.2 & \textbf{2290.2} & 2295.4 & 2299.9 & 2296.5 & 2298.4 \\
             \bottomrule
         \end{tabular}
     \end{center}

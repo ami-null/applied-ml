@@ -68,18 +68,19 @@
 
 \begin{frame}{Training error vs. test error as flexibility grows}
     \begin{columns}[T]
-        \begin{column}{0.55\textwidth}
+        \begin{column}{0.5\textwidth}
             \begin{figure}
                 \centering
                 \includegraphics[width=\linewidth]{figures/sim_train_test_mse.pdf}
             \end{figure}
         \end{column}
-        \begin{column}{0.43\textwidth}
+        \begin{column}{0.48\textwidth}
             \begin{itemize}
+                \item Averages over 500 simulated training sets
                 \item Training MSE decreases as the degree increases
-                \item Test MSE is U-shaped: it first falls, then rises
+                \item Test MSE is U-shaped: it first falls, then rises again
                 \item The dashed line is $\sigma^2$, the error no model can beat
-                \item Choosing the model with the smallest training MSE would select the most overfit model
+                \item The smallest training MSE belongs to the most overfit model
             \end{itemize}
         \end{column}
     \end{columns}
@@ -115,69 +116,28 @@
 \section{The bias-variance trade-off}
 
 
-\begin{frame}{Bias-variance decomposition: setup}
+\begin{frame}{Bias-variance decomposition}
     \begin{itemize}
-        \item Assume $y^\ast = f(\mathbf{x}^\ast) + \epsilon$ with $\mathbb{E}[\epsilon] = 0$, $\mathrm{Var}(\epsilon) = \sigma^2$, and $\epsilon$ independent of the training data
-        \item The estimate $\hat{f}$ is computed from a random training set $\mathcal{D}$, so $\hat{f}(\mathbf{x}^\ast)$ is itself a random variable
-        \item Expected test MSE at a fixed point $\mathbf{x}^\ast$, taken over training sets $\mathcal{D}$ and noise $\epsilon$:
-    \end{itemize}
-    \[
-        \mathbb{E}\big[(y^\ast - \hat{f}(\mathbf{x}^\ast))^2\big]
-    \]
-    \begin{itemize}
-        \item Goal: split this quantity into interpretable pieces
-    \end{itemize}
-\end{frame}
-
-
-\begin{frame}{Bias-variance decomposition: step 1 (noise)}
-    Substitute $y^\ast = f(\mathbf{x}^\ast) + \epsilon$ and expand the square (writing $f$ and $\hat{f}$ for $f(\mathbf{x}^\ast)$ and $\hat{f}(\mathbf{x}^\ast)$):
-    \begin{align*}
-        \mathbb{E}\big[(y^\ast - \hat{f})^2\big]
-            &= \mathbb{E}\big[(f - \hat{f} + \epsilon)^2\big] \\
-            &= \mathbb{E}\big[(f - \hat{f})^2\big] + 2\,\mathbb{E}\big[\epsilon\,(f - \hat{f})\big] + \mathbb{E}[\epsilon^2]
-    \end{align*}
-    \begin{itemize}
-        \item $\epsilon$ is independent of $\hat{f}$ and has mean zero, so the cross term is $2\,\mathbb{E}[\epsilon]\,\mathbb{E}[f - \hat{f}] = 0$
-        \item $\mathbb{E}[\epsilon^2] = \mathrm{Var}(\epsilon) = \sigma^2$
-    \end{itemize}
-    \[
-        \mathbb{E}\big[(y^\ast - \hat{f})^2\big] = \mathbb{E}\big[(f - \hat{f})^2\big] + \sigma^2
-    \]
-    \dual{}{The same argument applies at every $\mathbf{x}^\ast$; averaging over the distribution of $\mathbf{x}^\ast$ gives the overall expected test MSE.}
-\end{frame}
-
-\begin{frame}{Bias-variance decomposition: step 2 (bias and variance)}
-    Let $\bar{f} = \mathbb{E}[\hat{f}(\mathbf{x}^\ast)]$. Add and subtract $\bar{f}$ inside the remaining term:
-    \begin{align*}
-        \mathbb{E}\big[(f - \hat{f})^2\big]
-            &= \mathbb{E}\big[\big((f - \bar{f}) + (\bar{f} - \hat{f})\big)^2\big] \\
-            &= (f - \bar{f})^2 + 2\,(f - \bar{f})\,\mathbb{E}\big[\bar{f} - \hat{f}\big] + \mathbb{E}\big[(\bar{f} - \hat{f})^2\big]
-    \end{align*}
-    \begin{itemize}
-        \item $f - \bar{f}$ is a constant and $\mathbb{E}[\bar{f} - \hat{f}] = 0$, so the cross term vanishes
+        \item Assume $y^\ast = f(\mathbf{x}^\ast) + \epsilon$, where the noise $\epsilon$ has mean zero and variance $\sigma^2$
+        \item $\hat{f}(\mathbf{x}^\ast)$ changes if we refit the model on a different training set
+        \item The expected test MSE at $\mathbf{x}^\ast$ splits into three parts:
     \end{itemize}
     \[
         \mathbb{E}\big[(y^\ast - \hat{f}(\mathbf{x}^\ast))^2\big]
         = \underbrace{\mathrm{Var}\big(\hat{f}(\mathbf{x}^\ast)\big)}_{\text{variance}}
         + \underbrace{\big[\mathrm{Bias}\big(\hat{f}(\mathbf{x}^\ast)\big)\big]^2}_{\text{squared bias}}
-        + \underbrace{\sigma^2}_{\text{irreducible}}
+        + \underbrace{\sigma^2}_{\text{irreducible error}}
     \]
-    with $\mathrm{Bias}(\hat{f}(\mathbf{x}^\ast)) = \mathbb{E}[\hat{f}(\mathbf{x}^\ast)] - f(\mathbf{x}^\ast)$.
+    where $\mathrm{Bias}(\hat{f}(\mathbf{x}^\ast)) = \mathbb{E}[\hat{f}(\mathbf{x}^\ast)] - f(\mathbf{x}^\ast)$
 \end{frame}
+
 
 \begin{frame}{Interpreting the three terms}
     \begin{itemize}
-        \item \textbf{Variance}: how much $\hat{f}(\mathbf{x}^\ast)$ changes if we refit on a different training set
-        \begin{itemize}
-            \item Flexible methods follow the training sample closely, so their variance is high
-        \end{itemize}
-        \item \textbf{Bias}: error from approximating the true $f$ by a simpler model class
-        \begin{itemize}
-            \item A straight line fitted to a curved $f$ is wrong on average, however much data we have
-        \end{itemize}
-        \item \textbf{Irreducible error} $\sigma^2$: noise in $y^\ast$; a lower bound on test MSE
-        \item More flexibility typically lowers bias and raises variance; the test MSE depends on which changes faster
+        \item \textbf{Variance}: how much $\hat{f}(\mathbf{x}^\ast)$ changes between training sets; flexible methods have high variance
+        \item \textbf{Bias}: error from approximating the true $f$ by a model that is too simple
+        \item \textbf{Irreducible error} $\sigma^2$: noise in $y^\ast$, a lower bound on the test MSE
+        \item More flexibility typically lowers bias and raises variance; the best model balances the two
     \end{itemize}
 \end{frame}
 

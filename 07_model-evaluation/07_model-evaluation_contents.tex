@@ -35,6 +35,35 @@
 \section{Overfitting and underfitting}
 
 
+\begin{frame}{What is flexibility?}
+    \begin{itemize}
+        \item Flexibility is how closely a model can bend to follow the training data
+    \end{itemize}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Rigid (low flexibility)}
+            \begin{itemize}
+                \item Like a ruler: it can only draw straight lines
+                \item Low-degree polynomial
+                \item $k$-nearest neighbors with large $k$
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{Flexible (high flexibility)}
+            \begin{itemize}
+                \item Like a wire: it can be bent to pass close to every point
+                \item High-degree polynomial
+                \item $k$-nearest neighbors with small $k$
+            \end{itemize}
+        \end{column}
+    \end{columns}
+    \svspace{0.3em}
+    \begin{itemize}
+        \item A flexible model can capture complicated patterns, but it can also follow the noise
+    \end{itemize}
+\end{frame}
+
+
 \begin{frame}{Underfitting and overfitting}
     \begin{itemize}
         \item \textbf{Underfitting}: the model is too simple to capture the structure in $f$
@@ -94,7 +123,6 @@
             \begin{itemize}
                 \item Use a more flexible model
                 \item Add features or interactions
-                \item Reduce regularization
             \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
@@ -102,7 +130,7 @@
             \begin{itemize}
                 \item Use a simpler model
                 \item Collect more training data
-                \item Remove features or add regularization
+                \item Remove features
             \end{itemize}
         \end{column}
     \end{columns}
@@ -203,7 +231,7 @@
     \end{center}
     \begin{itemize}
         \item \textbf{Training set}: used to fit the parameters of each candidate model
-        \item \textbf{Validation set}: used to compare candidates and tune flexibility
+        \item \textbf{Validation set}: used to compare candidates and choose the level of flexibility
         \item \textbf{Test set}: used once, at the end, to assess the chosen model; never used for any choice
         \item If test data influence any decision, the test error is no longer an honest estimate
     \end{itemize}
@@ -581,7 +609,7 @@
 \begin{frame}{A workflow for selection and assessment}
     \begin{enumerate}
         \item Split off a test set and set it aside
-        \item On the training data, use CV to compare candidate models and to tune hyperparameters such as the polynomial degree
+        \item On the training data, use CV to compare candidate models and to choose the flexibility, such as the polynomial degree
         \item Refit the chosen model on the entire training set
         \item Evaluate it once on the test set and report that number
     \end{enumerate}

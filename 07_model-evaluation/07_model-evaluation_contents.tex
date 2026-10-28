@@ -466,15 +466,15 @@
         \text{Precision} &= \frac{TP}{TP + FP}
             && \text{flagged cases that are truly positive} \\
         \text{Recall (sensitivity)} &= \frac{TP}{TP + FN}
-            && \text{true positives that we find} \\
+            && \text{true positives among all positives} \\
         \text{Specificity} &= \frac{TN}{TN + FP}
-            && \text{true negatives that we clear}
+            && \text{true negatives among all negatives}
     \end{align*}}
 
     \svspace{0.5em}
     
     \begin{itemize}
-        \item \texttt{Default} at threshold 0.5: precision $= 105/145 \approx 0.72$, recall $= 105/333 \approx 0.32$, specificity $= 9627/9667 \approx 0.996$
+        \item In the \texttt{Default} dataset, at threshold 0.5: precision $= 105/145 \approx 0.72$, recall $= 105/333 \approx 0.32$, specificity $= 9627/9667 \approx 0.996$
         \item High accuracy and high specificity hide that two thirds of the defaulters are missed
         \item False positive rate $= FP/(FP + TN) = 1 - \text{specificity}$
     \end{itemize}
@@ -509,6 +509,19 @@
 \end{frame}
 
 
+\begin{frame}{The $F_1$ score}
+    \[
+        F_1 = \frac{2\cdot\text{Precision}\cdot\text{Recall}}{\text{Precision} + \text{Recall}} = \frac{2\,TP}{2\,TP + FP + FN}
+    \]
+    \begin{itemize}
+        \item Harmonic mean of precision and recall: it is low unless \emph{both} are reasonably high
+        \item Ignores $TN$, so it is not inflated by a large negative class
+        \item $F_\beta = (1 + \beta^2)\,\dfrac{\text{Precision}\cdot\text{Recall}}{\beta^2\,\text{Precision} + \text{Recall}}$ weights recall $\beta$ times as much as precision
+        \item For $K > 2$ classes, compute the metric per class and average (macro-average), or pool the counts (micro-average)
+    \end{itemize}
+\end{frame}
+
+
 \begin{frame}{Which metric should I use?}
     \begin{center}
         \small
@@ -533,7 +546,7 @@
 
 \begin{frame}{Changing the threshold}
     \begin{itemize}
-        \item Classify as positive when $\hat{p}(\mathbf{x}^\ast) > \tau$; lowering $\tau$ flags more cases
+        \item Classify as positive when $\hat{p}(\mathbf{x}^\ast) > \tau$; lowering $\tau$ flags more cases as ``success'' or \texttt{1}
     \end{itemize}
     \begin{center}
         \footnotesize
@@ -569,18 +582,6 @@
             \end{itemize}
         \end{column}
     \end{columns}
-\end{frame}
-
-\begin{frame}{The $F_1$ score}
-    \[
-        F_1 = \frac{2\cdot\text{Precision}\cdot\text{Recall}}{\text{Precision} + \text{Recall}} = \frac{2\,TP}{2\,TP + FP + FN}
-    \]
-    \begin{itemize}
-        \item Harmonic mean of precision and recall: it is low unless \emph{both} are reasonably high
-        \item Ignores $TN$, so it is not inflated by a large negative class
-        \item $F_\beta = (1 + \beta^2)\,\dfrac{\text{Precision}\cdot\text{Recall}}{\beta^2\,\text{Precision} + \text{Recall}}$ weights recall $\beta$ times as much as precision
-        \item For $K > 2$ classes, compute the metric per class and average (macro-average), or pool the counts (micro-average)
-    \end{itemize}
 \end{frame}
 
 
@@ -631,6 +632,7 @@
         \qquad
         \mathrm{BIC} = -2\log\hat{L} + p\log n
     \]
+    where \(\hat{L}\) is the estimated likelihood of observing the data.
     \begin{center}
         \mode<presentation>{\small}
         \begin{tabular}{@{}lrrrrrr@{}}
@@ -643,6 +645,7 @@
             \bottomrule
         \end{tabular}
     \end{center}
+    Note: AIC means Akaike Information Criteria, BIC means Bayesian Information Criteria.
 \end{frame}
 
 

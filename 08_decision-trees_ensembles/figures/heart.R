@@ -115,3 +115,29 @@ p_boost <- ggplot(boost_err, aes(x = trees, y = error, colour = depth)) +
   theme(legend.position = "bottom")
 
 ggsave("heart_boost.pdf", p_boost, width = 4.5, height = 3.6)
+
+
+# ---------------------------------------------------------------------------
+# 5. Tuning m for a random forest: OOB error against the number of predictors
+#    tried at each split (red point = smallest OOB error, dashed line = floor(sqrt(p)))
+# ---------------------------------------------------------------------------
+set.seed(1)
+oob_m <- data.frame(
+    m = 1:p,
+    error = sapply(1:p, function(m) {
+        rf <- randomForest(AHD ~ ., data = heart, mtry = m, ntree = 500)
+        rf$err.rate[500, "OOB"]
+    })
+)
+best <- oob_m[which.min(oob_m$error), ]
+
+p_mtry <- ggplot(oob_m, aes(x = m, y = error)) +
+    geom_line() +
+    geom_point() +
+    geom_point(data = best, colour = "red", size = 2.5) +
+    geom_vline(xintercept = floor(sqrt(p)), linetype = "dashed") +
+    scale_x_continuous(breaks = 1:p) +
+    labs(x = "Number of predictors per split (m)", y = "OOB error") +
+    theme_bw(base_size = 11)
+
+ggsave("heart_rf_mtry.pdf", p_mtry, width = 4.5, height = 3.6)

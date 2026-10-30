@@ -233,6 +233,34 @@
 \end{frame}
 
 
+\begin{frame}{Hyperparameters and Tuning: Background}
+    \begin{itemize}
+        \item \textbf{Parameters} are learned from the training data, e.g. the splits and leaf means of a tree
+        \item \textbf{Hyperparameters} are set \emph{before} fitting and control model flexibility, e.g. the pruning parameter $\alpha$, the number of trees $B$, the number of predictors $m$ per split, the shrinkage $\lambda$ and the depth $d$
+        \item Training error always favours the most flexible setting (e.g. $\alpha = 0$ gives the largest tree), so hyperparameters must be chosen using an estimate of the \textbf{test} error
+        \item The test set must not be used for this, otherwise it no longer gives an honest estimate of the final model's performance
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Hyperparameter Tuning: Procedure}
+    \begin{enumerate}
+        \item Choose a grid $\Gamma$ of candidate values; with several hyperparameters, use all combinations (grid search) or a random sample of them (random search)
+        \item For each candidate $\symbf{\gamma} \in \Gamma$, estimate the test error using a validation set or $K$-fold cross-validation
+        \item Choose the candidate with the smallest estimated error
+        \item Refit the model on the whole training set with the chosen $\hat{\symbf{\gamma}}$, and evaluate it once on the test set
+    \end{enumerate}
+    \[
+        \hat{\symbf{\gamma}} = \operatorname*{arg\,min}_{\symbf{\gamma} \in \Gamma}\, \mathrm{CV}_{(K)}(\symbf{\gamma}), \qquad
+        \mathrm{CV}_{(K)}(\symbf{\gamma}) = \frac{1}{K} \sum_{k=1}^{K} \mathrm{Err}_k(\symbf{\gamma})
+    \]
+    \begin{itemize}
+        \item $\mathrm{Err}_k(\symbf{\gamma})$ is the error on fold $k$ of a model fit with $\symbf{\gamma}$ on the other $K-1$ folds
+        \item The cost grows with the number of candidates times $K$ model fits
+    \end{itemize}
+\end{frame}
+
+
 \section{Classification Trees}
 
 
@@ -358,20 +386,21 @@
 \begin{frame}{Trees Versus Linear Models}
     \begin{columns}[T]
         \begin{column}{0.5\textwidth}
-            \begin{itemize}
-                \item Linear regression assumes
-            \end{itemize}
-            \[
-                f(\mathbf{x}) = \beta_0 + \sum_{j=1}^{p} x_j \beta_j
-            \]
-            \begin{itemize}
-                \item Regression trees assume
-            \end{itemize}
-            \[
-                f(\mathbf{x}) = \sum_{m=1}^{J} c_m\, \mathrm{I}(\mathbf{x} \in R_m)
-            \]
+            % \begin{itemize}
+            %     \item Linear regression assumes
+            % \end{itemize}
+            % \[
+            %     f(\mathbf{x}) = \beta_0 + \sum_{j=1}^{p} x_j \beta_j
+            % \]
+            % \begin{itemize}
+            %     \item Regression trees assume
+            % \end{itemize}
+            % \[
+            %     f(\mathbf{x}) = \sum_{m=1}^{J} c_m\, \mathrm{I}(\mathbf{x} \in R_m)
+            % \]
             \begin{itemize}
                 \item The better model depends on the shape of the true boundary
+                \item Approximately linear boundary: linear model wins; highly non-linear, axis-aligned structure: tree wins
             \end{itemize}
         \end{column}
         \begin{column}{0.5\textwidth}
@@ -379,9 +408,9 @@
             \centerline{\includegraphics[width=\figscale\linewidth]{figures/tree_vs_linear}}
         \end{column}
     \end{columns}
-    \begin{itemize}
-        \item Approximately linear boundary: linear model wins; highly non-linear, axis-aligned structure: tree wins
-    \end{itemize}
+    % \begin{itemize}
+    %     \item Approximately linear boundary: linear model wins; highly non-linear, axis-aligned structure: tree wins
+    % \end{itemize}
 \end{frame}
 
 
@@ -411,6 +440,44 @@
 
 % \section{Ensemble Methods: Bagging, Random Forests, Boosting and BART}
 \section{Ensemble Methods: Bagging, Random Forests and Boosting}
+
+
+\begin{frame}{The Bootstrap: Background}
+    \begin{itemize}
+        \item We have only one dataset, but want to know how an estimate (e.g.\ a mean or a tree's prediction) would change on other datasets
+        \item The \textbf{bootstrap} creates new datasets by sampling $n$ observations \textbf{with replacement} from the original $n$ observations
+        \item Some observations appear several times in a bootstrap dataset, others not at all
+        \item Repeating this $B$ times gives $B$ bootstrap datasets, and the estimate computed on each shows how much it varies
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{The Bootstrap: Illustration}
+    \begin{center}
+        \begin{tikzpicture}[scale=0.9,
+            box/.style={draw, minimum size=0.55cm, inner sep=0pt, font=\footnotesize},
+            lab/.style={font=\footnotesize, anchor=east},
+            >=stealth]
+            \node[lab] at (-0.3,0) {Original data};
+            \foreach \x/\v in {0/1, 0.55/2, 1.1/3, 1.65/4, 2.2/5} \node[box] at (\x,0) {\v};
+            \node[font=\footnotesize, anchor=west] at (3.0,0) {Not included};
+            \node[lab] at (-0.3,-1.2) {Bootstrap dataset 1};
+            \foreach \x/\v in {0/3, 0.55/1, 1.1/3, 1.65/5, 2.2/5} \node[box] at (\x,-1.2) {\v};
+            \node[font=\footnotesize, anchor=west] at (3.0,-1.2) {2, 4};
+            \node[lab] at (-0.3,-2.0) {Bootstrap dataset 2};
+            \foreach \x/\v in {0/2, 0.55/2, 1.1/4, 1.65/1, 2.2/2} \node[box] at (\x,-2.0) {\v};
+            \node[font=\footnotesize, anchor=west] at (3.0,-2.0) {3, 5};
+            \node[lab] at (-0.3,-2.8) {Bootstrap dataset $B$};
+            \foreach \x/\v in {0/5, 0.55/4, 1.1/5, 1.65/1, 2.2/1} \node[box] at (\x,-2.8) {\v};
+            \node[font=\footnotesize, anchor=west] at (3.0,-2.8) {2, 3};
+            \draw[->] (1.1,-0.4) -- (1.1,-0.8) node[midway, right, font=\scriptsize] {sample with replacement};
+        \end{tikzpicture}
+    \end{center}
+    \begin{itemize}
+        \item Numbers are observation indices: each bootstrap dataset repeats some observations and omits others, e.g.\ dataset 1 contains observations 3 and 5 twice and omits 2 and 4
+        \item Compute the estimate on each bootstrap dataset; the spread of these $B$ estimates measures its uncertainty
+    \end{itemize}
+\end{frame}
 
 
 \begin{frame}{Reducing Variance by Averaging}
@@ -505,6 +572,25 @@
             \end{itemize}
         \end{column}
     \end{columns}
+\end{frame}
+
+
+\begin{frame}{Random Forests: Tuning Parameters}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item \textbf{Number of trees} $B$: as in bagging, a larger $B$ does not overfit; take it large enough that the error has settled
+                \item \textbf{Predictors per split} $m$: the main tuning parameter; start from $\sqrt{p}$ (classification) or $p/3$ (regression) and try other values between $1$ and $p$
+                \item \textbf{Minimum node size}: trees are grown deep and not pruned, so this is usually left small
+                % \item Choose $m$ by the smallest OOB error, which needs no extra cross-validation
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            % figure produced by heart.R
+            \centerline{\includegraphics[width=\figscale\linewidth]{figures/heart_rf_mtry}}
+        \end{column}
+    \end{columns}
+    Choose $m$ by the smallest OOB error, which needs no extra cross-validation.
 \end{frame}
 
 
@@ -622,7 +708,7 @@
 \begin{frame}{Summary of Tree Ensembles}
     \small
     \begin{center}
-        \begin{tabular}{p{2.2cm}p{3.4cm}p{2.9cm}p{1.5cm}p{1.4cm}}
+        \begin{tabular}{p{2cm}p{3.4cm}p{2.9cm}p{1.5cm}p{2cm}}
             \hline
             Method & Trees & Combination & Tuning & Reduces \\
             \hline

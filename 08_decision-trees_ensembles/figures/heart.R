@@ -3,12 +3,13 @@ library(rpart)
 library(randomForest)
 library(gbm)
 
+
 # Heart.csv from https://www.statlearning.com/resources-first-edition
-# the first column is a row index, so removing that column
-heart <- read.csv("https://www.statlearning.com/s/Heart.csv", stringsAsFactors = TRUE)[, -1]
+# (the first column is a row index); a local copy in data/ is used if present
+heart_src <- if (file.exists("data/Heart.csv")) "data/Heart.csv" else "https://www.statlearning.com/s/Heart.csv"
+heart <- read.csv(heart_src, stringsAsFactors = TRUE)[, -1]
 heart <- na.omit(heart)
 p <- ncol(heart) - 1  # number of predictors (13)
-
 
 # ---------------------------------------------------------------------------
 # 1. Training and CV misclassification error against tree size
@@ -34,11 +35,10 @@ p_cv <- ggplot(err, aes(x = size, y = error, colour = type)) +
   geom_line() +
   geom_point() +
   labs(x = "Tree size (number of leaves)", y = "Misclassification error", colour = NULL) +
-  theme_bw(base_size = 11) +
+  theme_bw(base_size = 14) +
   theme(legend.position = "bottom")
 
 ggsave("heart_cv.pdf", p_cv, width = 4.5, height = 3.6)
-
 
 # ---------------------------------------------------------------------------
 # 2. OOB error: bagging (m = p) versus random forests (m = p/2, sqrt(p))
@@ -56,7 +56,7 @@ oob$m <- factor(oob$m, levels = unique(oob$m))
 p_oob <- ggplot(oob, aes(x = trees, y = error, colour = m)) +
   geom_line() +
   labs(x = "Number of trees", y = "OOB error", colour = NULL) +
-  theme_bw(base_size = 11) +
+  theme_bw(base_size = 14) +
   theme(legend.position = "bottom")
 
 ggsave("heart_rf_oob.pdf", p_oob, width = 4.5, height = 3.6)
@@ -74,10 +74,9 @@ p_imp <- ggplot(imp, aes(x = reorder(variable, importance), y = importance)) +
   geom_col(fill = "grey40") +
   coord_flip() +
   labs(x = NULL, y = "Mean decrease in Gini index") +
-  theme_bw(base_size = 11)
+  theme_bw(base_size = 14)
 
 ggsave("heart_importance.pdf", p_imp, width = 4.5, height = 3.6)
-
 
 # ---------------------------------------------------------------------------
 # 4. Boosting: test error against number of trees for d = 1, 2 (lambda = 0.01),
@@ -109,35 +108,39 @@ p_boost <- ggplot(boost_err, aes(x = trees, y = error, colour = depth)) +
   geom_line() +
   geom_hline(yintercept = rf_err, linetype = "dashed") +
   annotate("text", x = B, y = rf_err, label = "random forest", vjust = -0.6,
-           hjust = 1, size = 3) +
+           hjust = 1, size = 4) +
   labs(x = "Number of trees", y = "Test error", colour = NULL) +
-  theme_bw(base_size = 11) +
+  theme_bw(base_size = 14) +
   theme(legend.position = "bottom")
 
 ggsave("heart_boost.pdf", p_boost, width = 4.5, height = 3.6)
 
-
 # ---------------------------------------------------------------------------
 # 5. Tuning m for a random forest: OOB error against the number of predictors
-#    tried at each split (red point = smallest OOB error, dashed line = floor(sqrt(p)))
+#    tried at each split. Each m is repeated R times because a single forest's
+#    OOB error is noisy; line = mean, band = min to max over the R forests,
+#    red point = smallest mean OOB error, dashed line = floor(sqrt(p))
 # ---------------------------------------------------------------------------
 set.seed(1)
-oob_m <- data.frame(
-    m = 1:p,
-    error = sapply(1:p, function(m) {
-        rf <- randomForest(AHD ~ ., data = heart, mtry = m, ntree = 500)
-        rf$err.rate[500, "OOB"]
-    })
-)
-best <- oob_m[which.min(oob_m$error), ]
+R <- 20
+oob_rep <- sapply(1:p, function(m) {
+  replicate(R, {
+    rf <- randomForest(AHD ~ ., data = heart, mtry = m, ntree = 500)
+    rf$err.rate[500, "OOB"]
+  })
+})
+oob_m <- data.frame(m = 1:p, mean = colMeans(oob_rep),
+                    lo = apply(oob_rep, 2, min), hi = apply(oob_rep, 2, max))
+best <- oob_m[which.min(oob_m$mean), ]
 
-p_mtry <- ggplot(oob_m, aes(x = m, y = error)) +
-    geom_line() +
-    geom_point() +
-    geom_point(data = best, colour = "red", size = 2.5) +
-    geom_vline(xintercept = floor(sqrt(p)), linetype = "dashed") +
-    scale_x_continuous(breaks = 1:p) +
-    labs(x = "Number of predictors per split (m)", y = "OOB error") +
-    theme_bw(base_size = 11)
+p_mtry <- ggplot(oob_m, aes(x = m, y = mean)) +
+  geom_ribbon(aes(ymin = lo, ymax = hi), fill = "grey80") +
+  geom_line() +
+  geom_point() +
+  geom_point(data = best, colour = "red", size = 2.5) +
+  geom_vline(xintercept = floor(sqrt(p)), linetype = "dashed") +
+  scale_x_continuous(breaks = 1:p) +
+  labs(x = "Number of predictors per split (m)", y = "OOB error") +
+  theme_bw(base_size = 14)
 
 ggsave("heart_rf_mtry.pdf", p_mtry, width = 4.5, height = 3.6)

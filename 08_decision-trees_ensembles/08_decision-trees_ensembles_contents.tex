@@ -39,28 +39,32 @@
             \end{tikzpicture}
             &
             % figure produced by hitters.R
-            \includegraphics[width=0.4\linewidth]{figures/hitters_partition}
+            \includegraphics[width=0.38\linewidth]{figures/hitters_partition}
         \end{tabular}
     \end{center}
     \begin{itemize}
-        \item Response $\log(\text{Salary})$; predictors \texttt{Years} in the major leagues and \texttt{Hits} in the previous year; each leaf shows the mean response in its region
+        \item Response $\log(\text{Salary})$; predictors \texttt{Years} and \texttt{Hits}; each leaf shows the mean response in its region
         \item Years is the most important factor; Hits matters only for experienced players
     \end{itemize}
 \end{frame}
 
 
-\begin{frame}{Regression Trees: Prediction and Objective}
+\begin{frame}{Regression Trees: Prediction}
     \begin{itemize}
         \item Divide the predictor space into $J$ distinct, non-overlapping regions $R_1, \dots, R_J$
-        \item Every observation falling in $R_m$ receives the same prediction, the mean response of the training observations in $R_m$
+        \item Every observation in $R_m$ gets the same prediction: the mean response of the training observations in $R_m$
     \end{itemize}
     \[
         \hat{y}_{R_m} = \frac{1}{|R_m|} \sum_{i:\, \mathbf{x}^{(i)} \in R_m} y^{(i)}, \qquad
         \hat{f}(\mathbf{x}) = \sum_{m=1}^{J} \hat{y}_{R_m}\, \mathrm{I}(\mathbf{x} \in R_m)
     \]
+\end{frame}
+
+
+\begin{frame}{Regression Trees: Objective}
     \begin{itemize}
         \item Regions are chosen as high-dimensional \textbf{boxes} (rectangles) for simplicity and interpretability
-        \item Goal: find boxes that minimise the residual sum of squares
+        \item Goal: find boxes $R_1, \dots, R_J$ that minimise the residual sum of squares
     \end{itemize}
     \[
         \mathrm{RSS} = \sum_{m=1}^{J} \sum_{i:\, \mathbf{x}^{(i)} \in R_m} \left( y^{(i)} - \hat{y}_{R_m} \right)^2
@@ -123,10 +127,9 @@
         \end{tabular}
     \end{center}
     \begin{itemize}
-        \item The first split divides the whole space in two by a line perpendicular to one predictor axis
-        \item Each later split divides \emph{one} existing region, never the whole space
-        \item Every split is a straight line parallel to a coordinate axis, so the final regions are boxes
-        \item Each split is chosen to reduce RSS the most, given the splits made so far
+        \item The first split divides the whole space in two; each later split divides \emph{one} existing region
+        \item Every split is a line parallel to a coordinate axis, so the final regions are boxes
+        \item Each split reduces RSS the most, given the splits made so far
     \end{itemize}
 \end{frame}
 
@@ -148,7 +151,7 @@
             \partpanel{4}
             &
             \begin{tikzpicture}[
-                level distance=0.8cm,
+                level distance=0.62cm,
                 level 1/.style={sibling distance=1.6cm},
                 level 2/.style={sibling distance=1.3cm},
                 level 3/.style={sibling distance=1.2cm},
@@ -173,7 +176,7 @@
         \end{tabular}
     \end{center}
     \begin{itemize}
-        \item The left partition has no first split that cuts the whole space cleanly into two unions of its regions
+        \item The left partition cannot be built by splits: no line cuts the whole space cleanly in two
         \item The tree is read top to bottom: left branch if the condition is true, right branch otherwise
     \end{itemize}
 \end{frame}
@@ -197,10 +200,36 @@
         \sum_{m=1}^{|T|} \sum_{i:\, \mathbf{x}^{(i)} \in R_m} \left( y^{(i)} - \hat{y}_{R_m} \right)^2 + \alpha\, |T|
     \]
     \begin{itemize}
-        \item $|T|$ is the number of terminal nodes (leaves) of $T$, and $R_m$ is the region of the $m$-th leaf
-        \item $\alpha$ controls the trade-off between fit to the training data and tree complexity
-        \item $\alpha = 0$ gives $T_0$; as $\alpha$ increases, branches are pruned in a nested and predictable way, giving the whole sequence of subtrees
-        \item Similar in spirit to the lasso, which penalises the size of the coefficients
+        \item $|T|$ is the number of leaves of $T$, and $R_m$ is the region of the $m$-th leaf
+        \item $\alpha$ trades off fit to the training data against tree complexity, similar in spirit to the lasso
+        \item $\alpha = 0$ gives $T_0$; as $\alpha$ increases, branches are pruned in a nested way, giving a sequence of subtrees
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Choosing $\alpha$}
+    \begin{itemize}
+        \item $\alpha$ is a \textbf{hyperparameter}: set before the final tree is chosen, not learned from the training data
+        \item $\alpha = 0$ gives the full tree $T_0$; a large $\alpha$ gives the root alone
+        \item Training error always favours $\alpha = 0$, so it cannot guide the choice
+        \item We need an estimate of the \textbf{test} error for each $\alpha$, but the test set must be kept for judging the final tree
+        \item Solution: $K$-fold cross-validation on the training data
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Choosing $\alpha$ by Cross-Validation}
+    \begin{itemize}
+        \item Split the training data into $K$ folds (typically $K = 5$ or $10$)
+        \item For each fold $k$: grow a large tree on the other $K-1$ folds, prune it for every $\alpha$, and compute the error $\mathrm{MSE}_k(\alpha)$ on fold $k$
+    \end{itemize}
+    \[
+        \mathrm{CV}_{(K)}(\alpha) = \sum_{k=1}^{K} \frac{n_k}{n}\, \mathrm{MSE}_k(\alpha), \qquad
+        \hat{\alpha} = \operatorname*{arg\,min}_{\alpha \ge 0}\, \mathrm{CV}_{(K)}(\alpha)
+    \]
+    \begin{itemize}
+        \item $n_k$ is the number of observations in fold $k$; for classification trees use the misclassification rate on fold $k$
+        \item The final tree is the subtree of $T_0$ (grown on all training data) that corresponds to $\hat{\alpha}$
     \end{itemize}
 \end{frame}
 
@@ -209,7 +238,7 @@
     \begin{enumerate}
         \item Use recursive binary splitting to grow a large tree on the training data, stopping when each leaf has fewer than some minimum number of observations
         \item Apply cost complexity pruning to obtain the sequence of best subtrees as a function of $\alpha$
-        \item Use $K$-fold cross-validation to choose $\alpha$: for each fold, repeat steps 1 and 2 on the other $K-1$ folds and evaluate the MSE on the held-out fold as a function of $\alpha$; average over folds and pick the $\alpha$ with the smallest CV error
+        \item Use $K$-fold cross-validation to choose $\alpha$: repeat steps 1 and 2 on each set of $K-1$ folds, and pick the $\alpha$ with the smallest CV error on the held-out folds
         \item Return the subtree from step 2 that corresponds to the chosen $\alpha$
     \end{enumerate}
 \end{frame}
@@ -223,7 +252,7 @@
         \end{column}
         \begin{column}{0.45\textwidth}
             \begin{itemize}
-                \item Hitters data with nine predictors, trees of increasing size
+                \item Hitters data with all 19 predictors, trees of increasing size
                 \item Training error decreases monotonically with the number of leaves
                 \item CV error is U-shaped; it picks a small tree
                 \item The selected tree is simple and interpretable
@@ -233,30 +262,18 @@
 \end{frame}
 
 
-\begin{frame}{Hyperparameters and Tuning: Background}
+\begin{frame}{Hyperparameter Tuning in General}
     \begin{itemize}
-        \item \textbf{Parameters} are learned from the training data, e.g. the splits and leaf means of a tree
-        \item \textbf{Hyperparameters} are set \emph{before} fitting and control model flexibility, e.g. the pruning parameter $\alpha$, the number of trees $B$, the number of predictors $m$ per split, the shrinkage $\lambda$ and the depth $d$
-        \item Training error always favours the most flexible setting (e.g. $\alpha = 0$ gives the largest tree), so hyperparameters must be chosen using an estimate of the \textbf{test} error
-        \item The test set must not be used for this, otherwise it no longer gives an honest estimate of the final model's performance
+        \item $\alpha$ is one example; the ensembles that follow add $B$, $m$, $\lambda$, $d$
+        \item The recipe is the same: for each candidate $\symbf{\gamma}$ in a grid $\Gamma$, estimate the test error by $K$-fold CV, then choose the best
     \end{itemize}
-\end{frame}
-
-
-\begin{frame}{Hyperparameter Tuning: Procedure}
-    \begin{enumerate}
-        \item Choose a grid $\Gamma$ of candidate values; with several hyperparameters, use all combinations (grid search) or a random sample of them (random search)
-        \item For each candidate $\symbf{\gamma} \in \Gamma$, estimate the test error using a validation set or $K$-fold cross-validation
-        \item Choose the candidate with the smallest estimated error
-        \item Refit the model on the whole training set with the chosen $\hat{\symbf{\gamma}}$, and evaluate it once on the test set
-    \end{enumerate}
     \[
         \hat{\symbf{\gamma}} = \operatorname*{arg\,min}_{\symbf{\gamma} \in \Gamma}\, \mathrm{CV}_{(K)}(\symbf{\gamma}), \qquad
-        \mathrm{CV}_{(K)}(\symbf{\gamma}) = \frac{1}{K} \sum_{k=1}^{K} \mathrm{Err}_k(\symbf{\gamma})
+        \mathrm{CV}_{(K)}(\symbf{\gamma}) = \sum_{k=1}^{K} \frac{n_k}{n}\, \mathrm{Err}_k(\symbf{\gamma})
     \]
     \begin{itemize}
-        \item $\mathrm{Err}_k(\symbf{\gamma})$ is the error on fold $k$ of a model fit with $\symbf{\gamma}$ on the other $K-1$ folds
-        \item The cost grows with the number of candidates times $K$ model fits
+        \item With several hyperparameters, $\Gamma$ holds all combinations (grid search) or a random sample of them (random search)
+        \item Refit on all training data with $\hat{\symbf{\gamma}}$ and evaluate once on the test set; cost = candidates $\times\, K$ fits
     \end{itemize}
 \end{frame}
 
@@ -282,23 +299,15 @@
 
 \begin{frame}{Node Impurity Measures}
     \begin{itemize}
-        \item \textbf{Classification error rate}: fraction of training observations in the region not in the majority class
-    \end{itemize}
-    \[
-        E_m = 1 - \max_{k}\, \hat{p}_{mk}
-    \]
-    \begin{itemize}
+        \item \textbf{Classification error rate}: fraction not in the majority class
         \item \textbf{Gini index}: total variance across the $K$ classes
-    \end{itemize}
-    \[
-        G_m = \sum_{k=1}^{K} \hat{p}_{mk} \left( 1 - \hat{p}_{mk} \right)
-    \]
-    \begin{itemize}
         \item \textbf{Entropy}
     \end{itemize}
-    \[
-        D_m = - \sum_{k=1}^{K} \hat{p}_{mk} \log \hat{p}_{mk}
-    \]
+    \begin{align*}
+        E_m &= 1 - \max_{k}\, \hat{p}_{mk} \\
+        G_m &= \sum_{k=1}^{K} \hat{p}_{mk} \left( 1 - \hat{p}_{mk} \right) \\
+        D_m &= - \sum_{k=1}^{K} \hat{p}_{mk} \log \hat{p}_{mk}
+    \end{align*}
 \end{frame}
 
 
@@ -310,10 +319,9 @@
         \end{column}
         \begin{column}{0.5\textwidth}
             \begin{itemize}
-                \item Two classes, with $p$ the proportion in class 1
-                \item $G_m$ and $D_m$ are small when all $\hat{p}_{mk}$ are close to 0 or 1, so a small value indicates a \textbf{pure} node
-                \item Gini and entropy are numerically very similar
-                \item Both are differentiable and more sensitive to node purity than the error rate, which is piecewise linear in $p$
+                \item Two classes, $p$ = proportion in class 1
+                \item $G_m$ and $D_m$ are small when all $\hat{p}_{mk}$ are near 0 or 1: a small value indicates a \textbf{pure} node
+                \item Gini and entropy behave similarly and, unlike the error rate, are differentiable and more sensitive to purity
             \end{itemize}
         \end{column}
     \end{columns}
@@ -365,8 +373,8 @@
             \begin{itemize}
                 \item Binary outcome: heart disease (\texttt{AHD}) \texttt{Yes}/\texttt{No}, with 13 predictors
                 \item Training error keeps falling as the tree grows
-                \item CV error flattens or rises beyond a small tree
-                \item The pruned tree has comparable accuracy to the full tree and is much easier to read
+                \item CV error is smallest for a small tree and larger for the full tree
+                \item The pruned tree is at least as accurate as the full tree and much easier to read
             \end{itemize}
         \end{column}
     \end{columns}
@@ -511,16 +519,15 @@
 
 \begin{frame}{Out-of-Bag Error Estimation}
     \begin{itemize}
-        \item The probability that observation $i$ appears in a given bootstrap sample is
+        \item Probability that observation $i$ is in a given bootstrap sample:
     \end{itemize}
     \[
         1 - \left( 1 - \frac{1}{n} \right)^{n} \xrightarrow{n \to \infty} 1 - e^{-1} \approx 0.632
     \]
     \begin{itemize}
-        \item So each tree uses about two-thirds of the observations; the remaining third are \textbf{out-of-bag} (OOB)
-        \item Predict observation $i$ using only the trees for which it was OOB (about $B/3$ trees), by averaging or majority vote
-        \item The OOB MSE or classification error is a valid estimate of test error, since each prediction uses a model that never saw the observation
-        \item For large $B$ it is essentially equivalent to leave-one-out cross-validation, with no refitting
+        \item So each tree uses about two-thirds of the observations; the rest are \textbf{out-of-bag} (OOB)
+        \item Predict observation $i$ from the trees for which it was OOB (about $B/3$): average or majority vote
+        \item The OOB error is a valid test error estimate: each prediction comes from trees that never saw the observation; for large $B$ it is essentially leave-one-out CV
     \end{itemize}
 \end{frame}
 
@@ -542,7 +549,7 @@
 \end{frame}
 
 
-\begin{frame}{Random Forests}
+\begin{frame}{Random Forests: Motivation}
     \begin{itemize}
         \item If there is one very strong predictor, most bagged trees split on it first, so their predictions are highly correlated
         \item For $B$ identically distributed variables with variance $\sigma^2$ and pairwise correlation $\rho$
@@ -551,9 +558,17 @@
         \operatorname{Var}\left( \frac{1}{B} \sum_{b=1}^{B} Z_b \right) = \rho\, \sigma^2 + \frac{1 - \rho}{B}\, \sigma^2
     \]
     \begin{itemize}
-        \item As $B \to \infty$ the variance does not go below $\rho \sigma^2$, so correlated trees limit the gain from averaging
-        \item \textbf{Random forests} \textbf{decorrelate} the trees: at each split only a random subset of $m$ of the $p$ predictors is considered
-        \item Typical choice: $m \approx \sqrt{p}$ for classification and $m \approx p/3$ for regression; $m = p$ is bagging
+        \item As $B \to \infty$ the variance stays above $\rho \sigma^2$: correlated trees limit the gain from averaging
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Random Forests}
+    \begin{itemize}
+        \item \textbf{Random forests decorrelate} the trees: each split considers only a random subset of $m$ of the $p$ predictors
+        \item A fresh random subset is drawn at every split; $m = p$ is bagging
+        \item Typical choice: $m \approx \sqrt{p}$ for classification and $m \approx p/3$ for regression
+        \item A small $m$ is typically helpful when there are many correlated predictors
     \end{itemize}
 \end{frame}
 
@@ -576,21 +591,30 @@
 
 
 \begin{frame}{Random Forests: Tuning Parameters}
+    \begin{itemize}
+        \item \textbf{Number of trees} $B$: as in bagging, a larger $B$ does not overfit; take it large enough that the error has settled
+        \item \textbf{Predictors per split} $m$: the main tuning parameter; start from $\sqrt{p}$ (classification) or $p/3$ (regression), then try other values between $1$ and $p$
+        \item \textbf{Minimum node size}: trees are grown deep and not pruned, so this is usually left small
+        % \item Choose $m$ by the smallest OOB error, which needs no extra cross-validation
+    \end{itemize}
+    Choose $m$ by the smallest OOB error, which needs no extra cross-validation.
+\end{frame}
+
+
+\begin{frame}{Random Forests: Choosing $m$}
     \begin{columns}[T]
-        \begin{column}{0.5\textwidth}
-            \begin{itemize}
-                \item \textbf{Number of trees} $B$: as in bagging, a larger $B$ does not overfit; take it large enough that the error has settled
-                \item \textbf{Predictors per split} $m$: the main tuning parameter; start from $\sqrt{p}$ (classification) or $p/3$ (regression) and try other values between $1$ and $p$
-                \item \textbf{Minimum node size}: trees are grown deep and not pruned, so this is usually left small
-                % \item Choose $m$ by the smallest OOB error, which needs no extra cross-validation
-            \end{itemize}
-        \end{column}
         \begin{column}{0.5\textwidth}
             % figure produced by heart.R
             \centerline{\includegraphics[width=\figscale\linewidth]{figures/heart_rf_mtry}}
         \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item Heart data: mean OOB error over 20 forests for each $m$; the band is the min--max range
+                \item OOB error is lowest for small $m$ and rises towards bagging ($m = p$)
+                \item Dashed line: $m = \lfloor \sqrt{p} \rfloor$
+            \end{itemize}
+        \end{column}
     \end{columns}
-    Choose $m$ by the smallest OOB error, which needs no extra cross-validation.
 \end{frame}
 
 
@@ -708,13 +732,16 @@
 \begin{frame}{Summary of Tree Ensembles}
     \small
     \begin{center}
-        \begin{tabular}{p{2cm}p{3.4cm}p{2.9cm}p{1.5cm}p{2cm}}
+        \setlength{\tabcolsep}{4pt}
+        \renewcommand{\arraystretch}{1.4}
+        \begin{tabular}{lllll}
             \hline
             Method & Trees & Combination & Tuning & Reduces \\
             \hline
-            Bagging & Deep trees on bootstrap samples & Average or majority vote & $B$ & Variance \\
-            Random forest & As bagging, random $m$ of $p$ predictors per split & Average or majority vote & $B$, $m$ & Variance \\
-            Boosting & Small trees grown sequentially on residuals & Sum of trees scaled by $\lambda$ & $B$, $\lambda$, $d$ & Bias \\
+            \noalign{\vskip 4pt}
+            Bagging & \shortstack[l]{Deep trees on\\ bootstrap samples} & \shortstack[l]{Average or\\ majority vote} & $B$ & Variance \\[6pt]
+            Random forest & \shortstack[l]{As bagging, random $m$\\ of $p$ predictors per split} & \shortstack[l]{Average or\\ majority vote} & $B$, $m$ & Variance \\[6pt]
+            Boosting & \shortstack[l]{Small trees grown\\ sequentially on residuals} & \shortstack[l]{Sum of trees\\ scaled by $\lambda$} & $B$, $\lambda$, $d$ & Bias \\
             % BART & $K$ small trees, randomly perturbed each iteration & Average over iterations after burn-in & $K$, $B$, $L$ & Variance and bias \\
             \hline
         \end{tabular}

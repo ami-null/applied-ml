@@ -1,6 +1,6 @@
 # sim_clusters.R: figures based on simulated data
 # Produces: fig_kmeans_iter.pdf, fig_kmeans_starts.pdf, fig_kmeans_limits.pdf,
-#           fig_dendro_reading.pdf, fig_linkage_compare.pdf,
+#           fig_dendro_reading.pdf, fig_linkage_compare.pdf, fig_divisive.pdf,
 #           fig_corr_distance.pdf, fig_elbow.pdf, fig_silhouette.pdf
 source("helpers.R")
 library(cluster)
@@ -158,6 +158,29 @@ plots <- lapply(c("complete", "average", "single"), function(m) {
 plots
 ggsave("fig_linkage_compare.pdf", wrap_plots(plots, nrow = 1),
        width = 12, height = 3.8)
+
+# ---- Divisive (DIANA) vs agglomerative (complete), same 45 points -------
+hc_div <- as.hclust(diana(d45))
+hc_agg <- hclust(d45, method = "complete")
+cl_div <- cutree(hc_div, k = 3)
+cl_agg <- cutree(hc_agg, k = 3)
+print(table(divisive = cl_div, agglomerative = cl_agg))
+
+cut_at <- function(hc, k) mean(sort(hc$height, decreasing = TRUE)[c(k - 1, k)])
+p_sc <- ggplot(data.frame(sim45, cluster = factor(cl_div)),
+               aes(x1, x2, colour = cluster)) +
+    geom_point(size = 2.2) +
+    scale_colour_manual(values = okabe[1:3]) +
+    labs(x = expression(x[1]), y = expression(x[2]),
+         title = "Divisive clusters, K = 3") +
+    theme(legend.position = "none")
+p_div <- gg_dendro(hc_div, label = FALSE, cut_height = cut_at(hc_div, 3)) +
+    labs(title = "Divisive (DIANA)", y = "Height (cluster diameter)")
+p_agg <- gg_dendro(hc_agg, label = FALSE, cut_height = cut_at(hc_agg, 3)) +
+    labs(title = "Agglomerative (complete linkage)")
+p <- p_sc + p_div + p_agg
+p
+ggsave("fig_divisive.pdf", p, width = 12, height = 3.8)
 
 # ---- Correlation-based vs Euclidean distance ----------------------------
 set.seed(6)

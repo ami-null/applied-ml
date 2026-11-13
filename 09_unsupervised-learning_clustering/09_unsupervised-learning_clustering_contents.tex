@@ -12,7 +12,7 @@
 \begin{frame}{Clustering: the goal}
     \begin{itemize}
         \item Partition the $n$ observations into $K$ groups $C_1, \dots, C_K$ so that observations within a group are similar and observations in different groups are different
-        \item Hard partition: $C_1 \cup \dots \cup C_K = \{1, \dots, n\}$ and $C_j \cap C_k = \emptyset$ for $j \neq k$
+        \item Hard partition: $C_1 \cup \dots \cup C_K = \{1, \dots, n\}$ and $C_k \cap C_{k'} = \emptyset$ for $k \neq k'$
         \item Two ingredients: how to measure similarity (a distance) and how to search for a good partition (an algorithm)
         \item Examples: customer segmentation, grouping cell lines by gene expression, grouping districts by socio-economic indicators
     \end{itemize}
@@ -23,10 +23,10 @@
 
 \begin{frame}{Dissimilarity and similarity}
     \begin{itemize}
-        \item A dissimilarity $d(\mathbf{x}^{(i)}, \mathbf{x}^{(l)}) \geq 0$ is small when two observations are alike; clustering only needs the $n \times n$ matrix of pairwise dissimilarities
-        \item A distance (metric) also satisfies $d(\mathbf{x}, \mathbf{x}') = 0 \iff \mathbf{x} = \mathbf{x}'$, symmetry $d(\mathbf{x}, \mathbf{x}') = d(\mathbf{x}', \mathbf{x})$, and the triangle inequality
+        \item A dissimilarity $d_{il} = d(\mathbf{x}^{(i)}, \mathbf{x}^{(l)}) \geq 0$ is small when observations $i$ and $l$ are alike; clustering only needs the $n \times n$ matrix of pairwise dissimilarities
+        \item A distance (metric) also satisfies, for any observations $i$, $l$ and $m$: $d_{il} = 0 \iff \mathbf{x}^{(i)} = \mathbf{x}^{(l)}$, symmetry $d_{il} = d_{li}$, and the triangle inequality
         \[
-            d(\mathbf{x}, \mathbf{x}'') \leq d(\mathbf{x}, \mathbf{x}') + d(\mathbf{x}', \mathbf{x}'')
+            d_{im} \leq d_{il} + d_{lm}
         \]
         \item A similarity $s$ is the opposite (large for alike observations); if $s \in [0, 1]$, then $d = 1 - s$ is a dissimilarity
         \item The choice of $d$ defines what ``similar'' means and can change the clusters more than the choice of algorithm
@@ -55,8 +55,8 @@
                 \draw[very thick, orange!90!black] (0, 0) circle (1);
                 \draw[very thick, blue!70!black] (1, 0) -- (0, 1) -- (-1, 0) -- (0, -1) -- cycle;
                 \node[blue!70!black, font=\scriptsize] at (0.38, 0.38) {$q{=}1$};
-                \node[orange!90!black, font=\scriptsize, rotate=-45] at (0.86, 0.5) {$q{=}2$};
-                \node[green!50!black, font=\scriptsize] at (0.62, 1.15) {$q{=}\infty$};
+                \node[orange!90!black, font=\scriptsize] at (0.78, -0.88) {$q{=}2$};
+                \node[green!50!black, font=\scriptsize] at (0.62, 1.15) {$q{\to}\infty$};
             \end{tikzpicture}
 
             {\scriptsize Points at distance 1 from the origin}
@@ -95,7 +95,7 @@
                 \item A variable measured on a large scale dominates the sum of squared (or absolute) differences
                 \item Standardize each variable before computing distances:
                 \[
-                    z_j^{(i)} = \frac{x_j^{(i)} - \bar{x}_j}{s_j}
+                    z_j^{(i)} = \frac{x_j^{(i)} - \bar{x}_j}{\hat{\sigma}_j}
                 \]
                 \item Exception: variables already on a common, meaningful scale (e.g. counts of the same item)
             \end{itemize}
@@ -124,7 +124,7 @@
     \begin{itemize}
         \item Correlation between the profiles of observations $i$ and $l$ across the $p$ variables, where $\bar{x}^{(i)}$ is the mean of observation $i$ over its $p$ variables:
         \[
-            r_{il} = \frac{\sum_{j} (x_j^{(i)} - \bar{x}^{(i)})(x_j^{(l)} - \bar{x}^{(l)})}{\sqrt{\sum_{j} (x_j^{(i)} - \bar{x}^{(i)})^2} \sqrt{\sum_{j} (x_j^{(l)} - \bar{x}^{(l)})^2}}, \qquad d_{\text{cor}}(i, l) = 1 - r_{il}
+            r_{il} = \frac{\sum_{j} (x_j^{(i)} - \bar{x}^{(i)})(x_j^{(l)} - \bar{x}^{(l)})}{\sqrt{\sum_{j} (x_j^{(i)} - \bar{x}^{(i)})^2} \sqrt{\sum_{j} (x_j^{(l)} - \bar{x}^{(l)})^2}}, \qquad d_{\text{cor}}(\mathbf{x}^{(i)}, \mathbf{x}^{(l)}) = 1 - r_{il}
         \]
         \item Cosine similarity is the same quantity without centering:
         \[
@@ -311,10 +311,10 @@
 \begin{frame}{Agglomerative algorithm}
     \begin{enumerate}
         \item Start with $n$ clusters, one per observation, and compute all $\binom{n}{2}$ pairwise dissimilarities
-        \item For $i = n, n-1, \dots, 2$:
+        \item For $m = n, n-1, \dots, 2$:
             \begin{enumerate}[(a)]
-                \item find the pair among the $i$ clusters with the smallest inter-cluster dissimilarity and fuse them; the dissimilarity is the height of the fusion in the dendrogram
-                \item recompute the inter-cluster dissimilarities among the remaining $i - 1$ clusters
+                \item find the pair among the $m$ clusters with the smallest inter-cluster dissimilarity and fuse them; the dissimilarity is the height of the fusion in the dendrogram
+                \item recompute the inter-cluster dissimilarities among the remaining $m - 1$ clusters
             \end{enumerate}
     \end{enumerate}
     % \svspace{1em}
@@ -326,7 +326,7 @@
 \begin{frame}{Divisive clustering}
     \begin{itemize}
         \item Top-down: start with all $n$ observations in one cluster and repeatedly split a cluster in two, until every observation is on its own
-        \item A cluster of $m$ observations can be split in two in $2^{m-1} - 1$ ways, too many to check, so methods use heuristics:
+        \item A cluster $C$ can be split in two in $2^{|C|-1} - 1$ ways, too many to check, so methods use heuristics:
             \begin{itemize}
                 \item DIANA: split the cluster with the largest diameter (largest dissimilarity between two of its members); the member farthest on average from the rest starts a splinter group, and members closer on average to the splinter group move over
                 \item Bisecting K-means: split a cluster with K-means, $K = 2$
@@ -493,9 +493,9 @@
     \begin{itemize}
         \item When reference labels exist, compare the partition $U$ with the labels $V$ through pairs of observations
         \item Rand index: the fraction of pairs on which $U$ and $V$ agree, i.e. both place the pair together or both place it apart
-        \item The adjusted Rand index corrects for agreement by chance. With $n_{ab}$ the number of observations in cluster $a$ of $U$ and class $b$ of $V$, and $n_{a\cdot}$, $n_{\cdot b}$ the row and column totals,
+        \item The adjusted Rand index corrects for agreement by chance. With $n_{uv}$ the number of observations in cluster $u$ of $U$ and class $v$ of $V$, $n_{u\cdot}$, $n_{\cdot v}$ the row and column totals, and $E$ the value of $\sum_{u,v} \binom{n_{uv}}{2}$ expected by chance,
         \[
-            \text{ARI} = \frac{\sum_{a,b} \binom{n_{ab}}{2} - t}{\frac{1}{2} \Bigl( \sum_{a} \binom{n_{a\cdot}}{2} + \sum_{b} \binom{n_{\cdot b}}{2} \Bigr) - t}, \quad t = \frac{\sum_{a} \binom{n_{a\cdot}}{2} \sum_{b} \binom{n_{\cdot b}}{2}}{\binom{n}{2}}
+            \text{ARI} = \frac{\sum_{u,v} \binom{n_{uv}}{2} - E}{\frac{1}{2} \Bigl( \sum_{u} \binom{n_{u\cdot}}{2} + \sum_{v} \binom{n_{\cdot v}}{2} \Bigr) - E}, \quad E = \frac{\sum_{u} \binom{n_{u\cdot}}{2} \sum_{v} \binom{n_{\cdot v}}{2}}{\binom{n}{2}}
         \]
         \item ARI $= 1$ for identical partitions and about $0$ for random labeling (it can be negative)
     \end{itemize}
@@ -543,7 +543,7 @@
         \begin{column}{0.5\textwidth}
             \begin{itemize}
                 \item Report each cluster's size $|C_k|$ and centroid $\bar{\mathbf{x}}_k$ in original units
-                \item Compare clusters on a common scale with standardized means $(\bar{x}_{kj} - \bar{x}_j) / s_j$; $\bar{x}_{kj}$ is the mean of variable $j$ in cluster $k$
+                \item Compare clusters on a common scale with standardized means $(\bar{x}_{kj} - \bar{x}_j) / \hat{\sigma}_j$; $\bar{x}_{kj}$ is the mean of variable $j$ in cluster $k$
                 \item Variable-by-variable tests (ANOVA) are descriptive only: the clusters were chosen to differ, so $p$-values are not valid
             \end{itemize}
         \end{column}

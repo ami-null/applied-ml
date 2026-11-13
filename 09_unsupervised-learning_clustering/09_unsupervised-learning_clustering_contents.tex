@@ -379,11 +379,11 @@
 
 \begin{frame}{Effect of linkage}
     \centering
-    \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_linkage_compare.pdf}
+    \includegraphics[width=\textwidth, height=0.33\textheight, keepaspectratio]{figures/fig_linkage_compare.pdf}
 
     {\scriptsize Simulated: 45 points in three groups of 15 ($\sigma = 1$); Euclidean distance}
     \begin{itemize}
-        \item Complete and average: compact, fairly balanced clusters; complete is R's default, Ward is scikit-learn's
+        \item Complete and average: compact, fairly balanced clusters. Defaults differ: complete in R, Ward in scikit-learn, single in SciPy's \texttt{linkage}
         \item Single: chaining, where clusters grow by adding one point at a time; useful for elongated groups, but gives trailing, unbalanced trees
         \item Centroid: popular in genomics, but can produce inversions (a fusion lower than an earlier one)
     \end{itemize}
@@ -482,7 +482,7 @@
     \centering
     \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_gmm.pdf}
 
-    {\scriptsize Same data as the K-means limitations slide: one large, spread-out group and two small, tight groups. Mixture with spherical covariances of different sizes, chosen by BIC.}
+    {\scriptsize Same data as the K-means limitations slide: one large, spread-out group and two small, tight groups. $K = 3$ fixed; BIC chose spherical covariances of different sizes.}
     \begin{itemize}
         \item The mixture allows each cluster its own spread and recovers the three groups; K-means gives the edges of the large group to the small ones
     \end{itemize}
@@ -588,8 +588,8 @@
     \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{figures/fig_usarrests_stability.pdf}
     \begin{itemize}
         \item USArrests, K-means on 200 bootstrap samples: for each original cluster, its best Jaccard similarity $|A \cap B| / |A \cup B|$ with a bootstrap cluster
-        \item Rule of thumb (Hennig, 2007): above $0.85$ stable, below $0.5$ the cluster has dissolved
-        \item $K = 2$ clusters almost always reappear; for $K = 3$, two of the three are only moderately stable
+        \item Rule of thumb for the mean (Hennig, 2007): $0.85$ or more highly stable, $0.75$ or more stable, below $0.6$ not trustworthy
+        \item $K = 2$ clusters almost always reappear; for $K = 3$, two of the three average about $0.71$: a pattern, but doubtful membership
     \end{itemize}
 \end{frame}
 

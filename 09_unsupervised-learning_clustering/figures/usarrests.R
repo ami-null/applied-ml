@@ -105,7 +105,8 @@ stab <- do.call(rbind, lapply(2:4, function(K) {
 print(aggregate(jaccard ~ K + cluster, data = stab, FUN = mean))
 p <- ggplot(stab, aes(cluster, jaccard, fill = cluster)) +
     geom_boxplot(outlier.size = 0.8, width = 0.6) +
-    geom_hline(yintercept = c(0.5, 0.85), linetype = "dashed", colour = "grey40") +
+    # Hennig (2007): mean Jaccard below 0.6 not trustworthy, 0.85 or more highly stable
+    geom_hline(yintercept = c(0.6, 0.85), linetype = "dashed", colour = "grey40") +
     scale_fill_manual(values = okabe[1:4]) +
     facet_wrap(~ K, nrow = 1, scales = "free_x") +
     labs(x = "Cluster (numbered by Assault level)",

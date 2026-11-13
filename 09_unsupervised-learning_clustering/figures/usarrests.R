@@ -1,5 +1,5 @@
 # usarrests.R: USArrests figures (base R dataset)
-
+source("helpers.R")
 library(patchwork)
 library(GGally)
 

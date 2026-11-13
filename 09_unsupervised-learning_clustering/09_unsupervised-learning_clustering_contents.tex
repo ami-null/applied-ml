@@ -108,15 +108,6 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Effect of scaling on the clusters}
-    \centering
-    \includegraphics[width=\textwidth, height=0.54\textheight, keepaspectratio]{figures/fig_usarrests_scale_dendro.pdf}
-    \begin{itemize}
-        \item USArrests, complete linkage: on raw data the tree is driven almost entirely by Assault
-        \item After standardizing, all four variables contribute and the grouping of states changes
-    \end{itemize}
-\end{frame}
-
 \begin{frame}{Mahalanobis distance}
     \begin{itemize}
         \item Let $\mathbf{S}$ be the sample covariance matrix of the variables. Then
@@ -210,7 +201,7 @@
 
 \begin{frame}{K-means: the objective}
     \begin{itemize}
-        \item Choose $K$ in advance. The centroid of cluster $C_k$ is
+        \item $K$ is the number of clusters, chosen in advance; each cluster $C_k$ is summarized by its mean (centroid), hence ``K-means'':
         \[
             \bar{\mathbf{x}}_k = \frac{1}{|C_k|} \sum_{i \in C_k} \mathbf{x}^{(i)}
         \]
@@ -219,11 +210,11 @@
             \min_{C_1, \dots, C_K} \; \sum_{k=1}^{K} \sum_{i \in C_k} \bigl\lVert \mathbf{x}^{(i)} - \bar{\mathbf{x}}_k \bigr\rVert^2
         \]
         \item Equivalent (up to a factor of 2) to making pairwise squared distances within each cluster small: $\frac{1}{|C_k|} \sum_{i, l \in C_k} \lVert \mathbf{x}^{(i)} - \mathbf{x}^{(l)} \rVert^2$
-        \item There are almost $K^n / K!$ partitions, so exhaustive search is impossible and we need an algorithm
     \end{itemize}
 \end{frame}
 
 \begin{frame}{K-means: the algorithm}
+    There are almost $K^n / K!$ partitions: exhaustive search is impossible, so we need an algorithm.
     \begin{enumerate}
         \item Randomly assign each observation to one of $K$ clusters
         \item Repeat until the assignments stop changing:
@@ -234,6 +225,7 @@
     \end{enumerate}
     \svspace{1em}
     \begin{itemize}
+        \item This procedure is known as Lloyd's algorithm
         \item Each pass is cheap, $O(npK)$, so K-means scales to large $n$
         % \item In R: \textttbg{kmeans(x, centers = K, nstart = 25)}
     \end{itemize}
@@ -247,16 +239,16 @@
         \]
         \item Step (a): the centroid is the best center for its cluster, so the objective cannot increase
         \item Step (b): moving an observation to its nearest centroid reduces its squared distance, so the objective cannot increase
-        \item The objective is bounded below and there are finitely many partitions, so the algorithm converges, but only to a local optimum
+        \item The objective is bounded below and there are finitely many partitions, so the algorithm converges, but only to a local optimum: a partition that neither step can improve, which need not be the best partition overall
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Example data: simulated clusters}
     \begin{itemize}
-        \item The K-means and evaluation examples use simulated data with two variables, $x_1$ and $x_2$, so the true groups are known and can be plotted
+        \item The K-means examples, and some later ones, use simulated data with two variables, $x_1$ and $x_2$, so the true groups are known and can be plotted
         \item Each group is a round normal cloud: both coordinates are drawn independently from $N(\mu, \sigma^2)$ around the group's center
         \item Three-cluster data (K-means iterations): 3 groups of 50 observations, centers $(0, 0)$, $(4, 3)$ and $(-0.5, 4.5)$, $\sigma = 0.9$
-        \item Four-cluster data (multiple starts, elbow, silhouette): 4 groups of 60 observations at the corners of a square, $(0, 0)$, $(4, 0)$, $(0, 4)$ and $(4, 4)$, $\sigma = 0.8$
+        \item Four-cluster data (multiple starts, and later choosing $K$): 4 groups of 60 observations at the corners of a square, $(0, 0)$, $(4, 0)$, $(0, 4)$ and $(4, 4)$, $\sigma = 0.8$
         \item Smaller simulated sets used for single examples are described on the slides where they appear
     \end{itemize}
 \end{frame}
@@ -270,11 +262,11 @@
 
 \begin{frame}{Local optima and multiple starts}
     \centering
-    \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{figures/fig_kmeans_starts.pdf}
+    \includegraphics[width=\textwidth, height=0.32\textheight, keepaspectratio]{figures/fig_kmeans_starts.pdf}
     \begin{itemize}
         \item Four-cluster data, $K = 4$, three single starts: the solution depends on the random initial assignment, and different starts can end in different local optima
         \item Run the algorithm from many random starts and keep the solution with the smallest objective% (\textttbg{nstart})
-        \item Smarter initialization (k-means++) spreads the initial centroids apart
+        \item Smarter initialization, k-means++: choose the initial centroids one at a time, each new one more likely to be a point far from those already chosen
     \end{itemize}
 \end{frame}
 
@@ -292,12 +284,12 @@
 
 \begin{frame}{Strengths and limitations of K-means}
     \centering
-    \includegraphics[width=\textwidth, height=0.34\textheight, keepaspectratio]{figures/fig_kmeans_limits.pdf}
+    \includegraphics[width=\textwidth, height=0.28\textheight, keepaspectratio]{figures/fig_kmeans_limits.pdf}
 
     {\scriptsize Simulated. Left: two interleaved half-moons of 150 points each. Right: one large, spread-out group (300 points, $\sigma = 1.2$) and two small, tight groups (40 points each, $\sigma = 0.3$).}
     \begin{itemize}
         \item Strengths: simple, fast, works well for compact, roughly spherical clusters of similar size
-        \item Limitations: non-convex shapes, very unequal sizes or spreads, and outliers (centroids are means) can give poor clusters
+        \item Limitations: non-convex shapes (such as the half-moons), very unequal sizes or spreads, and outliers (centroids are means) can give poor clusters
         \item Also requires $K$, depends on the starting point, and assigns every observation to a cluster
     \end{itemize}
 \end{frame}
@@ -329,6 +321,17 @@
     % \end{itemize}
 \end{frame}
 
+\begin{frame}{Linkage: dissimilarity between clusters}
+    Let $A$ and $B$ be two clusters and $d_{il} = d(\mathbf{x}^{(i)}, \mathbf{x}^{(l)})$.
+    \begin{itemize}
+        \item Complete: $d(A, B) = \max_{i \in A,\, l \in B} d_{il}$
+        \item Single: $d(A, B) = \min_{i \in A,\, l \in B} d_{il}$
+        \item Average: $d(A, B) = \dfrac{1}{|A|\,|B|} \sum_{i \in A} \sum_{l \in B} d_{il}$
+        \item Centroid: $d(A, B) = d(\bar{\mathbf{x}}_A, \bar{\mathbf{x}}_B)$, the dissimilarity between the two cluster centroids
+        \item Ward: fuse the pair of clusters whose merger increases the total within-cluster sum of squares the least (the K-means objective)
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Reading a dendrogram}
     \centering
     \includegraphics[width=\textwidth, height=0.42\textheight, keepaspectratio]{figures/fig_dendro_reading.pdf}
@@ -338,16 +341,6 @@
         \item Each leaf is an observation; the height of a fusion is the dissimilarity at which the two clusters joined
         \item Similarity of two observations is judged by the height where they first fuse, not by how close their leaves are horizontally
         \item Cutting the tree at a height gives a partition into clusters
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Linkage: dissimilarity between clusters}
-    Let $A$ and $B$ be two clusters and $d_{il} = d(\mathbf{x}^{(i)}, \mathbf{x}^{(l)})$.
-    \begin{itemize}
-        \item Complete: $d(A, B) = \max_{i \in A,\, l \in B} d_{il}$
-        \item Single: $d(A, B) = \min_{i \in A,\, l \in B} d_{il}$
-        \item Average: $d(A, B) = \dfrac{1}{|A|\,|B|} \sum_{i \in A} \sum_{l \in B} d_{il}$
-        \item Centroid: $d(A, B) = d(\bar{\mathbf{x}}_A, \bar{\mathbf{x}}_B)$, the dissimilarity between the two cluster centroids
     \end{itemize}
 \end{frame}
 
@@ -372,9 +365,18 @@
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Effect of scaling on the clusters}
+    \centering
+    \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_usarrests_scale_dendro.pdf}
+    \begin{itemize}
+        \item USArrests, Euclidean distance, complete linkage: on raw data the tree is driven almost entirely by Assault, the variable with by far the largest variance
+        \item After standardizing, all four variables contribute and the grouping of states changes
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Example data: NCI60}
     \begin{itemize}
-        \item Gene expression for 64 human cancer cell lines from the US National Cancer Institute's NCI-60 panel, measured with microarrays (Ross et al., 2000)% ; in R: \textttbg{ISLR2::NCI60}
+        \item Gene expression for 64 human cancer cell lines (tumor cells grown in the laboratory) from the US National Cancer Institute's NCI-60 panel, measured with microarrays, which record the activity of thousands of genes at once (Ross et al., 2000)% ; in R: \textttbg{ISLR2::NCI60}
         \item $p = 6{,}830$ genes per cell line, far more variables than observations ($p \gg n$), so Mahalanobis distance cannot be used; each gene is standardized before computing distances
         \item Each cell line carries a cancer-type label (14 labels):
             \begin{itemize}
@@ -410,18 +412,18 @@
 
 \begin{frame}{Internal measure: within-cluster sum of squares}
     \begin{columns}[T]
-        \begin{column}{0.56\textwidth}
+        \begin{column}{0.6\textwidth}
             \begin{itemize}
-                \item Total variation splits as $\text{TSS} = \text{WSS} + \text{BSS}$:
+                \item Total variation: $\text{TSS} = \text{WSS} + \text{BSS}$ ($\bar{\mathbf{x}}$: overall mean)
                 \begin{align*}
                     \text{WSS} &= \sum_{k} \sum_{i \in C_k} \lVert \mathbf{x}^{(i)} - \bar{\mathbf{x}}_k \rVert^2 \\
                     \text{BSS} &= \sum_{k} |C_k| \, \lVert \bar{\mathbf{x}}_k - \bar{\mathbf{x}} \rVert^2
                 \end{align*}
-                \item $\text{BSS} / \text{TSS}$ is the share of variation explained by the clusters
-                \item WSS always decreases as $K$ grows: plot it against $K$ and look for an elbow
+                \item $\text{BSS} / \text{TSS}$: share of variation explained by the clusters
+                \item WSS always falls as $K$ grows; look for an elbow, a $K$ after which it falls much more slowly
             \end{itemize}
         \end{column}
-        \begin{column}{0.42\textwidth}
+        \begin{column}{0.38\textwidth}
             \includegraphics[width=\textwidth, height=0.45\textheight, keepaspectratio]{figures/fig_elbow.pdf}
 
             {\scriptsize Four-cluster simulated data. The elbow can be ambiguous.}
@@ -435,7 +437,7 @@
         \[
             s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}} \in [-1, 1]
         \]
-        \item $s(i)$ near $1$: well clustered; near $0$: on the border between clusters; negative: probably in the wrong cluster
+        \item $s(i)$ is the silhouette width of observation $i$; near $1$: well clustered; near $0$: on the border between clusters; negative: probably in the wrong cluster
         \item The average silhouette width summarizes a partition; choose the $K$ that maximizes it
     \end{itemize}
 \end{frame}
@@ -512,14 +514,14 @@
 
 \begin{frame}{Profiling the clusters}
     \begin{columns}[T]
-        \begin{column}{0.46\textwidth}
+        \begin{column}{0.5\textwidth}
             \begin{itemize}
                 \item Report each cluster's size $|C_k|$ and centroid $\bar{\mathbf{x}}_k$ in original units
-                \item Compare clusters on a common scale with standardized means, $(\bar{x}_{kj} - \bar{x}_j) / s_j$
+                \item Compare clusters on a common scale with standardized means $(\bar{x}_{kj} - \bar{x}_j) / s_j$; $\bar{x}_{kj}$ is the mean of variable $j$ in cluster $k$
                 \item Variable-by-variable tests (ANOVA) are descriptive only: the clusters were chosen to differ, so $p$-values are not valid
             \end{itemize}
         \end{column}
-        \begin{column}{0.52\textwidth}
+        \begin{column}{0.48\textwidth}
             \includegraphics[width=\textwidth, height=0.6\textheight, keepaspectratio]{figures/fig_usarrests_profile.pdf}
 
             {\scriptsize USArrests, K-means with $K = 3$}
@@ -531,7 +533,7 @@
     \centering
     \includegraphics[width=\textwidth, height=0.68\textheight, keepaspectratio]{figures/fig_usarrests_pairs.pdf}
     \begin{itemize}
-        \item Shows which variables separate which clusters, without a projection
+        \item Every pair of the original variables, colored by cluster: shows directly which variables separate which clusters
     \end{itemize}
 \end{frame}
 

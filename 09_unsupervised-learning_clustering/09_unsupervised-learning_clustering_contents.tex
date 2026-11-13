@@ -41,14 +41,14 @@
                 \[
                     d_q(\mathbf{x}^{(i)}, \mathbf{x}^{(l)}) = \Bigl( \sum_{j=1}^{p} \bigl| x_j^{(i)} - x_j^{(l)} \bigr|^q \Bigr)^{1/q}
                 \]
-                \item $q = 2$ Euclidean: the default; squaring gives large gaps more weight
                 \item $q = 1$ Manhattan: sum of absolute differences; less dominated by one large gap
+                \item $q = 2$ Euclidean: the default; squaring gives large gaps more weight
                 \item $q \to \infty$ Chebyshev: $\max_j |x_j^{(i)} - x_j^{(l)}|$; only the worst coordinate counts
             \end{itemize}
         \end{column}
         \begin{column}{0.36\textwidth}
             \centering
-            \begin{tikzpicture}[scale=1.5]
+            \begin{tikzpicture}[scale=1.3]
                 \draw[->, gray] (-1.3, 0) -- (1.4, 0) node[right, black] {\scriptsize $x_1$};
                 \draw[->, gray] (0, -1.3) -- (0, 1.4) node[above, black] {\scriptsize $x_2$};
                 \draw[very thick, green!50!black] (-1, -1) rectangle (1, 1);
@@ -59,9 +59,15 @@
                 \node[green!50!black, font=\scriptsize] at (0.62, 1.15) {$q{\to}\infty$};
             \end{tikzpicture}
 
-            {\scriptsize Points at distance 1 from the origin}
+            {\scriptsize Points at distance 1 from the origin; $(1, 1)$ is at distance $2$, $\sqrt{2}$, $1$}
+
+            \svspace{0.4em}
+            {\scriptsize Example, $(0, 0)$ to $(3, 4)$: $d_1 = 7$, $d_2 = 5$, $d_\infty = 4$}
         \end{column}
     \end{columns}
+    \mode<article>{
+        A larger $q$ puts more weight on the largest coordinate difference. Compare one variable differing by $4$ with four variables each differing by $1$: Manhattan distance is $4$ in both cases, while Euclidean distance is $4$ for the single large gap and only $2$ for the spread-out differences. The value of $q$ must be at least $1$ for $d_q$ to be a metric; for $q < 1$ the triangle inequality fails (with $q = 1/2$, the distance from $(0, 0)$ to $(1, 1)$ is $4$, larger than the $1 + 1$ through $(1, 0)$). All Minkowski distances depend on the units of the variables, which is why scaling matters, as the next slides show.
+    }
 \end{frame}
 
 \begin{frame}{Example data: USArrests}
@@ -294,6 +300,18 @@
     \end{itemize}
 \end{frame}
 
+\begin{frame}{K-medoids}
+    \centering
+    \includegraphics[width=\textwidth, height=0.34\textheight, keepaspectratio]{figures/fig_kmedoids.pdf}
+
+    {\scriptsize Simulated: two groups of 40 plus three far outliers; crosses mark centroids (left) and medoids (right)}
+    \begin{itemize}
+        \item Each cluster is represented by a medoid $\mathbf{x}^{(o_k)}$, the member closest in total to the rest; minimize $\sum_{k} \sum_{i \in C_k} d(\mathbf{x}^{(i)}, \mathbf{x}^{(o_k)})$
+        \item Works with any dissimilarity (Gower, Jaccard, \ldots), but is slower than K-means for large $n$
+        \item Robust to outliers: K-means spends a cluster on the three outliers, K-medoids does not
+    \end{itemize}
+\end{frame}
+
 
 \section{Hierarchical clustering}
 
@@ -365,7 +383,7 @@
 
     {\scriptsize Simulated: 45 points in three groups of 15 ($\sigma = 1$); Euclidean distance}
     \begin{itemize}
-        \item Complete and average: compact, fairly balanced clusters; complete is the usual default
+        \item Complete and average: compact, fairly balanced clusters; complete is R's default, Ward is scikit-learn's
         \item Single: chaining, where clusters grow by adding one point at a time; useful for elongated groups, but gives trailing, unbalanced trees
         \item Centroid: popular in genomics, but can produce inversions (a fusion lower than an earlier one)
     \end{itemize}
@@ -395,7 +413,7 @@
     \centering
     \dual{\makebox[\textwidth][c]{\includegraphics[width=0.97\paperwidth, height=0.6\textheight, keepaspectratio]{figures/fig_usarrests_scale_dendro.pdf}}}{\includegraphics[width=\textwidth]{figures/fig_usarrests_scale_dendro.pdf}}
     \begin{itemize}
-        \item USArrests, complete linkage: on raw data the tree is driven almost entirely by Assault, which has by far the largest variance
+        \item \dual{USArrests, complete linkage: on raw data Assault makes up 96\% of the squared distances, so the tree mostly sorts states by assault rate}{USArrests, complete linkage: on raw data Assault, which has by far the largest variance, makes up 96\% of the summed squared Euclidean distances between states (distances computed from Assault alone correlate $0.997$ with the full distances). Cutting the raw tree into three clusters gives three non-overlapping bands of assault arrests per 100{,}000: 45--120, 145--211 and 236--337}
         \item After standardizing, all four variables contribute and the grouping of states changes
     \end{itemize}
 \end{frame}
@@ -426,7 +444,52 @@
 % ------------------------- end of class 1 -------------------------
 
 
-\section{Cluster evaluation}
+\section{Density- and model-based clustering}
+
+\begin{frame}{DBSCAN: density-based clustering}
+    \begin{itemize}
+        \item Clusters are dense regions separated by sparse regions; $K$ is not needed
+        \item Two settings: a radius $\varepsilon$ and a count minPts. A core point has at least minPts observations (itself included) within distance $\varepsilon$
+        \item A cluster is a set of core points linked through neighbors within $\varepsilon$, plus the non-core points within $\varepsilon$ of them (border points); all other points are noise
+        \item Finds clusters of any shape and flags outliers as noise, but one $\varepsilon$ struggles when clusters differ in density
+        \item To choose $\varepsilon$, plot each point's distance to its minPts-th nearest neighbor in increasing order and look for a sharp bend
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{DBSCAN in action}
+    \centering
+    \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_dbscan.pdf}
+
+    {\scriptsize Half-moons from the K-means limitations slide plus 25 uniformly scattered noise points. Grey crosses: points DBSCAN labels as noise.}
+    \begin{itemize}
+        \item K-means cuts across the moons; DBSCAN follows their shape and leaves isolated points unassigned
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Gaussian mixture models}
+    \begin{itemize}
+        \item Model the data as a mixture of $K$ normal distributions with mixing proportions $\pi_k$:
+        \[
+            p(\mathbf{x}) = \sum_{k=1}^{K} \pi_k \, N(\mathbf{x};\, \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)
+        \]
+        \item Fitted by maximum likelihood with the EM algorithm, which alternates like K-means: compute each observation's probability of belonging to each cluster, then update $\pi_k$, $\boldsymbol{\mu}_k$, $\boldsymbol{\Sigma}_k$ using these probabilities as weights
+        \item Soft clustering: each observation gets probabilities $P(C_k \mid \mathbf{x}^{(i)})$; take the most probable cluster if a single label is needed
+        \item Clusters can differ in size, spread and orientation; $K$ and the form of $\boldsymbol{\Sigma}_k$ can be chosen with BIC
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Gaussian mixture vs. K-means}
+    \centering
+    \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_gmm.pdf}
+
+    {\scriptsize Same data as the K-means limitations slide: one large, spread-out group and two small, tight groups. Mixture with spherical covariances of different sizes, chosen by BIC.}
+    \begin{itemize}
+        \item The mixture allows each cluster its own spread and recovers the three groups; K-means gives the edges of the large group to the small ones
+    \end{itemize}
+\end{frame}
+
+
+\section{Evaluating and interpreting clusters}
 
 \begin{frame}{Why evaluating clusters is hard}
     \begin{sitemize}
@@ -452,7 +515,7 @@
         \begin{column}{0.38\textwidth}
             \includegraphics[width=\textwidth, height=0.45\textheight, keepaspectratio]{figures/fig_elbow.pdf}
 
-            {\scriptsize Four-cluster simulated data. The elbow can be ambiguous.}
+            {\scriptsize Four-cluster simulated data: a clear elbow at $K = 4$. On real data the elbow is often ambiguous.}
         \end{column}
     \end{columns}
 \end{frame}
@@ -486,6 +549,7 @@
         \]
         \item Close to $1$: the dendrogram represents the original dissimilarities faithfully
         \item Use it to compare linkages for the same dissimilarity% : \textttbg{cor(dist(x), cophenetic(hc))}
+        \item USArrests (standardized, Euclidean): average $0.72$, complete $0.70$, Ward $0.70$, single $0.54$
     \end{itemize}
 \end{frame}
 
@@ -519,6 +583,16 @@
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Stability in practice}
+    \centering
+    \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{figures/fig_usarrests_stability.pdf}
+    \begin{itemize}
+        \item USArrests, K-means on 200 bootstrap samples: for each original cluster, its best Jaccard similarity $|A \cap B| / |A \cup B|$ with a bootstrap cluster
+        \item Rule of thumb (Hennig, 2007): above $0.85$ stable, below $0.5$ the cluster has dissolved
+        \item $K = 2$ clusters almost always reappear; for $K = 3$, two of the three are only moderately stable
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Evaluation tools: summary}
     \centering
     \footnotesize
@@ -536,8 +610,6 @@
 \end{frame}
 
 
-\section{Cluster interpretation}
-
 \begin{frame}{Profiling the clusters}
     \begin{columns}[T]
         \begin{column}{0.5\textwidth}
@@ -550,7 +622,7 @@
         \begin{column}{0.48\textwidth}
             \includegraphics[width=\textwidth, height=0.6\textheight, keepaspectratio]{figures/fig_usarrests_profile.pdf}
 
-            {\scriptsize USArrests, K-means with $K = 3$}
+            {\scriptsize \dual{USArrests, K-means with $K = 3$ (easy to interpret; the silhouette prefers $K = 2$)}{USArrests, K-means with $K = 3$. Three clusters give groups that are easy to describe (low crime; somewhat below-average crime but highly urban; high crime), but the average silhouette width is highest at $K = 2$ ($0.41$ against $0.31$ for $K = 3$): the criteria for choosing $K$ do not always agree.}}
         \end{column}
     \end{columns}
 \end{frame}
@@ -573,12 +645,38 @@
 \end{frame}
 
 
+\begin{frame}{Clustering in Python}
+    \centering
+    \scriptsize
+    \begin{tabular}{@{}l l@{}}
+        \toprule
+        Task & Python \\
+        \midrule
+        Standardize & \texttt{sklearn.preprocessing.StandardScaler} \\
+        Dissimilarities & \texttt{scipy.spatial.distance.pdist(X, metric=...)} \\
+        Gower & \texttt{gower.gower\_matrix} (\texttt{gower} package) \\
+        K-means & \texttt{sklearn.cluster.KMeans(n\_clusters=K, n\_init=25)} \\
+        K-medoids & \texttt{KMedoids} from \texttt{scikit-learn-extra} \\
+        Hierarchical & \texttt{scipy.cluster.hierarchy}: \texttt{linkage}, \texttt{dendrogram}, \texttt{fcluster}, \texttt{cophenet} \\
+         & \texttt{sklearn.cluster.AgglomerativeClustering(linkage=...)} \\
+        Divisive & \texttt{sklearn.cluster.BisectingKMeans} \\
+        DBSCAN & \texttt{sklearn.cluster.DBSCAN(eps=..., min\_samples=...)} \\
+        Gaussian mixture & \texttt{sklearn.mixture.GaussianMixture}; \texttt{predict\_proba}, \texttt{bic} \\
+        Silhouette, ARI & \texttt{sklearn.metrics.silhouette\_score}, \texttt{adjusted\_rand\_score} \\
+        \bottomrule
+    \end{tabular}
+
+    \svspace{0.5em}
+    Worked examples: the ISLP Python lab, Section 12.5
+\end{frame}
+
 \begin{frame}{Summary}
     \begin{itemize}
         \item Clustering partitions unlabeled observations; the result depends on the dissimilarity, scaling, algorithm and $K$
         \item Standardize unless variables share a meaningful scale; correlation distance for profile shape, Gower for mixed data
-        \item K-means minimizes within-cluster sum of squares with Lloyd iterations, so use many starts; hierarchical clustering gives a dendrogram for any $K$, and the linkage matters
+        \item K-means minimizes WSS with Lloyd's algorithm (use many starts); K-medoids takes any dissimilarity; hierarchical clustering gives a dendrogram, and the linkage matters
+        \item DBSCAN finds clusters of any shape and flags noise; Gaussian mixtures give soft assignments
         \item Evaluate with elbow and silhouette for $K$, cophenetic correlation for dendrograms, ARI when labels exist, and stability always
-        \item Interpret with cluster profiles and visualizations; reading: ISLP Chapter 12, Section 12.4
+        \item Interpret with cluster profiles and plots; reading: ISLP 12.4, Python lab 12.5
     \end{itemize}
 \end{frame}

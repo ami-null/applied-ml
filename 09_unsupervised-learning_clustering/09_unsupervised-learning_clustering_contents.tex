@@ -302,6 +302,8 @@
         \item K-means needs $K$ in advance; hierarchical clustering does not
         \item It builds a tree of nested clusters, the dendrogram, from which any number of clusters can be read off
         \item Agglomerative (bottom-up) is the most common: start with $n$ singleton clusters and repeatedly fuse the two closest clusters
+        \item The name comes from ``agglomerate'', to gather into a mass: clusters are built up by merging smaller ones
+        \item Divisive (top-down) does the reverse: start with all $n$ observations in one cluster and repeatedly split
         \item Needs a dissimilarity between observations and a rule for the dissimilarity between clusters (the linkage)
     \end{itemize}
 \end{frame}
@@ -319,6 +321,19 @@
     % \begin{itemize}
         % \item In R: \textttbg{hclust(dist(x), method = "complete")}
     % \end{itemize}
+\end{frame}
+
+\begin{frame}{Divisive clustering}
+    \begin{itemize}
+        \item Top-down: start with all $n$ observations in one cluster and repeatedly split a cluster in two, until every observation is on its own
+        \item A cluster of $m$ observations can be split in two in $2^{m-1} - 1$ ways, too many to check, so methods use heuristics:
+            \begin{itemize}
+                \item DIANA: split the cluster with the largest diameter (largest dissimilarity between two of its members); the member farthest on average from the rest starts a splinter group, and members closer on average to the splinter group move over
+                \item Bisecting K-means: split a cluster with K-means, $K = 2$
+            \end{itemize}
+        \item In DIANA the height of a split is the diameter of the cluster split, so the result is again a dendrogram
+        \item Settles the large clusters first, so it can do better when only a few big groups matter; less common in practice than agglomerative
+    \end{itemize}
 \end{frame}
 
 \begin{frame}{Linkage: dissimilarity between clusters}
@@ -362,6 +377,17 @@
         \item A large gap between successive fusion heights suggests a natural place to cut, but this is a judgment call
         \item Clusters are nested: those for $K = 2$ are merged clusters of $K = 3$
         \item Nesting can be unrealistic: a population split by sex and by nationality does not form a single hierarchy
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Divisive vs. agglomerative}
+    \centering
+    \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_divisive.pdf}
+
+    {\scriptsize Same 45 simulated points as the linkage comparison; Euclidean distance. Dashed lines cut each tree into $K = 3$ clusters.}
+    \begin{itemize}
+        \item Left: the three clusters from the divisive (DIANA) tree; cutting the complete-linkage tree gives the same clusters except for one point
+        \item Both trees are read the same way; in the divisive tree the height of a split is the diameter of the cluster being split
     \end{itemize}
 \end{frame}
 

@@ -346,7 +346,7 @@
         \item Top-down: start with all $n$ observations in one cluster and repeatedly split a cluster in two, until every observation is on its own
         \item A cluster $C$ can be split in two in $2^{|C|-1} - 1$ ways, too many to check, so methods use heuristics:
             \begin{itemize}
-                \item DIANA: split the cluster with the largest diameter (largest dissimilarity between two of its members); the member farthest on average from the rest starts a splinter group, and members closer on average to the splinter group move over
+                \item DIANA (DIvisive ANAlysis): split the cluster with the largest diameter (largest dissimilarity between two of its members); the member farthest on average from the rest starts a splinter group, and members closer on average to the splinter group move over
                 \item Bisecting K-means: split a cluster with K-means, $K = 2$
             \end{itemize}
         \item In DIANA the height of a split is the diameter of the cluster split, so the result is again a dendrogram

@@ -21,8 +21,11 @@ theme_set(
 #   label_groups: optional vector (in original observation order) used to
 #                 colour the leaf labels; add scale_colour_manual() afterwards
 #   cut_height:   optional height at which to draw a dashed horizontal line
+#   label_space:  space below the tree for the labels, as a fraction of the
+#                 height range (increase it for short panels or long labels)
 gg_dendro <- function(hc, label = TRUE, label_size = 3,
-                      label_groups = NULL, cut_height = NULL) {
+                      label_groups = NULL, cut_height = NULL,
+                      label_space = 0.3) {
     dd <- dendro_data(hc, type = "rectangle")
     p <- ggplot() +
         geom_segment(
@@ -45,7 +48,13 @@ gg_dendro <- function(hc, label = TRUE, label_size = 3,
                 angle = 90, hjust = 1, size = label_size, show.legend = FALSE
             )
         }
-        p <- p + scale_y_continuous(expand = expansion(mult = c(0.3, 0.05)))
+        p <- p + scale_y_continuous(
+            expand = expansion(mult = c(label_space, 0.05)),
+            breaks = function(lim) {                # no ticks under the tree
+                b <- scales::breaks_extended()(lim)
+                b[b >= 0]
+            }
+        )
     }
     if (!is.null(cut_height)) {
         p <- p + geom_hline(yintercept = cut_height, linetype = "dashed",

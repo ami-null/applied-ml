@@ -21,14 +21,22 @@ hc_cor <- hclust(d_cor, method = "average")
 hc_euc$labels <- labs_nci
 hc_cor$labels <- labs_nci
 
-p <- gg_dendro(hc_euc, label_groups = labs_nci, label_size = 2.6) +
+# wide and short, to span the full slide width; small labels so they don't overlap
+p_euc <- gg_dendro(hc_euc, label_groups = labs_nci, label_size = 2.1,
+                   label_space = 0.3) +
     scale_colour_manual(values = cols) +
-    labs(title = "Euclidean distance") +
-    gg_dendro(hc_cor, label_groups = labs_nci, label_size = 2.6) +
+    labs(title = "Euclidean distance")
+p_cor <- gg_dendro(hc_cor, label_groups = labs_nci, label_size = 2.1,
+                   label_space = 0.3) +
     scale_colour_manual(values = cols) +
-    labs(title = "Correlation-based distance")
+    labs(title = "Correlation-based distance", y = NULL)
+# no padding beside the outermost leaves and almost no outer margin, so the
+# trees use the whole width of the slide
+p <- (p_euc + p_cor) &
+    scale_x_continuous(expand = expansion(add = 0.7)) &
+    theme(plot.margin = margin(2, 4, 0, 1))
 p
-ggsave("fig_nci_dendro_distance.pdf", p, width = 14, height = 6)
+ggsave("fig_nci_dendro_distance.pdf", p, width = 13, height = 3.5)
 
 # ---- Agreement with cancer type (adjusted Rand index) -------------------
 hcs <- list(

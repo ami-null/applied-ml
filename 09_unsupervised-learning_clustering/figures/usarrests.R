@@ -24,10 +24,18 @@ ggsave("fig_usarrests_variance.pdf", p, width = 6, height = 4.5)
 # ---- Dendrograms: raw vs standardized -----------------------------------
 hc_raw <- hclust(dist(X), method = "complete")
 hc_std <- hclust(dist(Z), method = "complete")
-p <- gg_dendro(hc_raw, label_size = 2.4) + labs(title = "Raw variables") +
-    gg_dendro(hc_std, label_size = 2.4) + labs(title = "Standardized variables")
+# wide and short, to span the full slide width; small labels so they don't overlap
+p_raw <- gg_dendro(hc_raw, label_size = 2.5, label_space = 0.35) +
+    labs(title = "Raw variables")
+p_std <- gg_dendro(hc_std, label_size = 2.5, label_space = 0.35) +
+    labs(title = "Standardized variables", y = NULL)
+# no padding beside the outermost leaves and almost no outer margin, so the
+# trees use the whole width of the slide
+p <- (p_raw + p_std) &
+    scale_x_continuous(expand = expansion(add = 0.7)) &
+    theme(plot.margin = margin(2, 4, 0, 1))
 p
-ggsave("fig_usarrests_scale_dendro.pdf", p, width = 13, height = 5.5)
+ggsave("fig_usarrests_scale_dendro.pdf", p, width = 13, height = 3.5)
 
 # ---- K-means with K = 3 on standardized data ----------------------------
 set.seed(1)

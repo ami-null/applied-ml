@@ -393,9 +393,9 @@
 
 \begin{frame}{Effect of scaling on the clusters}
     \centering
-    \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_usarrests_scale_dendro.pdf}
+    \dual{\makebox[\textwidth][c]{\includegraphics[width=0.97\paperwidth, height=0.6\textheight, keepaspectratio]{figures/fig_usarrests_scale_dendro.pdf}}}{\includegraphics[width=\textwidth]{figures/fig_usarrests_scale_dendro.pdf}}
     \begin{itemize}
-        \item USArrests, Euclidean distance, complete linkage: on raw data the tree is driven almost entirely by Assault, the variable with by far the largest variance
+        \item USArrests, complete linkage: on raw data the tree is driven almost entirely by Assault, which has by far the largest variance
         \item After standardizing, all four variables contribute and the grouping of states changes
     \end{itemize}
 \end{frame}
@@ -415,7 +415,7 @@
 
 \begin{frame}{Example: NCI60 gene expression}
     \centering
-    \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_nci_dendro_distance.pdf}
+    \dual{\makebox[\textwidth][c]{\includegraphics[width=0.97\paperwidth, height=0.6\textheight, keepaspectratio]{figures/fig_nci_dendro_distance.pdf}}}{\includegraphics[width=\textwidth]{figures/fig_nci_dendro_distance.pdf}}
     \begin{itemize}
         \item Leaves are labeled and colored by cancer type, which was not used to build the tree
         \item Average linkage with Euclidean distance (left) and correlation-based distance between cell lines (right) group the cell lines differently

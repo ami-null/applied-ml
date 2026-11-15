@@ -1,25 +1,716 @@
+% Every number on these slides is produced by the R scripts in figures/ and
+% recorded in figures/numbers_*.txt; quote from those files only.
+
 \section{Feature scaling}
 
-\begin{frame}{Feature scaling, normalization, and standardization}
+\begin{frame}{Why scale features?}
+    \begin{columns}[T]
+        \begin{column}{0.6\textwidth}
+            \begin{itemize}
+                \item Many methods combine features through distances, dot products or a shared penalty
+                \item Then units decide a feature's influence: height in centimeters has 100 times the spread of height in meters
+                \item In USArrests (lecture 10), Assault has an SD of 83.3 and Murder only 4.4
+                \item On the raw scale, Assault accounts for 95.6\% of the total variance; after standardizing, every variable accounts for 25\%
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.38\textwidth}
+            \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_usarrests_variance.pdf}
+
+            {\scriptsize USArrests: share of total variance}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Three common scalers}
+    For feature $j$ with values $x_j^{(1)}, \dots, x_j^{(n)}$:
     \begin{itemize}
-        \item
+        \item Standardization ($z$-score): $\displaystyle z_j^{(i)} = \frac{x_j^{(i)} - \bar{x}_j}{s_j}$, mean $0$ and SD $1$
+        \item Min-max scaling: $\displaystyle \frac{x_j^{(i)} - \min_l x_j^{(l)}}{\max_l x_j^{(l)} - \min_l x_j^{(l)}}$, range exactly $[0, 1]$
+        \item Robust scaling: $\displaystyle \frac{x_j^{(i)} - \operatorname{median}_j}{\operatorname{IQR}_j}$, median $0$ and IQR $1$
+    \end{itemize}
+    \svspace{0.3em}
+    \centering
+    \footnotesize
+    \begin{tabular}{@{}l l l l@{}}
+        \toprule
+        Scaler & Center & Spread & Affected by outliers \\
+        \midrule
+        Standardization & mean & standard deviation & yes \\
+        Min-max & minimum & range & strongly \\
+        Robust & median & interquartile range & hardly \\
+        \bottomrule
+    \end{tabular}
+    \mode<article>{
+
+        All three are linear maps $x \mapsto (x - a)/b$, fitted separately for each feature: they shift and stretch a feature but never change the shape of its distribution. Software differs in small details: R's \texttt{scale()} divides by the sample SD (denominator $n - 1$), scikit-learn's \texttt{StandardScaler} by the SD with denominator $n$; the difference is negligible for all but tiny samples.
+    }
+\end{frame}
+
+\begin{frame}{A small example}
+    \centering
+    \begin{tabular}{@{}l r r r r r@{}}
+        \toprule
+        $x$ & 2 & 4 & 6 & 8 & 30 \\
+        \midrule
+        Standardized ($\bar{x} = 10$, $s = 11.4$) & $-0.70$ & $-0.53$ & $-0.35$ & $-0.18$ & $1.75$ \\
+        Min-max ($\min = 2$, $\max = 30$) & $0.00$ & $0.07$ & $0.14$ & $0.21$ & $1.00$ \\
+        Robust (median $6$, IQR $4$) & $-1.0$ & $-0.5$ & $0.0$ & $0.5$ & $6.0$ \\
+        \bottomrule
+    \end{tabular}
+
+    \svspace{0.8em}
+    \raggedright
+    \begin{itemize}
+        \item The value 30 pulls the mean up and inflates the SD, so the other four standardized values bunch together below 0
+        \item Min-max squeezes the four regular values into $[0, 0.21]$
+        \item Robust scaling keeps their spacing ($0.5$ apart) and leaves 30 clearly visible as an outlier at $6$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Normalization: two meanings}
+    \begin{columns}[T]
+        \begin{column}{0.58\textwidth}
+            \begin{itemize}
+                \item ``Normalization'' can mean min-max scaling of a feature (a column), or rescaling each observation (a row) to unit length:
+                \[
+                    \mathbf{x}^{(i)} \mapsto \frac{\mathbf{x}^{(i)}}{\lVert \mathbf{x}^{(i)} \rVert}
+                \]
+                \item Each row keeps its direction but loses its length, so dot products become cosine similarities
+                \item Common for word counts, so that long documents do not dominate
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.55\textheight, keepaspectratio]{figures/fig_unit_norm.pdf}
+
+            {\scriptsize 25 rows with lengths from 0.84 to 3.82, each rescaled to length 1}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        In this course, ``scaling'' always means a per-feature transformation; row normalization is named explicitly whenever it is used. In scikit-learn the two are \texttt{MinMaxScaler} (columns) and \texttt{Normalizer} (rows).
+    }
+\end{frame}
+
+\begin{frame}{Which models need scaling?}
+    \centering
+    \footnotesize
+    \begin{tabular}{@{}l c l@{}}
+        \toprule
+        Model & Scale? & Why \\
+        \midrule
+        $k$-NN, clustering & yes & distances sum differences over features \\
+        SVM with RBF kernel & yes & the kernel is a function of distances \\
+        PCA (lecture 12) & yes & directions of largest variance \\
+        Ridge, lasso, elastic net & yes & one penalty shared by all coefficients \\
+        Neural nets, gradient descent & yes & convergence depends on the loss shape \\
+        OLS, logistic (no penalty) & no & predictions unchanged \\
+        Trees, random forests, boosting & no & splits use only the order of values \\
+        \bottomrule
+    \end{tabular}
+    \mode<article>{
+
+        ``No'' in the last two rows refers to the predictions. Scaling still changes how the coefficients of a linear model read: a standardized coefficient is the change in the response for a one-SD change in the feature. Note also that scikit-learn's \texttt{LogisticRegression} adds an $L_2$ penalty by default, so in practice it belongs to the ``yes'' group unless the penalty is switched off.
+    }
+\end{frame}
+
+\begin{frame}{Evidence: Default data}
+    \begin{columns}[T]
+        \begin{column}{0.56\textwidth}
+            \begin{itemize}
+                \item \dual{We use all 333 defaults and 333 random non-defaults}{We use all 333 defaults and 333 randomly chosen non-defaults; in the full data 97\% of customers do not default, and accuracy cannot tell the models apart}
+                \item In 50 random 70/30 splits, balance (SD 602) and income (SD 13{,}616) are standardized on the training part
+                \item $k$-NN improves from 0.774 to 0.875
+                \item The SVM jumps from 0.475, no better than guessing, to 0.877
+                \item Logistic regression, the tree and the forest make identical predictions in all 50 splits
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.42\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_scaling_models.pdf}
+
+            {\scriptsize Mean test accuracy over 50 splits; dotted line at 0.5}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        $k$-NN uses $k = 15$, and the SVM uses R's \texttt{e1071} defaults (cost $1$, $\gamma = 1/p$). On the raw data, income differences of thousands of dollars dominate every distance, and $k$-NN effectively ignores balance, the feature that predicts default. The student dummy is left as $0/1$ in both versions.
+    }
+\end{frame}
+
+\begin{frame}{Gradient descent and the shape of the loss}
+    \centering
+    \includegraphics[width=\textwidth, height=0.44\textheight, keepaspectratio]{figures/fig_scaling_contours.pdf}
+
+    {\scriptsize Least squares with two simulated features (SD 1.07 and 4.93); gray curves are loss contours, $\times$ marks the minimum}
+    \raggedright
+    \begin{itemize}
+        \item On raw features the contours are long, narrow ellipses: even the best fixed step size needs 146 iterations to reach relative error $10^{-6}$
+        \item After standardizing they are nearly circles, and 3 iterations are enough
+    \end{itemize}
+    \mode<article>{
+        For least squares the loss is a quadratic whose curvature in each direction is set by the eigenvalues of $\mathbf{H} = \mathbf{X}^\top\mathbf{X}/n$. A step size small enough for the steepest direction is too small for the flattest, so gradient descent zig-zags across the valley and crawls along it. The condition number $\lambda_{\max}/\lambda_{\min}$ measures this: 21.1 for the raw features and 1.02 after standardizing. Both runs use the best fixed step size for a quadratic, $2/(\lambda_{\max} + \lambda_{\min})$, so the comparison is fair to the raw version.
+    }
+\end{frame}
+
+\begin{frame}{Penalties are not scale-invariant}
+    \begin{columns}[T]
+        \begin{column}{0.6\textwidth}
+            \begin{itemize}
+                \item The ridge penalty $\frac{\lambda}{2} \sum_j \beta_j^2$ treats every coefficient the same, whatever its unit
+                \item Credit: Balance on Income and three standardized predictors; only Income's unit changes
+                \item Income's OLS coefficient is 0.0063 per dollar, 6.27 per \$1000 and 221 per SD
+                \item Small coefficients barely feel it: Income's halves only at $\lambda \approx 1.1 \times 10^{9}$, $1.1 \times 10^{3}$ and $0.95$. Standardize first
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.38\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_ridge_units.pdf}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        The three predictors next to Income (Age, Cards, Education) are almost uncorrelated with it (correlations $0.18$, $-0.02$ and $-0.03$), so Income's coefficient shrinks because of its own penalty. The value of $\lambda$ at which it halves is close to the variance of Income in each unit ($1.24 \times 10^9$ dollars squared, $1{,}242$ in thousands, $1$ standardized). R's \texttt{glmnet} standardizes the predictors by default; scikit-learn's \texttt{Ridge} and \texttt{Lasso} do not, so put a \texttt{StandardScaler} in front of them.
+    }
+\end{frame}
+
+\begin{frame}{Outliers and the choice of scaler}
+    \begin{columns}[T]
+        \begin{column}{0.6\textwidth}
+            \begin{itemize}
+                \item Each scaler is fitted to 50 regular values, with and without one outlier
+                \item Under min-max, the outlier squeezes the regular values from $[0, 1]$ into $[0, 0.17]$
+                \item Standardizing shrinks them from $[-2.21, 1.81]$ to $[-0.83, 0.44]$
+                \item Robust scaling barely moves them ($[-1.49, 1.31]$); the outlier lands at 15.0
+                \item It does not remove the outlier, though (lecture 2)
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.38\textwidth}
+            \includegraphics[width=\textwidth, height=0.66\textheight, keepaspectratio]{figures/fig_scalers_outlier.pdf}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Skewed features}
+    \centering
+    \includegraphics[width=\textwidth, height=0.27\textheight, keepaspectratio]{figures/fig_skew_transforms.pdf}
+
+    {\scriptsize Price of 53{,}940 diamonds (\texttt{ggplot2::diamonds})}
+    \raggedright
+    \begin{itemize}
+        \item Scaling is linear and keeps the shape: skewness is 1.62 before and after standardizing
+        \item Taking $\log x$ of a positive, right-skewed feature brings the skewness down to 0.12
+        \item Box-Cox, $(x^\lambda - 1)/\lambda$, picks $\lambda$ by maximum likelihood; $\lambda = -0.07$ is close to the log, and the skewness drops to 0.02
+        \item Yeo-Johnson extends Box-Cox to zero and negative values. Transform first, then scale
+    \end{itemize}
+    \mode<article>{
+        Box-Cox defines the $\lambda = 0$ member of the family as $\log x$, which is the limit of $(x^\lambda - 1)/\lambda$ as $\lambda \to 0$. Transforming a skewed feature helps models that are sensitive to large values (linear models, distance-based methods); trees are unaffected by any increasing transformation.
+    }
+\end{frame}
+
+\begin{frame}{Fit the scaler on the training data only}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item A scaler has parameters (mean and SD, min and max, median and IQR) estimated from data
+                \item Estimate them on the training data, then apply the same transformation to test data and to new observations
+                \item Scaling before the split lets the test data influence the training data, which is called leakage
+                \item And at prediction time, a single new observation has no mean or SD of its own to use
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \begin{tikzpicture}[
+                    box/.style={draw, rounded corners, minimum width=2.4cm, minimum height=0.75cm, align=center, font=\footnotesize},
+                    >={Stealth[length=2mm]}
+                ]
+                \node[box, fill=blue!10] (train) {Training data};
+                \node[box, fill=orange!15, right=0.5cm of train] (test) {Test data};
+                \node[box, below=0.7cm of train] (fit) {Fit scaler:\\ $\bar{x}_j$, $s_j$};
+                \node[box, fill=blue!10, below=0.7cm of fit] (strain) {Scaled\\ training data};
+                \node[box, fill=orange!15, below=2.15cm of test] (stest) {Scaled\\ test data};
+                \draw[->] (train) -- (fit);
+                \draw[->] (fit) -- (strain);
+                \draw[->] (test) -- (stest);
+                \draw[->, dashed] (fit.east) -| node[pos=0.25, above, font=\scriptsize] {same $\bar{x}_j$, $s_j$} ([xshift=-0.6cm]stest.north);
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        For scaling the leak is usually small, because a mean and an SD estimated with or without the test rows are nearly the same. The same rule applies to every step that learns from data, and for feature selection the leak can be large, as the last part of this lecture shows.
+    }
+\end{frame}
+
+\begin{frame}{Pipelines and cross-validation}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item In $K$-fold CV the held-out fold plays the test set, so every preprocessing step is refitted in each split
+                \item A pipeline chains the steps and refits all of them whenever the model is fitted
+                \item In scikit-learn, build it with \texttt{make\_pipeline} and pass it to \texttt{cross\_val\_score}; \texttt{ColumnTransformer} handles different columns differently
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \begin{tikzpicture}[x=0.75cm, y=0.5cm]
+                \foreach \r in {1,...,5} {
+                    \node[font=\scriptsize, anchor=east] at (0.4, -\r + 0.5) {Split \r};
+                    \foreach \c in {1,...,5} {
+                        \ifnum\r=\c
+                            \fill[orange!40] (\c - 0.5, -\r) rectangle (\c + 0.5, -\r + 1);
+                        \else
+                            \fill[blue!10] (\c - 0.5, -\r) rectangle (\c + 0.5, -\r + 1);
+                        \fi
+                        \draw[white, thick] (\c - 0.5, -\r) rectangle (\c + 0.5, -\r + 1);
+                    }
+                }
+            \end{tikzpicture}
+
+            \svspace{0.3em}
+            {\scriptsize Fit the scaler, any feature selection and the model on the blue folds; evaluate on the orange fold}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        For example, \texttt{cross\_val\_score(make\_pipeline(StandardScaler(), KNeighborsClassifier()), X, y, cv=5)} refits the scaler on the four training folds of each split before fitting $k$-NN.
+    }
+\end{frame}
+
+\begin{frame}{Binary and categorical features}
+    \begin{itemize}
+        \item 0/1 dummies (lecture 2 encodings) are usually left as they are: the unit ``has the category or not'' is already interpretable
+        \item In the Default example the student dummy stayed 0/1 in both versions
+        \item With ridge or lasso, a dummy's coefficient is penalized like any other; standardizing a dummy divides it by $\sqrt{\hat{p}(1 - \hat{p})}$, which changes how strongly rare categories are penalized
+        \item Software such as \texttt{glmnet} standardizes every column, dummies included; whichever choice you make, make it on purpose and apply it the same way in training and prediction
+        \item Ordinal codes ($1, 2, 3, \dots$) can be scaled like numeric features if the spacing is meaningful
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Scaling: summary}
+    \begin{itemize}
+        \item Scale features before distance-based methods, kernels, PCA, penalized models and gradient descent; trees and unpenalized linear models do not need it
+        \item Standardize by default, use robust scaling when there are outliers, and min-max when you need a bounded range
+        \item Transform skewed features (log, Box-Cox, Yeo-Johnson) before scaling
+        \item Fit every preprocessing step on training data only, inside a pipeline
     \end{itemize}
 \end{frame}
 
 
-\section{Curse of dimensionality}
+\section{The curse of dimensionality}
 
-\begin{frame}{Curse of dimensionality}
+\begin{frame}{More features are not free}
     \begin{itemize}
-        \item
+        \item Fix the number of observations $n$ and let the number of features $p$ grow
+        \item The data become sparse: every region of the feature space holds few observations
+        \item Methods that rely on nearby observations (``local'' methods: $k$-NN, kernels, clustering) lose their footing
+        \item Flexible models have more ways to fit noise
+        \item Richard Bellman called these effects the curse of dimensionality
+        \item The next slides use uniform data, where each effect can be computed exactly
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Sparsity: neighborhoods must grow}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item Spread the data uniformly over the unit cube $[0, 1]^p$
+                \item A sub-cube holding a fraction $r$ of the data has volume $r$, so its edge length is $r^{1/p}$
+                \item To capture 10\% of the data, the edge must be 0.10 when $p = 1$, 0.32 when $p = 2$, 0.79 when $p = 10$ and 0.98 when $p = 100$
+                \item At $p = 10$, a ``neighborhood'' with 10\% of the data spans 79\% of the range of every feature: it is no longer local
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_hypercube_edge.pdf}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Nearest neighbors are far away}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item $N$ points uniform in the unit ball in $\mathbb{R}^p$; median distance from the center to the nearest point:
+                \[
+                    d(p, N) = \bigl(1 - (1/2)^{1/N}\bigr)^{1/p}
+                \]
+                \item With $N = 500$ it is 0.04 for $p = 2$, 0.52 for $p = 10$ and 0.94 for $p = 100$
+                \item At $p = 10$ the nearest point is already more than halfway to the boundary: predictions extrapolate from far-away data
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_nn_distance.pdf}
+
+            {\scriptsize The curve is the formula; the dots come from simulation (0.516 at $p = 10$)}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        The formula is from \emph{The Elements of Statistical Learning}, Section 2.5. Each point lies within distance $d$ of the center with probability $d^p$, so the nearest of $N$ points is farther than $d$ with probability $(1 - d^p)^N$; setting this to $1/2$ gives $d(p, N)$. The simulation draws 2{,}000 sets of 500 points for $p = 2$, $10$ and $50$ and matches the formula to two decimals.
+    }
+\end{frame}
+
+\begin{frame}{Distance concentration}
+    \centering
+    \includegraphics[width=\textwidth, height=0.36\textheight, keepaspectratio]{figures/fig_distance_concentration.pdf}
+
+    {\scriptsize All pairwise distances between 500 uniform points in $[0, 1]^p$, divided by their mean}
+    \raggedright
+    \begin{itemize}
+        \item The largest distance is 1{,}496 times the smallest when $p = 2$, but only 7.78, 1.76 and 1.18 times as large when $p = 10$, $100$ and $1000$
+        \item Relative to their mean, the SD of the distances falls from 0.47 to 0.019
+        \item When the nearest and the farthest point are almost equally far, ``nearest'' carries little information
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Volume lives in the corners and near the surface}
+    \centering
+    \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_ball_cube.pdf}
+    \raggedright
+    \begin{itemize}
+        \item The unit ball fills 0.785 of the cube $[-1, 1]^p$ when $p = 2$ and 0.524 when $p = 3$, but only $2.5 \times 10^{-3}$ when $p = 10$ and $2.5 \times 10^{-8}$ when $p = 20$
+        \item The share of the ball within 0.1 of its surface is $1 - 0.9^p$: 0.19 for $p = 2$, 0.65 for $p = 10$ and 0.995 for $p = 50$
+        \item Our intuition from two and three dimensions does not carry over
+    \end{itemize}
+    \mode<article>{
+        The volume of the unit ball in $\mathbb{R}^p$ is $\pi^{p/2}/\Gamma(p/2 + 1)$. It grows up to $p = 5$ (volume 5.26) and then falls towards zero (0.026 at $p = 20$), while the cube around it has volume $2^p$. Almost all of the cube is therefore in its corners, and almost all of the ball is in a thin shell under its surface.
+    }
+\end{frame}
+
+\begin{frame}{Overfitting as $p$ approaches $n$}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \begin{itemize}
+                \item OLS on $n = 100$ observations, where $y$ depends on only 5 of 99 features (noise variance 1)
+                \item Training MSE keeps falling, to 0.083 at $p = 90$ and to 0 at $p = 99$
+                \item Test MSE climbs from 1.06 at $p = 5$ to 2.04 at $p = 50$, 11.2 at $p = 90$ and 218 at $p = 99$
+                \item Once $p + 1 > n$, $\mathbf{X}^\top\mathbf{X}$ is singular and OLS has no unique solution (lecture 3)
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_p_vs_n.pdf}
+
+            {\scriptsize Median over 50 simulated data sets; 1{,}000 test points}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        At $p = 99$ the model has 100 coefficients (with the intercept) for 100 observations and fits the training data exactly. The extra features are pure noise, yet each one lowers the training error, which is why training error cannot be used to choose $p$ (lecture 7).
+    }
+\end{frame}
+
+\begin{frame}{Irrelevant features hurt local methods}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \begin{itemize}
+                \item Two classes differ in two informative features; the Bayes accuracy is 0.856
+                \item We add $m$ noise features, all with SD 1, so scaling plays no role
+                \item $k$-NN ($k = 15$) drops from 0.846 with no noise features to 0.811 with 20, 0.716 with 100 and 0.673 with 200
+                \item Each noise feature adds a random term to every distance
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_knn_noise_features.pdf}
+
+            {\scriptsize 200 training and 1{,}000 test points; mean of 30 runs}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{What can we do?}
+    \begin{itemize}
+        \item Collect more data: rarely enough, since the data needed grows exponentially in $p$
+        \item Regularize: ridge and lasso trade a little bias for much less variance (lecture 5)
+        \item Select features: keep a subset of the original features (rest of this lecture)
+        \item Extract features: build a few new features from all of them, e.g.\ PCA (lecture 12)
+        \item Use domain knowledge to decide which features to collect and how to combine them
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{A caveat: real data are not uniform}
+    \begin{itemize}
+        \item The examples above use independent, uniform features, which is the worst case
+        \item Real features are correlated and the data concentrate near lower-dimensional structure (images, gene expression, survey items measuring the same trait)
+        \item The intrinsic dimension of such data is much smaller than $p$
+        \item This ``blessing of non-uniformity'' is why high-dimensional learning works at all, and why dimensionality reduction (lecture 12) succeeds
     \end{itemize}
 \end{frame}
 
 
 \section{Feature selection}
 
-\begin{frame}{Feature selection}
+\begin{frame}{Selection vs. extraction}
     \begin{itemize}
-        \item
+        \item Feature selection keeps a subset of the original features
+        \item Feature extraction builds new features from combinations of all of them (lecture 12)
+        \item Reasons to select:
+            \begin{itemize}
+                \item Accuracy: fewer irrelevant features, lower variance
+                \item Interpretability: a model with 5 named features can be explained
+                \item Cost: features that are not used need not be measured, stored or computed
+            \end{itemize}
+        \item The methods fall into three families: filters, wrappers and embedded methods
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Filter, wrapper, embedded}
+    \centering
+    \begin{tikzpicture}[
+            box/.style={draw, rounded corners, minimum height=0.65cm, align=center, font=\scriptsize, fill=blue!8},
+            lab/.style={font=\footnotesize\bfseries, anchor=east},
+            >={Stealth[length=2mm]}, node distance=0.35cm
+        ]
+        \node[lab] at (-0.3, 0) {Filter};
+        \node[box, anchor=west] (f1) at (0, 0) {All features};
+        \node[box, right=of f1] (f2) {Score each feature\\ (no model)};
+        \node[box, right=of f2] (f3) {Keep the\\ top features};
+        \node[box, right=of f3, fill=orange!15] (f4) {Fit the model};
+        \draw[->] (f1) -- (f2);
+        \draw[->] (f2) -- (f3);
+        \draw[->] (f3) -- (f4);
+
+        \node[lab] at (-0.3, -1.7) {Wrapper};
+        \node[box, anchor=west] (w1) at (0, -1.7) {All features};
+        \node[box, right=of w1] (w2) {Propose a subset};
+        \node[box, right=0.7cm of w2, fill=orange!15] (w3) {Fit the model,\\ estimate test error};
+        \node[box, right=of w3] (w4) {Best subset};
+        \draw[->] (w1) -- (w2);
+        \draw[->] ([yshift=0.12cm]w2.east) -- ([yshift=0.12cm]w3.west);
+        \draw[->] ([yshift=-0.12cm]w3.west) -- ([yshift=-0.12cm]w2.east);
+        \draw[->] (w3) -- (w4);
+
+        \node[lab] at (-0.3, -3.4) {Embedded};
+        \node[box, anchor=west] (e1) at (0, -3.4) {All features};
+        \node[box, right=of e1, fill=orange!15] (e2) {Fit a model that selects as it fits\\ (lasso, tree importance)};
+        \node[box, right=of e2] (e3) {Subset and model};
+        \draw[->] (e1) -- (e2);
+        \draw[->] (e2) -- (e3);
+    \end{tikzpicture}
+
+    \svspace{0.6em}
+    \footnotesize
+    \begin{tabular}{@{}l l l l@{}}
+        \toprule
+        & Uses the model & Cost & Main risk \\
+        \midrule
+        Filter & no & low & ignores redundancy and interactions \\
+        Wrapper & yes, as a black box & high & overfitting the search \\
+        Embedded & yes, built in & moderate & tied to one model class \\
+        \bottomrule
+    \end{tabular}
+\end{frame}
+
+\begin{frame}{Filter: redundant and constant features}
+    \begin{columns}[T]
+        \begin{column}{0.56\textwidth}
+            \begin{itemize}
+                \item The Credit data (ISLR2) record the balances of 400 card holders, with 11 predictor columns
+                \item Limit and Rating are nearly the same variable ($r = 0.997$), the only pair above 0.9 (collinearity, lecture 4)
+                \item Keep one; it hardly matters which, since both correlate about equally with Balance (0.862 and 0.864)
+                \item Also drop constant or nearly constant features (variance threshold)
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.42\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_filter_corr.pdf}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Filter: univariate scores}
+    \centering
+    \includegraphics[width=\textwidth, height=0.3\textheight, keepaspectratio]{figures/fig_filter_scores.pdf}
+    \raggedright
+    \footnotesize
+    \begin{itemize}
+        \item Simulation with $n = 200$ and binary $y$: $x_1, \dots, x_5$ are informative, $x_6$ is a noisy copy of $x_1$ ($r = 0.954$), and $x_7, \dots, x_{30}$ are noise
+        \item The $F$ statistic ($F = t^2$ for two classes) compares class means; use the correlation for a numeric $y$, and $\chi^2$ for categorical features
+        \item Mutual information $I(X; Y)$ measures how much knowing $X$ reduces uncertainty about $Y$; it is 0 only under independence and also picks up nonlinear dependence
+        \item Both scores rank $x_6$ second: a filter judges features one at a time, so it cannot see that $x_6$ repeats $x_1$
+    \end{itemize}
+    \mode<article>{
+        Mutual information is $I(X; Y) = \sum_{x, y} p(x, y) \log \frac{p(x, y)}{p(x)\,p(y)}$, measured in nats with the natural logarithm. Here each feature is cut into 10 bins at its deciles before the probabilities are estimated by relative frequencies; scikit-learn's \texttt{mutual\_info\_classif} uses a nearest-neighbor estimator instead. Mutual information is noisier than the $F$ statistic: the largest value among the 24 noise features (0.05) exceeds that of the informative $x_5$ (0.036).
+    }
+\end{frame}
+
+\begin{frame}{Filter pitfall: multiple testing}
+    \begin{itemize}
+        \item Keeping every feature with $p$-value below 0.05 keeps about 5\% of the noise features
+        \item In the simulation, 1 of the 24 noise features has $p < 0.05$, close to the 1.2 expected by chance
+        \item With 5{,}000 noise features, about 250 would get through
+        \item The Bonferroni threshold $0.05/30 = 0.00167$ ($F > 10.16$, the dashed line on the previous plot) keeps $x_1, \dots, x_4$ and $x_6$ and no noise features, but it misses $x_5$ ($F = 7.4$)
+        \item A score threshold controls false discoveries, not predictive accuracy, so choose the number of features by cross-validation
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Filter pitfall: interactions}
+    \centering
+    \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{figures/fig_xor.pdf}
+    \raggedright
+    \begin{itemize}
+        \item In this ``XOR'' data set of 400 uniform points, the class is 1 when $x_1$ and $x_2$ have the same sign
+        \item On its own, each feature looks useless: the $t$-test $p$-values are 0.40 and 0.22, and the class densities overlap
+        \item Yet $k$-NN reaches 0.946 test accuracy with both features, against 0.506 with $x_1$ alone
+        \item A univariate filter would throw both features away
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Wrapper: best subset selection}
+    \begin{enumerate}
+        \item For each size $k = 1, \dots, p$, fit all $\binom{p}{k}$ models with $k$ features and keep the one with the smallest training RSS
+        \item Choose among the $p$ winners with an estimate of test error: cross-validation, $C_p$/AIC, BIC or adjusted $R^2$
+    \end{enumerate}
+    \svspace{0.5em}
+    \begin{itemize}
+        \item Training RSS always prefers the largest model, so it can only compare models of the same size
+        \item That is $2^p$ models in all: 2{,}048 for Credit's 11 columns, about $10^6$ for $p = 20$ and about $1.1 \times 10^{12}$ for $p = 40$
+        \item This is feasible up to $p \approx 30$--$40$ for linear regression, and searching so many models also overfits the selection
+    \end{itemize}
+    \mode<article>{
+        BIC for a linear model with $d$ features is, up to a constant, $n \log(\mathrm{RSS}/n) + d \log n$; the penalty $\log n$ per feature is larger than AIC's $2$ once $n > 7$, so BIC prefers smaller models. ISLP Section 6.1 covers these criteria.
+    }
+\end{frame}
+
+\begin{frame}{Wrapper: forward and backward selection}
+    \begin{columns}[T]
+        \begin{column}{0.6\textwidth}
+            \begin{itemize}
+                \item Forward starts empty and keeps adding the most helpful feature: $1 + p(p + 1)/2$ fits, 67 for Credit
+                \item Backward starts full and drops the least useful one; it needs $n > p$
+                \item Both are greedy. At size 4, best subset picks Income, Limit, Cards, Student; forward, stuck with Rating, ends with Income, Limit, Rating, Student
+                \item BIC chooses 4 features for best subset and backward, 5 for forward
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.38\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_subset_selection.pdf}
+
+            {\scriptsize Credit: BIC by size; circles mark the minima}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        Backward selection disagrees with best subset at sizes 1 to 3, because it starts with Limit and Rating together and drops Rating before Limit. Hybrid (stepwise) methods allow a feature to be removed after it has been added.
+    }
+\end{frame}
+
+\begin{frame}{Wrapper: recursive feature elimination}
+    \begin{columns}[T]
+        \begin{column}{0.58\textwidth}
+            \begin{itemize}
+                \item Fit the model on all features, drop the weakest (smallest $|\hat{\beta}_j|$ on standardized features, or lowest importance), refit, and repeat
+                \item Here: logistic regression on the 30-feature simulation, with RFE rerun inside each of 10 CV folds
+                \item CV accuracy is 0.79 with all 30 features and peaks at 0.82 with 5
+                \item On all the data, RFE ranks $x_1, \dots, x_5$ first: exactly the informative features
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_rfe.pdf}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Embedded: the lasso}
+    \begin{itemize}
+        \item Minimize $\frac{1}{2n}\lVert \mathbf{y} - \mathbf{X}\boldsymbol{\beta} \rVert^2 + \lambda \sum_j |\beta_j|$: the $L_1$ penalty sets some coefficients exactly to 0; ridge only shrinks them
+    \end{itemize}
+    \centering
+    \includegraphics[width=\textwidth, height=0.36\textheight, keepaspectratio]{figures/fig_lasso_path.pdf}
+    \raggedright
+    \footnotesize
+    \begin{itemize}
+        \item On Credit, Rating enters the path first, followed by Limit, Student and Income
+        \item With 10-fold CV, $\lambda_{\min}$ keeps all 11 columns (CV MSE 10{,}067), while $\lambda_{1\mathrm{SE}}$, the largest $\lambda$ within one standard error of the minimum, keeps 6: Income, Limit, Rating, Cards, Age, Student (CV MSE 10{,}455)
+        \item Ridge at the same $\lambda$ sets no coefficient exactly to 0
+    \end{itemize}
+    \mode<article>{
+        The path plots show standardized coefficients (coefficient times the SD of the feature), so that features are comparable. The lasso has no preference between strongly correlated features: along the path it switches between Limit and Rating, and a small change in the data can change which one it keeps.
+    }
+\end{frame}
+
+\begin{frame}{Embedded: importance from tree ensembles}
+    \begin{columns}[T]
+        \begin{column}{0.52\textwidth}
+            \begin{itemize}
+                \item Impurity importance adds up the Gini decrease from every split on a feature, on the training data
+                \item It favors features with many split points: a continuous noise feature ranks second (60.1), above an informative binary one (54.7)
+                \item Permutation importance is the drop in out-of-bag accuracy when a feature is shuffled; noise scores about 0
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \includegraphics[width=\textwidth, height=0.55\textheight, keepaspectratio]{figures/fig_importance.pdf}
+
+            {\scriptsize Random forest, 500 trees; mean over 20 data sets of 500 observations}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        The permutation importances are 0.129 for the informative binary feature, 0.038 for the informative continuous feature, 0.0013 and 0.0007 for the two noise features. When features are correlated, shuffling one of them leaves its partner in place, so permutation importance spreads the credit between them and can understate both.
+    }
+\end{frame}
+
+\begin{frame}{Select inside cross-validation}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item With $n = 50$, 5{,}000 noise features and random labels, no classifier can beat 0.5
+                \item Keep the 20 features with the largest $|t|$, then run 5-NN with 5-fold CV; repeat 200 times
+                \item Selecting on all 50 first gives a mean CV accuracy of 0.941, never below 0.8
+                \item Selecting inside each training fold gives 0.472. Selection is part of fitting, so it belongs in the pipeline
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_selection_leakage.pdf}
+        \end{column}
+    \end{columns}
+    \mode<article>{
+        Selecting on all the data picks the 20 features that happen to separate the labels of all 50 observations, the held-out ones included, so every held-out fold has already been seen (see \emph{The Elements of Statistical Learning}, Section 7.10.2). The correct estimate is slightly below 0.5, a known effect of cross-validation with random labels: holding out a fold removes more of one class than the other, so the training folds are tilted towards the class that is under-represented in the held-out fold.
+    }
+\end{frame}
+
+\begin{frame}{Choosing a method}
+    \centering
+    \footnotesize
+    \begin{tabular}{@{}l l@{}}
+        \toprule
+        Situation & Start with \\
+        \midrule
+        Thousands of features, first pass & filter: variance, correlation, univariate scores \\
+        Linear model, interpretable result & lasso with $\lambda$ chosen by CV \\
+        Small $p$, cheap model fits & best subset or stepwise, with CV or BIC \\
+        Any model, moderate $p$ & RFE inside CV \\
+        Tree ensembles & permutation importance \\
+        \bottomrule
+    \end{tabular}
+
+    \svspace{0.8em}
+    \raggedright
+    \begin{itemize}
+        \item Whatever the method, choose the number of features by cross-validation, with selection inside the folds
+    \end{itemize}
+\end{frame}
+
+
+\section{Summary}
+
+\begin{frame}{Scaling and selection in Python}
+    \centering
+    \scriptsize
+    \begin{tabular}{@{}l l@{}}
+        \toprule
+        Task & Python (\texttt{sklearn}) \\
+        \midrule
+        Scalers & \texttt{preprocessing.StandardScaler}, \texttt{MinMaxScaler}, \texttt{RobustScaler} \\
+        Row normalization & \texttt{preprocessing.Normalizer} \\
+        Skewed features & \texttt{preprocessing.PowerTransformer} (Box-Cox, Yeo-Johnson) \\
+        Pipelines & \texttt{pipeline.make\_pipeline}, \texttt{compose.ColumnTransformer} \\
+        Variance filter & \texttt{feature\_selection.VarianceThreshold} \\
+        Univariate scores & \texttt{feature\_selection.SelectKBest(f\_classif)}, \texttt{mutual\_info\_classif} \\
+        Forward, backward & \texttt{feature\_selection.SequentialFeatureSelector} \\
+        RFE & \texttt{feature\_selection.RFE}, \texttt{RFECV} \\
+        Lasso & \texttt{linear\_model.LassoCV}; \texttt{LogisticRegression(penalty="l1")} \\
+        Permutation importance & \texttt{inspection.permutation\_importance} \\
+        \bottomrule
+    \end{tabular}
+
+    \svspace{0.5em}
+    Worked examples: the ISLP Python lab, Section 6.5
+\end{frame}
+
+\begin{frame}{Summary}
+    \begin{itemize}
+        \item Scale features for distance-based methods, kernels, PCA, penalized models and gradient descent; fit the scaler on training data only, inside a pipeline
+        \item In high dimensions data are sparse, distances concentrate and noise features swamp local methods
+        \item Filters are cheap but blind to redundancy and interactions; wrappers search subsets with a model; the lasso and tree ensembles select while fitting
+        \item Feature selection is part of the model: do it inside cross-validation
+        \item Reading: ISLP 6.1, 6.2 and 6.4; ESL 2.5 and 7.10.2
+        \item Next lecture: instead of selecting features, we build new ones with the SVD and PCA
     \end{itemize}
 \end{frame}

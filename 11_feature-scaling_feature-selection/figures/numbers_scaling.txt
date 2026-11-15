@@ -1,0 +1,72 @@
+# Numbers quoted on the lecture 11 slides
+# produced by scaling.R; do not edit by hand
+
+## Motivation: USArrests
+SD of each variable: Murder = 4.4, Assault = 83.3, UrbanPop = 14.5, Rape = 9.4
+Share of total variance, raw (%): Murder = 0.3, Assault = 95.6, UrbanPop = 2.9, Rape = 1.2
+Share of total variance, standardized (%): Murder = 25, Assault = 25, UrbanPop = 25, Rape = 25
+
+## Numeric example of the three scalers
+x: 2, 4, 6, 8, 30
+Mean and SD: mean = 10.0, sd = 11.4
+Min and max: min = 2, max = 30
+Median and IQR (R default quantile type 7): median = 6, IQR = 4
+Standardized (z-score): -0.70, -0.53, -0.35, -0.18, 1.75
+Min-max: 0.00, 0.07, 0.14, 0.21, 1.00
+Robust: -1.0, -0.5, 0.0, 0.5, 6.0
+
+## Row-wise normalization to unit length
+Euclidean norms before (min, max): 0.84, 3.82
+Euclidean norms after (min, max): 1, 1
+
+## Gradient descent: unscaled vs standardized
+SD of x1 and x2: x1 = 1.07, x2 = 4.93
+Condition number of the Hessian, raw: 21.1
+Condition number of the Hessian, standardized: 1.02
+Iterations to relative error 1e-6, raw: 146
+Iterations to relative error 1e-6, standardized: 3
+
+## Which models need scaling: balanced Default subsample
+Subsample size and number of defaults: n = 666, defaults = 333
+SD of balance and income in the subsample: balance = 602, income = 13,616
+Classification tree: mean test accuracy (raw, standardized): Raw = 0.869, Standardized = 0.869
+k-NN (k = 15): mean test accuracy (raw, standardized): Raw = 0.774, Standardized = 0.875
+Logistic regression: mean test accuracy (raw, standardized): Raw = 0.877, Standardized = 0.877
+Random forest: mean test accuracy (raw, standardized): Raw = 0.862, Standardized = 0.862
+SVM (RBF kernel): mean test accuracy (raw, standardized): Raw = 0.475, Standardized = 0.877
+Classification tree: share of splits with identical predictions: 1
+k-NN (k = 15): share of splits with identical predictions: 0
+Logistic regression: share of splits with identical predictions: 1
+Random forest: share of splits with identical predictions: 1
+SVM (RBF kernel): share of splits with identical predictions: 0
+
+## Ridge penalty depends on units: Credit
+Correlation of Income with Age, Cards, Education: Age = 0.18, Cards = -0.02, Education = -0.03
+Variance of Income, Dollars: 1,242,158,791
+OLS coefficient of Income, Dollars: 0.0063
+lambda at which the Income coefficient halves, Dollars: 1,149,707,906
+Variance of Income, $1000s (as recorded): 1,242.2
+OLS coefficient of Income, $1000s (as recorded): 6.2745
+lambda at which the Income coefficient halves, $1000s (as recorded): 1,149.747
+Variance of Income, Standardized: 1
+OLS coefficient of Income, Standardized: 221.1403
+lambda at which the Income coefficient halves, Standardized: 0.945
+
+## One outlier under the three scalers
+Standardized (z-score): range of the 50 regular values, fitted without outlier: -2.21, 1.81
+Standardized (z-score): range of the 50 regular values, fitted with outlier: -0.83, 0.44
+Standardized (z-score): scaled value of the outlier: 6.65
+Min-max: range of the 50 regular values, fitted without outlier: 0, 1
+Min-max: range of the 50 regular values, fitted with outlier: 0.00, 0.17
+Min-max: scaled value of the outlier: 1
+Robust (median / IQR): range of the 50 regular values, fitted without outlier: -1.53, 1.35
+Robust (median / IQR): range of the 50 regular values, fitted with outlier: -1.49, 1.31
+Robust (median / IQR): scaled value of the outlier: 14.99
+
+## Skewed feature: diamonds price
+Number of diamonds: 53,940
+Skewness of price: 1.62
+Skewness of standardized price: 1.62
+Skewness of log(price): 0.12
+Box-Cox lambda (maximum likelihood, grid step 0.01): -0.07
+Skewness after Box-Cox: 0.02

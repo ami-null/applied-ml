@@ -1,0 +1,42 @@
+# Numbers quoted on the lecture 11 slides
+# produced by selection_sim.R; do not edit by hand
+
+## Shared simulation (filter scores and RFE)
+n and p: n = 200, p = 30
+Share of y = 1: 0.485
+Correlation of x6 with x1: 0.954
+
+## Filter: univariate F statistic and mutual information
+Top 8 features by F: x1, x6, x2, x3, x4, x5, x19, x21
+Top 8 features by mutual information: x1, x6, x2, x3, x27, x4, x13, x18
+F statistic of x1..x6: x1 = 43.3, x2 = 27.3, x3 = 20.2, x4 = 16.4, x5 = 7.4, x6 = 41.0
+Noise features with p < 0.05 (out of 24): 1
+Expected number by chance, 24 x 0.05: 1.2
+Bonferroni threshold 0.05 / 30: 0.00167
+Features passing Bonferroni, by type: Informative = 4, Redundant (copy of x1) = 1, Noise = 0
+Mutual information, max over noise features: 0.05
+Mutual information of x1..x6: x1 = 0.119, x2 = 0.077, x3 = 0.054, x4 = 0.047, x5 = 0.036, x6 = 0.109
+F cut-off drawn on the plot (Bonferroni, df = 1, 198): 10.16
+
+## XOR: useless alone, useful together
+Univariate t-test p-values for x1 and x2: x1 = 0.404, x2 = 0.216
+k-NN (k = 15) test accuracy with x1 only: 0.506
+k-NN (k = 15) test accuracy with x1 and x2: 0.946
+
+## Recursive feature elimination (logistic regression, 10-fold CV)
+CV accuracy with all 30 features: 0.79
+Number of features with the highest CV accuracy: 5
+Highest CV accuracy: 0.82
+CV accuracy with 5 features: 0.82
+RFE on all data: first 8 features in importance order: x1, x2, x3, x4, x5, x11, x21, x7
+
+## Random forest importance: impurity vs permutation
+Impurity importance (mean decrease in Gini): Informative, binary = 54.67, Informative, continuous = 80.42, Noise, continuous = 60.11, Noise, binary = 5.97
+Permutation importance (mean decrease in OOB accuracy): Informative, binary = 0.1286, Informative, continuous = 0.0376, Noise, continuous = 0.0013, Noise, binary = 0.0007
+Rank of 'Noise, continuous' by impurity (1 = most important): Noise, continuous = 2
+
+## Selection leakage (n = 50, p = 5000, pure noise)
+Mean CV accuracy, selection outside CV (wrong): 0.941
+Mean CV accuracy, selection inside CV (right): 0.472
+SD of the CV accuracy (wrong, right): wrong = 0.034, right = 0.091
+Share of replications with CV accuracy >= 0.8 (wrong, right): wrong = 1.000, right = 0.005

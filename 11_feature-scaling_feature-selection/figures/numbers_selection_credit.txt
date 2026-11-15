@@ -1,0 +1,42 @@
+# Numbers quoted on the lecture 11 slides
+# produced by selection_credit.R; do not edit by hand
+Observations and predictor columns: n = 400, p = 11
+
+## Correlation filter
+Pairs with |r| > 0.5: Limit-Rating = 0.997, Income-Limit = 0.792, Income-Rating = 0.791
+Pairs with |r| > 0.9: 1
+Correlation with Balance (Limit, Rating): Limit = 0.862, Rating = 0.864
+
+## Best subset, forward and backward selection (BIC)
+Number of subsets 2^p for p = 10, 11, 20, 30, 40: p10 = 1,024, p11 = 2,048, p20 = 1,048,576, p30 = 1,073,741,824, p40 = 1,099,511,627,776
+Models fitted by forward selection, 1 + p(p + 1)/2 (p = 11): 67
+Best subset: size with the lowest BIC: 4
+Best subset: variables in that model: Income + Limit + Cards + StudentYes
+Forward: size with the lowest BIC: 5
+Forward: variables in that model: Income + Limit + Rating + Cards + StudentYes
+Backward: size with the lowest BIC: 4
+Backward: variables in that model: Income + Limit + Cards + StudentYes
+Best subset, size 1: Rating
+Forward, size 1: Rating
+Backward, size 1: Limit
+Best subset, size 2: Income + Rating
+Forward, size 2: Income + Rating
+Backward, size 2: Income + Limit
+Best subset, size 3: Income + Rating + StudentYes
+Forward, size 3: Income + Rating + StudentYes
+Backward, size 3: Income + Limit + StudentYes
+Best subset, size 4: Income + Limit + Cards + StudentYes
+Forward, size 4: Income + Limit + Rating + StudentYes
+Backward, size 4: Income + Limit + Cards + StudentYes
+Sizes at which forward selection differs from best subset: 4
+Sizes at which backward selection differs from best subset: 1, 2, 3
+
+## Lasso and ridge on Credit
+lambda.min and lambda.1se: min = 0.589, 1se = 6.615
+Non-zero coefficients at lambda.min: 11
+Variables at lambda.min: Income + Limit + Rating + Cards + Age + Education + OwnYes + StudentYes + MarriedYes + RegionSouth + RegionWest
+Non-zero coefficients at lambda.1se: 6
+Variables at lambda.1se: Income + Limit + Rating + Cards + Age + StudentYes
+CV MSE at lambda.min and lambda.1se: min = 10,067, 1se = 10,455
+Order in which variables enter the lasso path: Rating, Limit, StudentYes, Income, Cards, Age, OwnYes, MarriedYes, RegionWest, Education, RegionSouth
+Ridge at the same lambda (lambda.1se of the lasso): exact zeros: 0

@@ -1,133 +1,71 @@
 # dimensionality.R: Part 2 figures and numbers (curse of dimensionality)
-# Produces: fig_hypercube_edge.pdf, fig_nn_distance.pdf,
-#           fig_distance_concentration.pdf, fig_ball_cube.pdf,
-#           fig_p_vs_n.pdf, fig_knn_noise_features.pdf,
+# Produces: fig_p_vs_n.pdf, fig_knn_noise_features.pdf,
 #           numbers_dimensionality.txt
 source("helpers.R")
-library(patchwork)
 library(class)
 
 numbers_start("dimensionality")
-p_breaks <- c(1, 2, 5, 10, 20, 50, 100)
 
 
-# ---- Volume and sparsity: edge length of a sub-cube ----------------------
-# Data uniform in the unit hypercube [0, 1]^p. A sub-cube that captures a
-# fraction r of the data has volume r, so its edge length is r^(1/p).
-numbers_section("Edge length of a sub-cube capturing a fraction r of the data")
-ps <- 1:100
-fracs <- c(0.01, 0.1, 0.3)
+# ---- Sparsity: the same 20 points, one more feature at a time -----------
+# The slide draws these 20 points (TikZ) on a line and in a square, with each
+# feature cut into 4 equal bins. Coordinates are on the 0-4 scale of the
+# drawing; the same x values appear in both panels.
+numbers_section("Sparsity: 20 points, 4 bins per feature")
+pts <- data.frame(
+    x = c(0.3, 0.7, 0.9, 1.2, 1.5, 1.8, 1.4, 0.5, 2.1, 2.4,
+          2.6, 2.9, 2.2, 3.1, 3.4, 3.7, 3.3, 3.8, 2.7, 0.2),
+    y = c(2.6, 0.4, 3.5, 1.1, 2.4, 0.6, 2.2, 0.4, 2.8, 0.3,
+          1.6, 2.6, 1.2, 0.8, 2.4, 3.3, 2.9, 0.2, 2.1, 0.9))
+n_pts <- nrow(pts)
+report("Points per bin with one feature", table(floor(pts$x)), 0)
+cells2 <- table(factor(floor(pts$x), 0:3), factor(floor(pts$y), 0:3))
+report("Two features: cells, mean points per cell, empty cells",
+       c(cells = 16, mean = n_pts / 16, empty = sum(cells2 == 0)), 2)
+report("Three features: cells, mean points per cell, empty cells at least",
+       c(cells = 64, mean = n_pts / 64, empty = 64 - n_pts), 2)
+report("Cells 4^p for p = 1, 2, 3, 10", setNames(4^c(1, 2, 3, 10),
+                                                  paste0("p", c(1, 2, 3, 10))), 0)
+report("Points needed for 5 per cell, 5 x 4^p, p = 1, 2, 3, 10",
+       setNames(5 * 4^c(1, 2, 3, 10), paste0("p", c(1, 2, 3, 10))), 0)
+
+
+# ---- Neighbourhoods stop being local --------------------------------------
+# Data uniform in [0, 1]^p. A sub-cube that captures a fraction r of the data
+# has volume r, so its edge length (the share of each feature's range it
+# spans) is r^(1/p).
+numbers_section("Edge length of a sub-cube capturing 10% of the data")
 show_p <- c(1, 2, 3, 10, 100)
-for (r in fracs) {
-    report(sprintf("r = %.2f, edge length at p = 1, 2, 3, 10, 100", r),
-           setNames(r^(1 / show_p), paste0("p", show_p)), 2)
-}
-edge <- expand.grid(p = ps, r = fracs)
-edge$e <- edge$r^(1 / edge$p)
-edge$r <- factor(paste0(edge$r * 100, "%"),
-                 levels = paste0(fracs * 100, "%"))
-p <- ggplot(edge, aes(p, e, colour = r)) +
-    geom_line(linewidth = 1) +
-    scale_x_log10(breaks = p_breaks) +
-    scale_y_continuous(limits = c(0, 1)) +
-    scale_colour_manual(values = okabe[c(2, 1, 3)]) +
-    labs(x = "Dimension p", y = "Edge length", colour = "Share of data")
-ggsave("fig_hypercube_edge.pdf", p, width = 4.1, height = 3.4)
+report("Edge length at p = 1, 2, 3, 10, 100",
+       setNames(0.1^(1 / show_p), paste0("p", show_p)), 2)
 
 
-# ---- Neighbourhoods are not local ----------------------------------------
-# N points uniform in the unit ball in R^p. Median distance from the centre
-# to the nearest point: d(p, N) = (1 - (1/2)^(1/N))^(1/p)
-# (Hastie, Tibshirani and Friedman, ESL, Section 2.5). Checked by simulation.
-numbers_section("Median distance from the centre to the nearest of N = 500 points (unit ball)")
-N <- 500
-d_med <- function(p, N) (1 - 0.5^(1 / N))^(1 / p)
-show_p <- c(1, 2, 3, 10, 20, 50, 100)
-report("Formula, p = 1, 2, 3, 10, 20, 50, 100",
-       setNames(d_med(show_p, N), paste0("p", show_p)), 3)
-
-set.seed(5)
-runif_ball <- function(n, p) {
-    Z <- matrix(rnorm(n * p), n)
-    Z / sqrt(rowSums(Z^2)) * runif(n)^(1 / p)
-}
-mc_p <- c(2, 10, 50)
-mc <- sapply(mc_p, function(p) {
-    median(replicate(2000, min(sqrt(rowSums(runif_ball(N, p)^2)))))
-})
-report("Simulation (2000 replications), p = 2, 10, 50",
-       setNames(mc, paste0("p", mc_p)), 3)
-
-curve_df <- data.frame(p = 1:100, d = d_med(1:100, N))
-p <- ggplot(curve_df, aes(p, d)) +
-    geom_hline(yintercept = 0.5, linetype = "dotted", colour = "grey50") +
-    geom_line(linewidth = 1, colour = okabe[1]) +
-    geom_point(data = data.frame(p = mc_p, d = mc), colour = okabe[2],
-               size = 2.5) +
-    annotate("text", x = 1, y = 0.53, hjust = 0, size = 3.2, colour = "grey40",
-             label = "halfway to the boundary") +
-    scale_x_log10(breaks = p_breaks) +
-    scale_y_continuous(limits = c(0, 1)) +
-    labs(x = "Dimension p", y = "Distance to nearest point")
-ggsave("fig_nn_distance.pdf", p, width = 4.1, height = 3.4)
+# ---- Almost every point is near an edge -----------------------------------
+# A value is "extreme" if it lies in the outer 5% at either end of the
+# feature's range (10% of a uniform feature). A point is interior only if it
+# is interior in every feature, which happens with probability 0.9^p.
+numbers_section("Share of uniform points with no extreme value (0.9^p)")
+show_p <- c(1, 2, 3, 10, 50, 100)
+report("0.9^p at p = 1, 2, 3, 10, 50, 100",
+       setNames(0.9^show_p, paste0("p", show_p)), 3)
+set.seed(4)
+X <- matrix(runif(1e5 * 10), ncol = 10)
+report("Simulation, p = 10 (100,000 points)",
+       mean(apply(X > 0.05 & X < 0.95, 1, all)), 3)
 
 
-# ---- Distance concentration ----------------------------------------------
-# n = 500 points uniform in [0, 1]^p; all pairwise Euclidean distances,
-# divided by their mean so the panels share an axis.
+# ---- Distance concentration -----------------------------------------------
+# n = 500 points uniform in [0, 1]^p; all pairwise Euclidean distances.
 numbers_section("Distance concentration (n = 500 uniform points)")
 set.seed(6)
 n <- 500
-ps <- c(2, 10, 100, 1000)
-dc <- list()
-for (pp in ps) {
+for (pp in c(2, 10, 100, 1000)) {
     X <- matrix(runif(n * pp), n)
     d <- as.numeric(dist(X))
     report(sprintf("p = %d: min, mean, max pairwise distance", pp),
            c(min = min(d), mean = mean(d), max = max(d)), 3)
     report(sprintf("p = %d: max / min", pp), max(d) / min(d), 2)
-    report(sprintf("p = %d: SD / mean", pp), sd(d) / mean(d), 3)
-    dc[[length(dc) + 1]] <- data.frame(p = pp, rel = d / mean(d))
 }
-dc <- do.call(rbind, dc)
-dc$p <- factor(paste("p =", dc$p), levels = paste("p =", ps))
-p <- ggplot(dc, aes(rel)) +
-    geom_histogram(aes(y = after_stat(density)), bins = 60, fill = okabe[1],
-                   colour = "white", linewidth = 0.1) +
-    facet_wrap(~p, nrow = 1, scales = "free_y") +
-    scale_x_continuous(breaks = c(0, 1, 2)) +
-    coord_cartesian(xlim = c(0, 2.6)) +
-    labs(x = "Pairwise distance / mean pairwise distance", y = NULL) +
-    theme(axis.text.y = element_blank())
-ggsave("fig_distance_concentration.pdf", p, width = 8.8, height = 2.4)
-
-
-# ---- Where the volume is: ball in a cube, and the outer shell -----------
-numbers_section("Volume of the unit ball and its bounding cube")
-vol_ball <- function(p) pi^(p / 2) / gamma(p / 2 + 1)
-pv <- 1:20
-report("Volume of the unit ball, p = 1, 2, 3, 5, 10, 20",
-       setNames(vol_ball(c(1, 2, 3, 5, 10, 20)), paste0("p", c(1, 2, 3, 5, 10, 20))), 3)
-report("Dimension with the largest unit-ball volume", pv[which.max(vol_ball(pv))], 0)
-ratio_p <- c(2, 3, 5, 10, 20)
-report("Ball volume / cube [-1, 1]^p volume, p = 2, 3, 5, 10, 20",
-       setNames(vol_ball(ratio_p) / 2^ratio_p, paste0("p", ratio_p)), 3,
-       sci = TRUE)
-shell_p <- c(2, 10, 20, 50, 100)
-report("Fraction of the ball's volume within 0.1 of the surface, p = 2, 10, 20, 50, 100",
-       setNames(1 - 0.9^shell_p, paste0("p", shell_p)), 3)
-
-p1 <- ggplot(data.frame(p = pv, ratio = vol_ball(pv) / 2^pv), aes(p, ratio)) +
-    geom_line(colour = okabe[1], linewidth = 1) +
-    geom_point(colour = okabe[1], size = 1.8) +
-    scale_y_log10(labels = scales::label_log()) +
-    labs(title = "Ball volume / cube volume", x = "Dimension p", y = NULL)
-p2 <- ggplot(data.frame(p = 1:100, f = 1 - 0.9^(1:100)), aes(p, f)) +
-    geom_line(colour = okabe[2], linewidth = 1) +
-    scale_y_continuous(limits = c(0, 1)) +
-    labs(title = "Share within 0.1 of the surface",
-         x = "Dimension p", y = NULL)
-ggsave("fig_ball_cube.pdf", p1 + p2, width = 8.8, height = 2.6)
 
 
 # ---- p approaching n: OLS training vs test error ------------------------
@@ -188,7 +126,13 @@ ggsave("fig_p_vs_n.pdf", p, width = 4.3, height = 3.5)
 numbers_section("k-NN with irrelevant features (k = 15)")
 set.seed(8)
 delta <- c(1.5, 1.5)
+# equal priors, identity covariance: the Bayes rule picks the nearer class
+# mean, and its accuracy is Phi(Delta / 2) with Delta the distance between
+# the means
 bayes <- pnorm(sqrt(sum(delta^2)) / 2)
+report("Class means: class 0 at (0, 0), class 1 at", delta, 1)
+report("Distance between the class means, Delta", sqrt(sum(delta^2)), 2)
+report("Delta / 2", sqrt(sum(delta^2)) / 2, 2)
 report("Bayes accuracy", bayes, 3)
 ms <- c(0, 1, 2, 5, 10, 20, 50, 100, 200)
 sim <- function(n, m) {

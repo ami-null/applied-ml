@@ -1,34 +1,29 @@
 # Numbers quoted on the lecture 11 slides
 # produced by dimensionality.R; do not edit by hand
 
-## Edge length of a sub-cube capturing a fraction r of the data
-r = 0.01, edge length at p = 1, 2, 3, 10, 100: p1 = 0.01, p2 = 0.10, p3 = 0.22, p10 = 0.63, p100 = 0.95
-r = 0.10, edge length at p = 1, 2, 3, 10, 100: p1 = 0.10, p2 = 0.32, p3 = 0.46, p10 = 0.79, p100 = 0.98
-r = 0.30, edge length at p = 1, 2, 3, 10, 100: p1 = 0.30, p2 = 0.55, p3 = 0.67, p10 = 0.89, p100 = 0.99
+## Sparsity: 20 points, 4 bins per feature
+Points per bin with one feature: 0 = 5, 1 = 4, 2 = 6, 3 = 5
+Two features: cells, mean points per cell, empty cells: cells = 16.00, mean = 1.25, empty = 4.00
+Three features: cells, mean points per cell, empty cells at least: cells = 64.00, mean = 0.31, empty = 44.00
+Cells 4^p for p = 1, 2, 3, 10: p1 = 4, p2 = 16, p3 = 64, p10 = 1,048,576
+Points needed for 5 per cell, 5 x 4^p, p = 1, 2, 3, 10: p1 = 20, p2 = 80, p3 = 320, p10 = 5,242,880
 
-## Median distance from the centre to the nearest of N = 500 points (unit ball)
-Formula, p = 1, 2, 3, 10, 20, 50, 100: p1 = 0.001, p2 = 0.037, p3 = 0.111, p10 = 0.518, p20 = 0.720, p50 = 0.877, p100 = 0.936
-Simulation (2000 replications), p = 2, 10, 50: p2 = 0.037, p10 = 0.516, p50 = 0.875
+## Edge length of a sub-cube capturing 10% of the data
+Edge length at p = 1, 2, 3, 10, 100: p1 = 0.10, p2 = 0.32, p3 = 0.46, p10 = 0.79, p100 = 0.98
+
+## Share of uniform points with no extreme value (0.9^p)
+0.9^p at p = 1, 2, 3, 10, 50, 100: p1 = 0.900, p2 = 0.810, p3 = 0.729, p10 = 0.349, p50 = 0.005, p100 = 0.000
+Simulation, p = 10 (100,000 points): 0.35
 
 ## Distance concentration (n = 500 uniform points)
 p = 2: min, mean, max pairwise distance: min = 0.001, mean = 0.525, max = 1.341
 p = 2: max / min: 1,496.31
-p = 2: SD / mean: 0.474
 p = 10: min, mean, max pairwise distance: min = 0.300, mean = 1.258, max = 2.339
 p = 10: max / min: 7.78
-p = 10: SD / mean: 0.194
 p = 100: min, mean, max pairwise distance: min = 2.909, mean = 4.084, max = 5.130
 p = 100: max / min: 1.76
-p = 100: SD / mean: 0.06
 p = 1000: min, mean, max pairwise distance: min = 11.761, mean = 12.899, max = 13.899
 p = 1000: max / min: 1.18
-p = 1000: SD / mean: 0.019
-
-## Volume of the unit ball and its bounding cube
-Volume of the unit ball, p = 1, 2, 3, 5, 10, 20: p1 = 2.000, p2 = 3.142, p3 = 4.189, p5 = 5.264, p10 = 2.550, p20 = 0.026
-Dimension with the largest unit-ball volume: 5
-Ball volume / cube [-1, 1]^p volume, p = 2, 3, 5, 10, 20: p2 = 7.85e-01, p3 = 5.24e-01, p5 = 1.64e-01, p10 = 2.49e-03, p20 = 2.46e-08
-Fraction of the ball's volume within 0.1 of the surface, p = 2, 10, 20, 50, 100: p2 = 0.190, p10 = 0.651, p20 = 0.878, p50 = 0.995, p100 = 1.000
 
 ## OLS as p approaches n (n = 100, 5 relevant features, noise variance 1)
 p shown: 5, 20, 50, 90, 98, 99
@@ -36,6 +31,9 @@ Median training MSE: 0.909, 0.782, 0.464, 0.083, 0.004, 0.000
 Median test MSE: 1.06, 1.25, 2.04, 11.15, 58.63, 218.35
 
 ## k-NN with irrelevant features (k = 15)
+Class means: class 0 at (0, 0), class 1 at: 1.5, 1.5
+Distance between the class means, Delta: 2.12
+Delta / 2: 1.06
 Bayes accuracy: 0.856
 Noise features m: 0, 1, 2, 5, 10, 20, 50, 100, 200
 Mean test accuracy: 0.846, 0.846, 0.841, 0.838, 0.830, 0.811, 0.765, 0.716, 0.673

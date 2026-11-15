@@ -333,91 +333,163 @@
 
 \begin{frame}{More features are not free}
     \begin{itemize}
-        \item Fix the number of observations $n$ and let the number of features $p$ grow
-        \item The data become sparse: every region of the feature space holds few observations
-        \item Methods that rely on nearby observations (``local'' methods: $k$-NN, kernels, clustering) lose their footing
-        \item Flexible models have more ways to fit noise
-        \item Richard Bellman called these effects the curse of dimensionality
-        \item The next slides use uniform data, where each effect can be computed exactly
+        \item $k$-NN predicts whether a customer defaults from the customers most similar to them
+        \item That works when similar customers exist and really are close
+        \item Each feature we add makes both harder, even if the number of observations $n$ stays the same
+        \item Richard Bellman called this the curse of dimensionality
+        \item The next slides build the intuition with uniform data, where everything can be worked out, and then show what it does to real models
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Sparsity: neighborhoods must grow}
+\begin{frame}{The data spread thin}
+    \centering
+    \begin{tikzpicture}[x=0.6cm, y=0.6cm, dot/.style={circle, fill=blue!70!black, inner sep=1pt}]
+        % one feature
+        \begin{scope}
+            \draw[thick] (0, 1.4) -- (4, 1.4);
+            \foreach \i in {0, ..., 4} \draw (\i, 1.25) -- (\i, 1.55);
+            \foreach \x/\y in {0.3/2.6, 0.7/0.4, 0.9/3.5, 1.2/1.1, 1.5/2.4, 1.8/0.6, 1.4/2.2, 0.5/0.4, 2.1/2.8, 2.4/0.3, 2.6/1.6, 2.9/2.6, 2.2/1.2, 3.1/0.8, 3.4/2.4, 3.7/3.3, 3.3/2.9, 3.8/0.2, 2.7/2.1, 0.2/0.9} \node[dot] at (\x, 1.65 + 0.2 * \y) {};
+            \node[font=\scriptsize, align=center] at (2, -0.8) {1 feature: 4 bins\\5 points per bin};
+        \end{scope}
+        % two features
+        \begin{scope}[xshift=4.8cm]
+            \draw[step=1, gray!60] (0, 0) grid (4, 4);
+            \draw (0, 0) rectangle (4, 4);
+            \foreach \x/\y in {0.3/2.6, 0.7/0.4, 0.9/3.5, 1.2/1.1, 1.5/2.4, 1.8/0.6, 1.4/2.2, 0.5/0.4, 2.1/2.8, 2.4/0.3, 2.6/1.6, 2.9/2.6, 2.2/1.2, 3.1/0.8, 3.4/2.4, 3.7/3.3, 3.3/2.9, 3.8/0.2, 2.7/2.1, 0.2/0.9} \node[dot] at (\x, \y) {};
+            \node[font=\scriptsize, align=center] at (2, -0.8) {2 features: 16 cells\\4 of them empty};
+        \end{scope}
+        % three features
+        \begin{scope}[xshift=9.6cm]
+            \foreach \i in {0, ..., 4} {
+                \draw[gray!60] (\i, 0) -- (\i, 4);
+                \draw[gray!60] (0, \i) -- (4, \i);
+                \draw[gray!60] (\i, 4) -- (\i + 1.4, 5);
+                \draw[gray!60] (0.35 * \i, 4 + 0.25 * \i) -- (4 + 0.35 * \i, 4 + 0.25 * \i);
+                \draw[gray!60] (4, \i) -- (5.4, \i + 1);
+                \draw[gray!60] (4 + 0.35 * \i, 0.25 * \i) -- (4 + 0.35 * \i, 4 + 0.25 * \i);
+            }
+            \draw (0, 0) -- (4, 0) -- (5.4, 1) -- (5.4, 5) -- (1.4, 5) -- (0, 4) -- cycle;
+            \draw (0, 4) -- (4, 4) -- (4, 0) (4, 4) -- (5.4, 5);
+            \node[font=\scriptsize, align=center] at (2.7, -0.8) {3 features: 64 cells\\at least 44 empty};
+        \end{scope}
+    \end{tikzpicture}
+    \raggedright
+    \begin{itemize}
+        \item The same 20 points give 5 per bin with one feature, 1.25 per cell with two and 0.31 with three
+        \item Each feature multiplies the cells by 4: with 10 features there are 1{,}048{,}576, and 5 points per cell would take 5{,}242{,}880 points
+        \item The data needed grow exponentially with $p$
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Neighborhoods stop being local}
     \begin{columns}[T]
-        \begin{column}{0.5\textwidth}
+        \begin{column}{0.56\textwidth}
             \begin{itemize}
-                \item Spread the data uniformly over the unit cube $[0, 1]^p$
-                \item A sub-cube holding a fraction $r$ of the data has volume $r$, so its edge length is $r^{1/p}$
-                \item To capture 10\% of the data, the edge must be 0.10 when $p = 1$, 0.32 when $p = 2$, 0.79 when $p = 10$ and 0.98 when $p = 100$
-                \item At $p = 10$, a ``neighborhood'' with 10\% of the data spans 79\% of the range of every feature: it is no longer local
+                \item Say $k$-NN uses the 10\% of the data most similar to the new point
+                \item With uniform data, how much of each feature's range must that neighborhood cover?
+                \item With one feature, 10\%; with two, 32\%; with ten, 79\%; with a hundred, 98\%
+                \item With ten features, the ``similar'' customers differ over most of the range of every feature: the neighborhood is no longer local
             \end{itemize}
         \end{column}
-        \begin{column}{0.48\textwidth}
+        \begin{column}{0.42\textwidth}
             \centering
-            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_hypercube_edge.pdf}
+            \begin{tikzpicture}[x=3.2cm, y=3.2cm]
+                \draw[thick] (0, 1.3) -- (1, 1.3);
+                \fill[orange!50] (0.45, 1.26) rectangle (0.55, 1.34);
+                \node[font=\scriptsize, above] at (0.5, 1.36) {1 feature: 10\% of the range};
+                \draw (0, 0) rectangle (1, 1);
+                \fill[orange!50] (0.34, 0.34) rectangle (0.66, 0.66);
+                \draw[<->] (0.34, 0.29) -- node[below, font=\scriptsize] {32\%} (0.66, 0.29);
+                \node[font=\scriptsize, below] at (0.5, -0.02) {2 features: 10\% of the area};
+            \end{tikzpicture}
         \end{column}
     \end{columns}
 \end{frame}
 
-\begin{frame}{Nearest neighbors are far away}
+\begin{frame}{Almost every point is extreme somewhere}
     \begin{columns}[T]
-        \begin{column}{0.5\textwidth}
+        \begin{column}{0.6\textwidth}
             \begin{itemize}
-                \item $N$ points uniform in the unit ball in $\mathbb{R}^p$; median distance from the center to the nearest point:
-                \[
-                    d(p, N) = \bigl(1 - (1/2)^{1/N}\bigr)^{1/p}
-                \]
-                \item With $N = 500$ it is 0.04 for $p = 2$, 0.52 for $p = 10$ and 0.94 for $p = 100$
-                \item At $p = 10$ the nearest point is already more than halfway to the boundary: predictions extrapolate from far-away data
+                \item Call a value extreme if it lies in the outer 5\% at either end of its feature's range (10\% of the values)
+                \item A point is ordinary only if none of its values is extreme: for independent uniform features, $0.9^p$ of the points
+                \item That is 81\% with two features, 35\% with ten and 0.5\% with fifty
+                \item Nearly every point is then unusual in some feature, and predicting for it means extrapolating
             \end{itemize}
         \end{column}
-        \begin{column}{0.48\textwidth}
+        \begin{column}{0.38\textwidth}
             \centering
-            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_nn_distance.pdf}
-
-            {\scriptsize The curve is the formula; the dots come from simulation (0.516 at $p = 10$)}
+            \begin{tikzpicture}[x=3.2cm, y=3.2cm]
+                \fill[orange!50] (0, 0) rectangle (1, 1);
+                \fill[white] (0.05, 0.05) rectangle (0.95, 0.95);
+                \draw (0, 0) rectangle (1, 1);
+                \draw[gray!60] (0.05, 0.05) rectangle (0.95, 0.95);
+                \node[font=\scriptsize, align=center] at (0.5, 0.5) {ordinary:\\81\% of the points};
+                \node[font=\scriptsize, below, align=center] at (0.5, -0.02) {shaded band: an extreme value\\in at least one of 2 features};
+            \end{tikzpicture}
         \end{column}
     \end{columns}
 \end{frame}
 
-\begin{frame}{Distance concentration}
+\begin{frame}{Everything is equally far away}
+    \begin{itemize}
+        \item The squared distance between two points adds up one term per feature
+        \item A sum of many random terms varies little relative to its size (think of the average of many dice rolls)
+        \item So as $p$ grows, all pairwise distances bunch together:
+    \end{itemize}
     \centering
-    \includegraphics[width=\textwidth, height=0.44\textheight, keepaspectratio]{figures/fig_distance_concentration.pdf}
+    \footnotesize
+    \begin{tabular}{@{}r r r r r@{}}
+        \toprule
+        $p$ & Nearest pair & Mean & Farthest pair & Farthest / nearest \\
+        \midrule
+        2 & 0.001 & 0.525 & 1.341 & 1{,}496 \\
+        10 & 0.300 & 1.258 & 2.339 & 7.78 \\
+        100 & 2.909 & 4.084 & 5.130 & 1.76 \\
+        1000 & 11.761 & 12.899 & 13.899 & 1.18 \\
+        \bottomrule
+    \end{tabular}
 
-    {\scriptsize All pairwise distances between 500 uniform points in $[0, 1]^p$, divided by their mean}
+    {\scriptsize Pairwise distances between 500 uniform points in $[0, 1]^p$\par}
+    \normalsize
     \raggedright
     \begin{itemize}
-        \item The largest distance is 1{,}496 times the smallest when $p = 2$, but only 7.78, 1.76 and 1.18 times as large when $p = 10$, $100$ and $1000$
-        \item Relative to their mean, the SD of the distances falls from 0.47 to 0.019
-        \item When the nearest and the farthest point are almost equally far, ``nearest'' carries little information
+        \item When the nearest point is almost as far as the farthest, ``nearest'' tells us little
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Volume lives in the corners and near the surface}
-    \centering
-    \includegraphics[width=\textwidth, height=0.42\textheight, keepaspectratio]{figures/fig_ball_cube.pdf}
-    \raggedright
+\begin{frame}{Noise features drown the signal}
+    \begin{columns}[T]
+        \begin{column}{0.52\textwidth}
+            \begin{itemize}
+                \item Two classes differ in two features (best possible, Bayes, accuracy 0.856); we add $m$ pure-noise features with SD 1, so scaling is not the issue
+                \item $k$-NN ($k = 15$) falls from 0.846 with no noise features to 0.811 with 20, 0.716 with 100 and 0.673 with 200
+                \item Each noise feature adds a random term to every distance; together they outvote the two that matter
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_knn_noise_features.pdf}
+
+            {\scriptsize 200 training and 1{,}000 test points; mean of 30 runs}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Where the Bayes accuracy comes from}
     \begin{itemize}
-        \item The unit ball fills 0.785 of the cube $[-1, 1]^p$ when $p = 2$ and 0.524 when $p = 3$, but only $2.5 \times 10^{-3}$ when $p = 10$ and $2.5 \times 10^{-8}$ when $p = 20$
-        \item The share of the ball within 0.1 of its surface is $1 - 0.9^p$: 0.19 for $p = 2$, 0.65 for $p = 10$ and 0.995 for $p = 50$
-        \item Our intuition from two and three dimensions does not carry over
+        \item Class 0 is drawn around the mean $(0, 0)$ and class 1 around $(1.5, 1.5)$; the classes are equally likely, and in each class the two features have SD 1 and are uncorrelated
+        \item The Bayes classifier (lecture 6) then picks the class with the nearer mean; the boundary is the line halfway between them
+        \item The means are $\Delta = \sqrt{1.5^2 + 1.5^2} = 2.12$ apart, so each lies $\Delta / 2 = 1.06$ from the boundary
+        \item Along the line joining the means, a point's position is standard normal around its class mean, so it falls on the correct side with probability $\Phi(\Delta / 2) = \Phi(1.06) = 0.856$, where $\Phi$ is the standard normal CDF
+        \item The noise features are independent of the class, so the Bayes classifier ignores them: 0.856 is the ceiling for every $m$
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Where these numbers come from}
-    \begin{itemize}
-        \item Nearest neighbor (\emph{The Elements of Statistical Learning}, Section 2.5): a uniform point in the unit ball lies within distance $d$ of the center with probability $d^p$, so the nearest of $N$ points is farther than $d$ with probability $(1 - d^p)^N$; setting this to $1/2$ gives $d(p, N)$
-        \item The simulation draws 2{,}000 sets of 500 points for $p = 2$, $10$ and $50$ and matches the formula to two decimals
-        \item The volume of the unit ball in $\mathbb{R}^p$ is $\pi^{p/2}/\Gamma(p/2 + 1)$: it grows up to $p = 5$ (volume 5.26), then falls towards zero (0.026 at $p = 20$), while the cube around it has volume $2^p$
-        \item So almost all of the cube is in its corners, and almost all of the ball is in a thin shell under its surface
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Overfitting as $p$ approaches $n$}
+\begin{frame}{More features, more ways to fit noise}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
             \begin{itemize}
-                \item OLS on $n = 100$ observations, where $y$ depends on only 5 of 99 features (noise variance 1)
+                \item OLS on $n = 100$ observations, where $y$ depends on only 5 of 99 features
                 \item Training MSE keeps falling, to 0.083 at $p = 90$ and to 0 at $p = 99$
                 \item Test MSE climbs from 1.06 at $p = 5$ to 2.04 at $p = 50$, 11.2 at $p = 90$ and 218 at $p = 99$
                 \item Once $p + 1 > n$, $\mathbf{X}^\top\mathbf{X}$ is singular and OLS has no unique solution (lecture 3)
@@ -434,29 +506,11 @@
 
 \begin{frame}{Training error cannot choose $p$}
     \begin{itemize}
+        \item Linear models suffer too: every feature is one more coefficient that can bend to the noise
         \item At $p = 99$ the model has 100 coefficients (with the intercept) for 100 observations and fits the training data exactly
         \item The extra features are pure noise, yet each one lowers the training error
         \item That is why training error cannot be used to choose $p$ (lecture 7)
     \end{itemize}
-\end{frame}
-
-\begin{frame}{Irrelevant features hurt local methods}
-    \begin{columns}[T]
-        \begin{column}{0.48\textwidth}
-            \begin{itemize}
-                \item Two classes differ in two informative features; the Bayes accuracy is 0.856
-                \item We add $m$ noise features, all with SD 1, so scaling plays no role
-                \item $k$-NN ($k = 15$) drops from 0.846 with no noise features to 0.811 with 20, 0.716 with 100 and 0.673 with 200
-                \item Each noise feature adds a random term to every distance
-            \end{itemize}
-        \end{column}
-        \begin{column}{0.5\textwidth}
-            \centering
-            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_knn_noise_features.pdf}
-
-            {\scriptsize 200 training and 1{,}000 test points; mean of 30 runs}
-        \end{column}
-    \end{columns}
 \end{frame}
 
 \begin{frame}{What can we do?}
@@ -471,7 +525,7 @@
 
 \begin{frame}{A caveat: real data are not uniform}
     \begin{itemize}
-        \item The examples above use independent, uniform features, which is the worst case
+        \item The pictures above use independent, uniform features, which is the worst case
         \item Real features are correlated and the data concentrate near lower-dimensional structure (images, gene expression, survey items measuring the same trait)
         \item The intrinsic dimension of such data is much smaller than $p$
         \item This ``blessing of non-uniformity'' is why high-dimensional learning works at all, and why dimensionality reduction (lecture 12) succeeds

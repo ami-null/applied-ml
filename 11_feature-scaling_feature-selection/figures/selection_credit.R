@@ -89,16 +89,29 @@ bic <- do.call(rbind, bic)
 bic$method <- factor(bic$method, levels = names(methods))
 mins <- do.call(rbind, lapply(split(bic, bic$method),
                               function(d) d[which.min(d$bic), ]))
-p <- ggplot(bic, aes(size, bic, colour = method, shape = method,
-                     linetype = method)) +
-    geom_line(linewidth = 0.8) +
-    geom_point(size = 2.5) +
-    geom_point(data = mins, size = 6, shape = 1, stroke = 1.2,
-               show.legend = FALSE) +
+# the three curves nearly coincide, so they are drawn as nested layers: best
+# subset widest at the bottom, backward thinnest on top, all semi-transparent.
+# The circles marking the minima also differ in size, so minima at the same
+# size (best subset and backward) show as concentric rings.
+widths <- c(`Best subset` = 2.4, Forward = 1.4, Backward = 0.6)
+psizes <- c(`Best subset` = 4, Forward = 2.8, Backward = 1.6)
+rings <- c(`Best subset` = 8, Forward = 6, Backward = 5)
+p <- ggplot(bic, aes(size, bic, colour = method, shape = method)) +
+    geom_line(aes(linewidth = method), alpha = 0.75) +
+    geom_point(aes(size = method), alpha = 0.85) +
+    geom_point(data = mins, aes(size = I(rings[as.character(method)])),
+               shape = 1, stroke = 1.1, show.legend = FALSE) +
     scale_x_continuous(breaks = 1:pc) +
     scale_colour_manual(values = okabe[1:3]) +
+    scale_linewidth_manual(values = widths) +
+    scale_size_manual(values = psizes) +
     labs(x = "Number of predictors", y = "BIC", colour = NULL, shape = NULL,
-         linetype = NULL)
+         linewidth = NULL, size = NULL) +
+    theme(legend.position = "inside",
+          legend.position.inside = c(0.98, 0.98),
+          legend.justification = c(1, 1),
+          legend.direction = "vertical",
+          legend.background = element_rect(fill = "white", colour = NA))
 ggsave("fig_subset_selection.pdf", p, width = 3.7, height = 3.2)
 
 

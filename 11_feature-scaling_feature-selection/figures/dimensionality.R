@@ -24,15 +24,15 @@ for (r in fracs) {
 }
 edge <- expand.grid(p = ps, r = fracs)
 edge$e <- edge$r^(1 / edge$p)
-edge$r <- factor(paste0(edge$r * 100, "% of the data"),
-                 levels = paste0(fracs * 100, "% of the data"))
+edge$r <- factor(paste0(edge$r * 100, "%"),
+                 levels = paste0(fracs * 100, "%"))
 p <- ggplot(edge, aes(p, e, colour = r)) +
     geom_line(linewidth = 1) +
     scale_x_log10(breaks = p_breaks) +
     scale_y_continuous(limits = c(0, 1)) +
     scale_colour_manual(values = okabe[c(2, 1, 3)]) +
-    labs(x = "Dimension p", y = "Edge length of the sub-cube", colour = NULL)
-ggsave("fig_hypercube_edge.pdf", p, width = 6.5, height = 4.5)
+    labs(x = "Dimension p", y = "Edge length", colour = "Share of data")
+ggsave("fig_hypercube_edge.pdf", p, width = 4.1, height = 3.4)
 
 
 # ---- Neighbourhoods are not local ----------------------------------------
@@ -64,12 +64,12 @@ p <- ggplot(curve_df, aes(p, d)) +
     geom_line(linewidth = 1, colour = okabe[1]) +
     geom_point(data = data.frame(p = mc_p, d = mc), colour = okabe[2],
                size = 2.5) +
-    annotate("text", x = 1, y = 0.53, hjust = 0, size = 4, colour = "grey40",
+    annotate("text", x = 1, y = 0.53, hjust = 0, size = 3.2, colour = "grey40",
              label = "halfway to the boundary") +
     scale_x_log10(breaks = p_breaks) +
     scale_y_continuous(limits = c(0, 1)) +
-    labs(x = "Dimension p", y = "Median distance to the nearest point")
-ggsave("fig_nn_distance.pdf", p, width = 6.5, height = 4.5)
+    labs(x = "Dimension p", y = "Distance to nearest point")
+ggsave("fig_nn_distance.pdf", p, width = 4.1, height = 3.4)
 
 
 # ---- Distance concentration ----------------------------------------------
@@ -99,7 +99,7 @@ p <- ggplot(dc, aes(rel)) +
     coord_cartesian(xlim = c(0, 2.6)) +
     labs(x = "Pairwise distance / mean pairwise distance", y = NULL) +
     theme(axis.text.y = element_blank())
-ggsave("fig_distance_concentration.pdf", p, width = 11, height = 3.6)
+ggsave("fig_distance_concentration.pdf", p, width = 8.8, height = 2.4)
 
 
 # ---- Where the volume is: ball in a cube, and the outer shell -----------
@@ -125,9 +125,9 @@ p1 <- ggplot(data.frame(p = pv, ratio = vol_ball(pv) / 2^pv), aes(p, ratio)) +
 p2 <- ggplot(data.frame(p = 1:100, f = 1 - 0.9^(1:100)), aes(p, f)) +
     geom_line(colour = okabe[2], linewidth = 1) +
     scale_y_continuous(limits = c(0, 1)) +
-    labs(title = "Share of the ball within 0.1 of its surface",
+    labs(title = "Share within 0.1 of the surface",
          x = "Dimension p", y = NULL)
-ggsave("fig_ball_cube.pdf", p1 + p2, width = 11, height = 4.2)
+ggsave("fig_ball_cube.pdf", p1 + p2, width = 8.8, height = 2.6)
 
 
 # ---- p approaching n: OLS training vs test error ------------------------
@@ -170,14 +170,14 @@ p <- ggplot(pn, aes(p, mse, colour = set)) +
     geom_vline(xintercept = n - 1, linetype = "dashed", colour = "grey50") +
     geom_line(linewidth = 1) +
     geom_point(size = 1.8) +
-    annotate("text", x = n - 3, y = 100, hjust = 1, size = 4,
+    annotate("text", x = n - 3, y = 100, hjust = 1, size = 3.2,
              colour = "grey40", label = "p + 1 = n") +
     scale_y_log10(breaks = 10^(-3:3), labels = c("0.001", "0.01", "0.1", "1",
                                                  "10", "100", "1000")) +
     scale_colour_manual(values = okabe[c(1, 2)]) +
-    labs(x = "Number of features p", y = "MSE (median of 50 runs)",
+    labs(x = "Number of features p", y = "Median MSE",
          colour = NULL)
-ggsave("fig_p_vs_n.pdf", p, width = 7, height = 4.5)
+ggsave("fig_p_vs_n.pdf", p, width = 4.3, height = 3.5)
 
 
 # ---- Irrelevant features hurt k-NN ---------------------------------------
@@ -211,12 +211,12 @@ p <- ggplot(data.frame(m = ms, acc = accs), aes(m, acc)) +
     geom_hline(yintercept = 0.5, linetype = "dotted", colour = "grey50") +
     geom_line(colour = okabe[1], linewidth = 1) +
     geom_point(colour = okabe[1], size = 2.2) +
-    annotate("text", x = 200, y = bayes + 0.02, hjust = 1, size = 4,
+    annotate("text", x = 200, y = bayes + 0.02, hjust = 1, size = 3.2,
              colour = okabe[3], label = "Bayes accuracy") +
-    annotate("text", x = 200, y = 0.52, hjust = 1, size = 4,
+    annotate("text", x = 200, y = 0.52, hjust = 1, size = 3.2,
              colour = "grey40", label = "guessing") +
     scale_x_continuous(trans = "log1p", breaks = ms) +
     scale_y_continuous(limits = c(0.45, 0.9)) +
-    labs(x = "Number of irrelevant features added",
-         y = "Test accuracy (mean of 30 runs)")
-ggsave("fig_knn_noise_features.pdf", p, width = 7, height = 4.5)
+    labs(x = "Irrelevant features added",
+         y = "Mean test accuracy")
+ggsave("fig_knn_noise_features.pdf", p, width = 4.3, height = 3.5)

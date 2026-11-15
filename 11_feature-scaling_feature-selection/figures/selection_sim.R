@@ -89,7 +89,7 @@ p <- (score_plot(score_df[score_df$panel == "ANOVA F statistic", ]) +
           score_plot(score_df[score_df$panel != "ANOVA F statistic", ])) +
     plot_layout(guides = "collect") &
     theme(legend.position = "bottom")
-ggsave("fig_filter_scores.pdf", p, width = 12, height = 4.6)
+ggsave("fig_filter_scores.pdf", p, width = 8.8, height = 2.4)
 report("F cut-off drawn on the plot (Bonferroni, df = 1, 198)",
        qf(1 - 0.05 / 30, 1, 198), 2)
 
@@ -118,6 +118,8 @@ xd <- data.frame(tr$X, y = factor(ifelse(tr$y == 1, "Class 1", "Class 0")))
 p_sc <- ggplot(xd, aes(x1, x2, colour = y)) +
     geom_point(size = 1.6, alpha = 0.8) +
     scale_colour_manual(values = okabe[1:2]) +
+    scale_x_continuous(breaks = c(-1, 0, 1)) +
+    scale_y_continuous(breaks = c(-1, 0, 1)) +
     coord_equal() +
     labs(x = expression(x[1]), y = expression(x[2]), colour = NULL)
 dens <- function(var, lab) {
@@ -125,12 +127,18 @@ dens <- function(var, lab) {
         geom_density(linewidth = 1) +
         scale_colour_manual(values = okabe[1:2], guide = "none") +
         scale_y_continuous(limits = c(0, 0.8)) +
+        scale_x_continuous(breaks = c(-1, 0, 1)) +
         labs(x = lab, y = "Density", colour = NULL)
 }
+# widths chosen so the square scatter fills its cell; legend on the right and
+# no outer margins, so the figure has no empty border on the slide
 p <- (p_sc | dens("x1", expression(x[1])) | dens("x2", expression(x[2]))) +
-    plot_layout(guides = "collect") &
-    theme(legend.position = "bottom")
-ggsave("fig_xor.pdf", p, width = 12, height = 4.4)
+    plot_layout(guides = "collect", widths = c(1, 1.3, 1.3)) &
+    theme(legend.position = "right",
+          legend.box.spacing = unit(2, "pt"),
+          legend.margin = ggplot2::margin(0, 0, 0, 0),
+          plot.margin = ggplot2::margin(1, 3, 1, 1))
+ggsave("fig_xor.pdf", p, width = 8.2, height = 2.2)
 
 
 # ---- Wrapper: recursive feature elimination, inside 10-fold CV ----------
@@ -189,10 +197,10 @@ p <- ggplot(rfe_df, aes(k, acc)) +
     annotate("point", x = best_k, y = acc_k[best_k], shape = 1, size = 6,
              stroke = 1.2, colour = okabe[2]) +
     annotate("text", x = 5.4, y = min(acc_k - rfe_df$se), hjust = 0,
-             size = 4, colour = "grey40", label = "5 informative features") +
+             size = 3.2, colour = "grey40", label = "5 informative features") +
     scale_x_continuous(breaks = c(1, 5, 10, 15, 20, 25, 30)) +
-    labs(x = "Number of features kept", y = "10-fold CV accuracy (± 1 SE)")
-ggsave("fig_rfe.pdf", p, width = 7, height = 4.5)
+    labs(x = "Number of features kept", y = "CV accuracy (± 1 SE)")
+ggsave("fig_rfe.pdf", p, width = 3.7, height = 3.2)
 
 
 # ---- Embedded: impurity vs permutation importance -----------------------
@@ -232,10 +240,10 @@ imp_df$feature <- factor(imp_df$feature, levels = rev(rownames(imp_mean)))
 imp_df$noise <- grepl("Noise", imp_df$feature)
 p <- ggplot(imp_df, aes(value, feature, fill = noise)) +
     geom_col(width = 0.7) +
-    facet_wrap(~measure) +
+    facet_wrap(~measure, ncol = 1) +
     scale_fill_manual(values = c(okabe[1], okabe[8]), guide = "none") +
-    labs(x = "Importance relative to the largest", y = NULL)
-ggsave("fig_importance.pdf", p, width = 9, height = 3.8)
+    labs(x = "Relative importance", y = NULL)
+ggsave("fig_importance.pdf", p, width = 4.2, height = 3.6)
 
 
 # ---- Selection leakage ---------------------------------------------------
@@ -293,10 +301,11 @@ p <- ggplot(lk, aes(acc, fill = how)) +
     geom_histogram(binwidth = 0.02, colour = "white", linewidth = 0.1,
                    position = "identity", alpha = 0.75) +
     geom_vline(xintercept = 0.5, linetype = "dashed", colour = "grey30") +
-    annotate("text", x = 0.49, y = Inf, vjust = 1.5, hjust = 1, size = 4,
+    annotate("text", x = 0.49, y = Inf, vjust = 1.5, hjust = 1, size = 3.2,
              colour = "grey30", label = "true accuracy 0.5") +
     scale_fill_manual(values = okabe[c(2, 1)]) +
+    guides(fill = guide_legend(ncol = 1)) +
     coord_cartesian(xlim = c(0.1, 1)) +
-    labs(x = "Cross-validated accuracy (200 replications)", y = "Count",
+    labs(x = "CV accuracy (200 replications)", y = "Count",
          fill = NULL)
-ggsave("fig_selection_leakage.pdf", p, width = 7.5, height = 4.5)
+ggsave("fig_selection_leakage.pdf", p, width = 4.2, height = 3.4)

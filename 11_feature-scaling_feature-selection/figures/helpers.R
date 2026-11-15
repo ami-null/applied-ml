@@ -7,10 +7,10 @@ okabe <- c("#0072B2", "#D55E00", "#009E73", "#CC79A7",
            "#E69F00", "#56B4E9", "#F0E442", "#999999")
 
 theme_set(
-    theme_minimal(base_size = 16) +
+    theme_minimal(base_size = 13) +
         theme(
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 15, face = "bold"),
+            plot.title = element_text(size = 12, face = "bold"),
             legend.position = "bottom"
         )
 )

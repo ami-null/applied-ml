@@ -33,7 +33,7 @@ p <- ggplot(df, aes(variable, share, fill = data)) +
     geom_col(position = position_dodge(0.8), width = 0.75) +
     scale_fill_manual(values = okabe[1:2]) +
     labs(x = NULL, y = "Share of total variance (%)", fill = NULL)
-ggsave("fig_usarrests_variance.pdf", p, width = 6, height = 4.5)
+ggsave("fig_usarrests_variance.pdf", p, width = 3.2, height = 2.8)
 
 
 # ---- Numeric example of the three scalers (table on the slide) ----------
@@ -74,7 +74,7 @@ p <- ggplot() +
     scale_colour_manual(values = okabe[c(8, 1)]) +
     coord_equal(xlim = c(0, 3.1), ylim = c(0, 3.1)) +
     labs(x = expression(x[1]), y = expression(x[2]), colour = NULL)
-ggsave("fig_unit_norm.pdf", p, width = 5, height = 5.3)
+ggsave("fig_unit_norm.pdf", p, width = 3.4, height = 3.6)
 
 
 # ---- Gradient descent on unscaled vs standardized features --------------
@@ -136,7 +136,7 @@ p <- contour_panel(g_raw, paste0("Raw: ", g_raw$iters, " iterations"),
                    c(-0.6, 3.2), c(-0.6, 1.8)) +
     contour_panel(g_std, paste0("Standardized: ", g_std$iters, " iterations"),
                   c(-0.6, 3.6), c(-0.6, 3.6))
-ggsave("fig_scaling_contours.pdf", p, width = 10, height = 4.6)
+ggsave("fig_scaling_contours.pdf", p, width = 6.2, height = 2.7)
 
 
 # ---- Which models need scaling? Balanced Default subsample --------------
@@ -232,9 +232,9 @@ p <- ggplot(summ, aes(mean, model, colour = data)) +
                   orientation = "y", position = position_dodge(0.5)) +
     geom_point(size = 2.8, position = position_dodge(0.5)) +
     scale_colour_manual(values = okabe[1:2]) +
-    labs(x = "Test accuracy (mean ± 1 SD over 50 splits)", y = NULL,
+    labs(x = "Test accuracy (mean ± 1 SD)", y = NULL,
          colour = NULL)
-ggsave("fig_scaling_models.pdf", p, width = 7.5, height = 4.5)
+ggsave("fig_scaling_models.pdf", p, width = 3.9, height = 3.2)
 
 
 # ---- The ridge penalty depends on the units: Credit ---------------------
@@ -277,9 +277,10 @@ p <- ggplot(ridge_path, aes(lambda, ratio, colour = unit)) +
     geom_line(linewidth = 1) +
     scale_x_log10(labels = scales::label_log()) +
     scale_colour_manual(values = okabe[c(2, 1, 3)]) +
+    guides(colour = guide_legend(ncol = 1)) +
     labs(x = expression(lambda),
-         y = "Income coefficient / OLS", colour = "Income in")
-ggsave("fig_ridge_units.pdf", p, width = 7.5, height = 4.8)
+         y = "Coefficient / OLS", colour = "Income in")
+ggsave("fig_ridge_units.pdf", p, width = 3.9, height = 3.4)
 
 
 # ---- One outlier under the three scalers ---------------------------------
@@ -324,11 +325,11 @@ p <- ggplot(so, aes(value, fit, colour = fit)) +
     geom_text(data = lab,
               aes(x = xpos, y = 1.45,
                   label = sprintf("outlier at %.1f", out)),
-              inherit.aes = FALSE, hjust = 1, size = 4, colour = okabe[2]) +
+              inherit.aes = FALSE, hjust = 1, size = 3.2, colour = okabe[2]) +
     facet_wrap(~scaler, ncol = 1, scales = "free_x") +
     scale_colour_manual(values = okabe[c(2, 1)], guide = "none") +
-    labs(x = "Scaled value of the 50 regular observations", y = NULL)
-ggsave("fig_scalers_outlier.pdf", p, width = 8, height = 6)
+    labs(x = "Scaled regular values", y = NULL)
+ggsave("fig_scalers_outlier.pdf", p, width = 4.0, height = 4.0)
 
 
 # ---- Skewed features: scaling does not change the shape -----------------
@@ -352,9 +353,11 @@ hist_panel <- function(v, title, xlab,
                        linewidth = 0.1) +
         labs(title = title, subtitle = subtitle, x = xlab, y = "Count")
 }
-p <- hist_panel(price, "Raw", "Price (USD)") +
+p <- (hist_panel(price, "Raw", "Price (USD)") +
+         scale_x_continuous(breaks = c(0, 5000, 10000, 15000),
+                            labels = c("0", "5k", "10k", "15k"))) +
     hist_panel(log(price), "Log", "log(price)") +
     hist_panel(price_bc, "Box-Cox", "Transformed price",
                subtitle = bquote(lambda == .(round(lam, 2)) * ", skewness" ~
                                      .(sprintf("%.2f", skewness(price_bc)))))
-ggsave("fig_skew_transforms.pdf", p, width = 12, height = 4)
+ggsave("fig_skew_transforms.pdf", p, width = 8.8, height = 2.2)

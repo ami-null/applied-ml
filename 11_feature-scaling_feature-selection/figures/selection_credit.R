@@ -40,13 +40,14 @@ p <- ggplot(cd, aes(a, b, fill = r)) +
     geom_tile(data = cd[cd$flag, ], colour = "black", linewidth = 1,
               fill = NA) +
     geom_text(aes(label = ifelse(abs(r) > 0.99 & a != b, sprintf("%.3f", r),
-                                 sprintf("%.2f", r))), size = 4) +
+                                 sprintf("%.2f", r))), size = 3.2) +
     scale_fill_gradient2(low = okabe[1], mid = "white", high = okabe[2],
                          limits = c(-1, 1)) +
     coord_equal() +
     labs(x = NULL, y = NULL, fill = "r") +
-    theme(panel.grid = element_blank(), legend.position = "right")
-ggsave("fig_filter_corr.pdf", p, width = 6.5, height = 5.2)
+    theme(panel.grid = element_blank(), legend.position = "right",
+          axis.text.x = element_text(angle = 45, hjust = 1))
+ggsave("fig_filter_corr.pdf", p, width = 4.0, height = 3.6)
 
 
 # ---- Wrappers: best subset, forward and backward selection --------------
@@ -98,7 +99,7 @@ p <- ggplot(bic, aes(size, bic, colour = method, shape = method,
     scale_colour_manual(values = okabe[1:3]) +
     labs(x = "Number of predictors", y = "BIC", colour = NULL, shape = NULL,
          linetype = NULL)
-ggsave("fig_subset_selection.pdf", p, width = 7, height = 4.5)
+ggsave("fig_subset_selection.pdf", p, width = 3.7, height = 3.2)
 
 
 # ---- Embedded: lasso (and ridge) paths, lambda by 10-fold CV ------------
@@ -140,7 +141,7 @@ path_df <- function(fit) {
                lambda = rep(fit$lambda, each = nrow(B)),
                coef = as.numeric(B))
 }
-path_plot <- function(df, title) {
+path_plot <- function(df, title, ylab = NULL) {
     df$group <- ifelse(df$var %in% highlight, df$var, "Other")
     df$group <- factor(df$group, levels = c(highlight, "Other"))
     ggplot(df, aes(lambda, coef, group = var, colour = group)) +
@@ -150,23 +151,25 @@ path_plot <- function(df, title) {
         scale_colour_manual(values = c(okabe[1:4], "grey70"),
                             labels = c("Income", "Limit", "Rating",
                                        "Student", "Other")) +
-        labs(title = title, x = expression(lambda),
-             y = "Standardized coefficient", colour = NULL)
+        labs(title = title, x = expression(lambda), y = ylab, colour = NULL)
 }
 cv_df <- data.frame(lambda = cv$lambda, m = cv$cvm, lo = cv$cvlo, hi = cv$cvup)
 p_cv <- ggplot(cv_df, aes(lambda, m)) +
     geom_errorbar(aes(ymin = lo, ymax = hi), colour = "grey70", width = 0) +
-    geom_point(colour = okabe[2], size = 1.2) +
+    geom_point(colour = "black", size = 1.2) +
     geom_vline(xintercept = c(cv$lambda.min, cv$lambda.1se),
                linetype = "dashed", colour = "grey40") +
     scale_x_log10(labels = scales::label_log()) +
     scale_y_log10(labels = scales::label_comma()) +
     labs(title = "Lasso: 10-fold CV", x = expression(lambda),
-         y = "CV mean squared error")
-p <- (path_plot(path_df(fit_l), "Lasso path") +
-          geom_vline(xintercept = cv$lambda.1se, linetype = "dashed",
-                     colour = "grey40") |
-          path_plot(path_df(fit_r), "Ridge path") | p_cv) +
+         y = "CV MSE")
+# the legend is collected inside the two path panels only, so it sits
+# between them and the CV panel (which has no colour mapping)
+paths <- (path_plot(path_df(fit_l), "Lasso path", "Std. coefficient") +
+              geom_vline(xintercept = cv$lambda.1se, linetype = "dashed",
+                         colour = "grey40") |
+              path_plot(path_df(fit_r), "Ridge path")) +
     plot_layout(guides = "collect") &
-    theme(legend.position = "bottom")
-ggsave("fig_lasso_path.pdf", p, width = 13, height = 4.8)
+    theme(legend.position = "right")
+p <- wrap_plots(paths, p_cv, widths = c(2.4, 1))
+ggsave("fig_lasso_path.pdf", p, width = 8.8, height = 2.2)

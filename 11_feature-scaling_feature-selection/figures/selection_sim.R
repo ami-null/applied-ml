@@ -61,6 +61,8 @@ noise <- ftype == "Noise"
 report("Noise features with p < 0.05 (out of 24)",
        sum(f_test[noise, "p"] < 0.05), 0)
 report("Expected number by chance, 24 x 0.05", 24 * 0.05, 1)
+report("Expected number by chance with 5,000 noise features, 5000 x 0.05",
+       5000 * 0.05, 0)
 report("Bonferroni threshold 0.05 / 30", 0.05 / 30, 5)
 report("Features passing Bonferroni, by type",
        table(ftype[f_test[, "p"] < 0.05 / 30]), 0)

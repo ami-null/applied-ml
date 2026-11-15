@@ -12,6 +12,7 @@ Top 8 features by mutual information: x1, x6, x2, x3, x27, x4, x13, x18
 F statistic of x1..x6: x1 = 43.3, x2 = 27.3, x3 = 20.2, x4 = 16.4, x5 = 7.4, x6 = 41.0
 Noise features with p < 0.05 (out of 24): 1
 Expected number by chance, 24 x 0.05: 1.2
+Expected number by chance with 5,000 noise features, 5000 x 0.05: 250
 Bonferroni threshold 0.05 / 30: 0.00167
 Features passing Bonferroni, by type: Informative = 4, Redundant (copy of x1) = 1, Noise = 0
 Mutual information, max over noise features: 0.05

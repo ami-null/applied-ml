@@ -5,16 +5,17 @@
 
 \begin{frame}{Why scale features?}
     \begin{columns}[T]
-        \begin{column}{0.66\textwidth}
-            \begin{itemize}
+        \begin{column}{0.62\textwidth}
+                        \begin{itemize}
                 \item Many methods combine features through distances, dot products or a shared penalty
                 \item Then units decide a feature's influence: height in centimeters has 100 times the spread of height in meters, though both carry the same information
                 \item In USArrests (lecture 10), Assault has an SD of 83.3 and Murder only 4.4
                 \item On the raw scale, Assault accounts for 95.6\% of the total variance; after standardizing, every variable accounts for 25\%
             \end{itemize}
         \end{column}
-        \begin{column}{0.32\textwidth}
-            \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_usarrests_variance.pdf}
+        \begin{column}{0.36\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_usarrests_variance.pdf}
 
             {\scriptsize USArrests: share of total variance}
         \end{column}
@@ -65,8 +66,8 @@
 
 \begin{frame}{Normalization: two meanings}
     \begin{columns}[T]
-        \begin{column}{0.58\textwidth}
-            \begin{itemize}
+        \begin{column}{0.56\textwidth}
+                        \begin{itemize}
                 \item ``Normalization'' can mean min-max scaling of a feature (a column), or rescaling each observation (a row) to unit length:
                 \[
                     \mathbf{x}^{(i)} \mapsto \frac{\mathbf{x}^{(i)}}{\lVert \mathbf{x}^{(i)} \rVert}
@@ -75,9 +76,9 @@
                 \item Common for word counts, so that long documents do not dominate
             \end{itemize}
         \end{column}
-        \begin{column}{0.4\textwidth}
+        \begin{column}{0.42\textwidth}
             \centering
-            \includegraphics[width=\textwidth, height=0.55\textheight, keepaspectratio]{figures/fig_unit_norm.pdf}
+            \includegraphics[width=\textwidth, height=0.65\textheight, keepaspectratio]{figures/fig_unit_norm.pdf}
 
             {\scriptsize 25 rows with lengths from 0.84 to 3.82, each rescaled to length 1}
         \end{column}
@@ -121,7 +122,7 @@
 
 \begin{frame}{Evidence: Default data}
     \begin{columns}[T]
-        \begin{column}{0.6\textwidth}
+        \begin{column}{0.52\textwidth}
             \begin{itemize}
                 \item We use all 333 defaults and 333 random non-defaults
                 \item In 50 random 70/30 splits, balance (SD 602) and income (SD 13{,}616) are standardized with the training mean and SD
@@ -130,8 +131,9 @@
                 \item Logistic regression, the tree and the forest make identical predictions in all 50 splits
             \end{itemize}
         \end{column}
-        \begin{column}{0.38\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_scaling_models.pdf}
+        \begin{column}{0.46\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_scaling_models.pdf}
 
             {\scriptsize Mean test accuracy over 50 splits; dotted line at 0.5}
         \end{column}
@@ -149,7 +151,7 @@
 
 \begin{frame}{Gradient descent and the shape of the loss}
     \centering
-    \includegraphics[width=\textwidth, height=0.44\textheight, keepaspectratio]{figures/fig_scaling_contours.pdf}
+    \includegraphics[width=\textwidth, height=0.5\textheight, keepaspectratio]{figures/fig_scaling_contours.pdf}
 
     {\scriptsize Least squares with two simulated features (SD 1.07 and 4.93); gray curves are loss contours, $\times$ marks the minimum}
     \raggedright
@@ -171,7 +173,7 @@
 \begin{frame}{Penalties are not scale-invariant}
     \begin{columns}[T]
         \begin{column}{0.6\textwidth}
-            \begin{itemize}
+                        \begin{itemize}
                 \item The ridge penalty $\frac{\lambda}{2} \sum_j \beta_j^2$ treats every coefficient the same, whatever its unit
                 \item Credit: Balance on Income and three standardized predictors; only Income's unit changes
                 \item Income's OLS coefficient is 0.0063 per dollar, 6.27 per \$1000 and 221 per SD
@@ -179,7 +181,8 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.38\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_ridge_units.pdf}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_ridge_units.pdf}
         \end{column}
     \end{columns}
 \end{frame}
@@ -194,7 +197,7 @@
 
 \begin{frame}{Outliers and the choice of scaler}
     \begin{columns}[T]
-        \begin{column}{0.6\textwidth}
+        \begin{column}{0.5\textwidth}
             \begin{itemize}
                 \item Each scaler is fitted to 50 regular values, with and without one outlier
                 \item Under min-max, the outlier squeezes the regular values from $[0, 1]$ into $[0, 0.17]$
@@ -203,15 +206,16 @@
                 \item It does not remove the outlier, though (lecture 2)
             \end{itemize}
         \end{column}
-        \begin{column}{0.38\textwidth}
-            \includegraphics[width=\textwidth, height=0.66\textheight, keepaspectratio]{figures/fig_scalers_outlier.pdf}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_scalers_outlier.pdf}
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}{Skewed features}
     \centering
-    \includegraphics[width=\textwidth, height=0.27\textheight, keepaspectratio]{figures/fig_skew_transforms.pdf}
+    \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_skew_transforms.pdf}
 
     {\scriptsize Price of 53{,}940 diamonds (\texttt{ggplot2::diamonds})}
     \raggedright
@@ -219,7 +223,6 @@
         \item Scaling is linear and keeps the shape: skewness is 1.62 before and after standardizing
         \item Taking $\log x$ of a positive, right-skewed feature brings the skewness down to 0.12
         \item Box-Cox, $(x^\lambda - 1)/\lambda$, picks $\lambda$ by maximum likelihood; $\lambda = -0.07$ is close to the log, and the skewness drops to 0.02
-        \item Yeo-Johnson extends Box-Cox to zero and negative values. Transform first, then scale
     \end{itemize}
 \end{frame}
 
@@ -228,6 +231,7 @@
         \item Box-Cox defines its $\lambda = 0$ member as $\log x$, which is the limit of $(x^\lambda - 1)/\lambda$ as $\lambda \to 0$
         \item Transforming a skewed feature helps models that are sensitive to large values, such as linear models and distance-based methods
         \item Trees are unaffected by any increasing transformation
+        \item Yeo-Johnson extends Box-Cox to zero and negative values. Transform first, then scale
     \end{itemize}
 \end{frame}
 
@@ -344,7 +348,8 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_hypercube_edge.pdf}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_hypercube_edge.pdf}
         \end{column}
     \end{columns}
 \end{frame}
@@ -362,7 +367,8 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_nn_distance.pdf}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_nn_distance.pdf}
 
             {\scriptsize The curve is the formula; the dots come from simulation (0.516 at $p = 10$)}
         \end{column}
@@ -371,7 +377,7 @@
 
 \begin{frame}{Distance concentration}
     \centering
-    \includegraphics[width=\textwidth, height=0.36\textheight, keepaspectratio]{figures/fig_distance_concentration.pdf}
+    \includegraphics[width=\textwidth, height=0.44\textheight, keepaspectratio]{figures/fig_distance_concentration.pdf}
 
     {\scriptsize All pairwise distances between 500 uniform points in $[0, 1]^p$, divided by their mean}
     \raggedright
@@ -384,7 +390,7 @@
 
 \begin{frame}{Volume lives in the corners and near the surface}
     \centering
-    \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_ball_cube.pdf}
+    \includegraphics[width=\textwidth, height=0.42\textheight, keepaspectratio]{figures/fig_ball_cube.pdf}
     \raggedright
     \begin{itemize}
         \item The unit ball fills 0.785 of the cube $[-1, 1]^p$ when $p = 2$ and 0.524 when $p = 3$, but only $2.5 \times 10^{-3}$ when $p = 10$ and $2.5 \times 10^{-8}$ when $p = 20$
@@ -413,7 +419,8 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.5\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_p_vs_n.pdf}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_p_vs_n.pdf}
 
             {\scriptsize Median over 50 simulated data sets; 1{,}000 test points}
         \end{column}
@@ -439,7 +446,8 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.5\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_knn_noise_features.pdf}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_knn_noise_features.pdf}
 
             {\scriptsize 200 training and 1{,}000 test points; mean of 30 runs}
         \end{column}
@@ -532,7 +540,7 @@
 \begin{frame}{Filter: redundant and constant features}
     \begin{columns}[T]
         \begin{column}{0.56\textwidth}
-            \begin{itemize}
+                        \begin{itemize}
                 \item The Credit data (ISLR2) record the balances of 400 card holders, with 11 predictor columns
                 \item Limit and Rating are nearly the same variable ($r = 0.997$), the only pair above 0.9 (collinearity, lecture 4)
                 \item Keep one; it hardly matters which, since both correlate about equally with Balance (0.862 and 0.864)
@@ -540,26 +548,27 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.42\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_filter_corr.pdf}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_filter_corr.pdf}
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}{Filter: univariate scores}
     \centering
-    \includegraphics[width=\textwidth, height=0.3\textheight, keepaspectratio]{figures/fig_filter_scores.pdf}
+    \includegraphics[width=\textwidth, height=0.44\textheight, keepaspectratio]{figures/fig_filter_scores.pdf}
     \raggedright
     \footnotesize
     \begin{itemize}
         \item Simulation with $n = 200$ and binary $y$: $x_1, \dots, x_5$ are informative, $x_6$ is a noisy copy of $x_1$ ($r = 0.954$), and $x_7, \dots, x_{30}$ are noise
         \item The $F$ statistic ($F = t^2$ for two classes) compares class means; use the correlation for a numeric $y$, and $\chi^2$ for categorical features
-        \item Mutual information $I(X; Y)$ measures how much knowing $X$ reduces uncertainty about $Y$; it is 0 only under independence and also picks up nonlinear dependence
         \item Both scores rank $x_6$ second: a filter judges features one at a time, so it cannot see that $x_6$ repeats $x_1$
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Mutual information}
     \begin{itemize}
+        \item Mutual information $I(X; Y)$ measures how much knowing $X$ reduces uncertainty about $Y$; it is 0 only under independence and also picks up nonlinear dependence
         \item Defined as $\displaystyle I(X; Y) = \sum_{x, y} p(x, y) \log \frac{p(x, y)}{p(x)\,p(y)}$, measured in nats with the natural logarithm
         \item Here each feature is cut into 10 bins at its deciles, and the probabilities are estimated by relative frequencies; scikit-learn's \texttt{mutual\_info\_classif} uses a nearest-neighbor estimator instead
         \item Mutual information is noisier than the $F$ statistic: the largest value among the 24 noise features (0.05) exceeds that of the informative $x_5$ (0.036)
@@ -578,7 +587,7 @@
 
 \begin{frame}{Filter pitfall: interactions}
     \centering
-    \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{figures/fig_xor.pdf}
+    \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_xor.pdf}
     \raggedright
     \begin{itemize}
         \item In this ``XOR'' data set of 400 uniform points, the class is 1 when $x_1$ and $x_2$ have the same sign
@@ -603,16 +612,17 @@
 
 \begin{frame}{Wrapper: forward and backward selection}
     \begin{columns}[T]
-        \begin{column}{0.6\textwidth}
-            \begin{itemize}
+        \begin{column}{0.56\textwidth}
+                        \begin{itemize}
                 \item Forward starts empty and keeps adding the most helpful feature: $1 + p(p + 1)/2$ fits, 67 for Credit
                 \item Backward starts full and drops the least useful one; it needs $n > p$
                 \item Both are greedy. At size 4, best subset picks Income, Limit, Cards, Student; forward, stuck with Rating, ends with Income, Limit, Rating, Student
                 \item BIC chooses 4 features for best subset and backward, 5 for forward
             \end{itemize}
         \end{column}
-        \begin{column}{0.38\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_subset_selection.pdf}
+        \begin{column}{0.42\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_subset_selection.pdf}
 
             {\scriptsize Credit: BIC by size; circles mark the minima}
         \end{column}
@@ -630,46 +640,47 @@
 
 \begin{frame}{Wrapper: recursive feature elimination}
     \begin{columns}[T]
-        \begin{column}{0.58\textwidth}
-            \begin{itemize}
+        \begin{column}{0.56\textwidth}
+                        \begin{itemize}
                 \item Fit the model on all features, drop the weakest (smallest $|\hat{\beta}_j|$ on standardized features, or lowest importance), refit, and repeat
                 \item Here: logistic regression on the 30-feature simulation, with RFE rerun inside each of 10 CV folds
                 \item CV accuracy is 0.79 with all 30 features and peaks at 0.82 with 5
                 \item On all the data, RFE ranks $x_1, \dots, x_5$ first: exactly the informative features
             \end{itemize}
         \end{column}
-        \begin{column}{0.4\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_rfe.pdf}
+        \begin{column}{0.42\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_rfe.pdf}
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}{Embedded: the lasso}
     \begin{itemize}
-        \item Minimize $\frac{1}{2n}\lVert \mathbf{y} - \mathbf{X}\boldsymbol{\beta} \rVert^2 + \lambda \sum_j |\beta_j|$: the $L_1$ penalty sets some coefficients exactly to 0; ridge only shrinks them
+        \item Minimize $\frac{1}{2n}\lVert \mathbf{y} - \mathbf{X}\boldsymbol{\beta} \rVert^2 + \lambda \sum_j |\beta_j|$: the $L_1$ penalty sets some coefficients exactly to 0; ridge only shrinks them, and at the same $\lambda$ sets none exactly to 0
     \end{itemize}
     \centering
-    \includegraphics[width=\textwidth, height=0.36\textheight, keepaspectratio]{figures/fig_lasso_path.pdf}
+    \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_lasso_path.pdf}
     \raggedright
     \footnotesize
     \begin{itemize}
         \item On Credit, Rating enters the path first, followed by Limit, Student and Income
         \item With 10-fold CV, $\lambda_{\min}$ keeps all 11 columns (CV MSE 10{,}067), while $\lambda_{1\mathrm{SE}}$, the largest $\lambda$ within one standard error of the minimum, keeps 6: Income, Limit, Rating, Cards, Age, Student (CV MSE 10{,}455)
-        \item Ridge at the same $\lambda$ sets no coefficient exactly to 0
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Embedded: importance from tree ensembles}
     \begin{columns}[T]
-        \begin{column}{0.52\textwidth}
+        \begin{column}{0.5\textwidth}
             \begin{itemize}
                 \item Impurity importance adds up the Gini decrease from every split on a feature, on the training data
                 \item It favors features with many split points: a continuous noise feature ranks second (60.1), above an informative binary one (54.7)
                 \item Permutation importance is the drop in out-of-bag accuracy when a feature is shuffled; noise scores about 0
             \end{itemize}
         \end{column}
-        \begin{column}{0.46\textwidth}
-            \includegraphics[width=\textwidth, height=0.55\textheight, keepaspectratio]{figures/fig_importance.pdf}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_importance.pdf}
 
             {\scriptsize Random forest, 500 trees; mean over 20 data sets of 500 observations}
         \end{column}
@@ -696,7 +707,8 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \includegraphics[width=\textwidth, height=0.62\textheight, keepaspectratio]{figures/fig_selection_leakage.pdf}
+            \centering
+            \includegraphics[width=\textwidth, height=0.75\textheight, keepaspectratio]{figures/fig_selection_leakage.pdf}
         \end{column}
     \end{columns}
 \end{frame}

@@ -152,6 +152,8 @@ d <- Default[c(yes, no), ]
 Xd <- data.frame(balance = d$balance, income = d$income,
                  student = as.numeric(d$student == "Yes"))
 yd <- d$default
+report("Full Default data: share of customers who do not default (%)",
+       100 * mean(Default$default == "No"), 1)
 report("Subsample size and number of defaults",
        c(n = nrow(d), defaults = sum(yd == "Yes")), 0)
 report("SD of balance and income in the subsample",

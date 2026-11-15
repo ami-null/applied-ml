@@ -27,6 +27,7 @@ Iterations to relative error 1e-6, raw: 146
 Iterations to relative error 1e-6, standardized: 3
 
 ## Which models need scaling: balanced Default subsample
+Full Default data: share of customers who do not default (%): 96.7
 Subsample size and number of defaults: n = 666, defaults = 333
 SD of balance and income in the subsample: balance = 602, income = 13,616
 Classification tree: mean test accuracy (raw, standardized): Raw = 0.869, Standardized = 0.869

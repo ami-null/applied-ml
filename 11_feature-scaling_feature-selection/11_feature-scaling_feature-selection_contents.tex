@@ -1,4 +1,4 @@
-% Every number on these slides is produced by the R scripts in figures/ and
+% Every number on these slides is produced by the scripts in figures/ and
 % recorded in figures/numbers_*.txt; quote from those files only.
 
 \section{Feature scaling}
@@ -88,7 +88,7 @@
 \begin{frame}{Scalers: details}
     \begin{itemize}
         \item All three scalers are linear maps $x \mapsto (x - a)/b$, fitted separately for each feature: they shift and stretch a feature but never change the shape of its distribution
-        \item R's \texttt{scale()} divides by the sample SD (denominator $n - 1$), scikit-learn's \texttt{StandardScaler} by the SD with denominator $n$; the difference only matters for tiny samples
+        \item pandas' \texttt{std()} divides by $n - 1$ (the sample SD), scikit-learn's \texttt{StandardScaler} by the SD with denominator $n$; the difference only matters for tiny samples
         \item In this course, ``scaling'' always means a per-feature transformation; row normalization is named explicitly whenever it is used
         \item In scikit-learn the two are \texttt{MinMaxScaler} (columns) and \texttt{Normalizer} (rows)
     \end{itemize}
@@ -110,6 +110,9 @@
         Trees, random forests, boosting & no & splits use only the order of values \\
         \bottomrule
     \end{tabular}
+
+    \medskip
+    {\scriptsize SVM: support vector machine. RBF: radial basis function, a kernel defined on the next slides}
 \end{frame}
 
 \begin{frame}{Reading the table}
@@ -143,7 +146,9 @@
 \begin{frame}{Behind the Default results}
     \begin{itemize}
         \item Why a balanced subsample: in the full data, 96.7\% of customers do not default, and accuracy cannot tell the models apart
-        \item $k$-NN uses $k = 15$, and the SVM uses R's \texttt{e1071} defaults (cost $1$, $\gamma = 1/p$)
+        \item $k$-NN uses $k = 15$
+        \item The SVM uses a radial basis function (RBF) kernel, $K(\mathbf{x}, \mathbf{x}') = \exp(-\gamma \lVert \mathbf{x} - \mathbf{x}' \rVert^2)$, with $\gamma = 1/p$ and cost $C = 1$: a similarity between two points that decays with the distance between them
+        \item Like $k$-NN, it sees the data only through distances, so scaling should affect it in the same way; that is why it is in the comparison
         \item On the raw data, income differences of thousands of dollars dominate every distance, so $k$-NN effectively ignores balance, the feature that predicts default
         \item The student dummy is left as $0/1$ in both versions
     \end{itemize}
@@ -191,7 +196,7 @@
     \begin{itemize}
         \item The three predictors next to Income (Age, Cards, Education) are almost uncorrelated with it ($r = 0.18$, $-0.02$ and $-0.03$), so Income's coefficient shrinks because of its own penalty
         \item The $\lambda$ at which it halves is close to the variance of Income in each unit: $1.24 \times 10^9$ in dollars squared, $1{,}242$ in thousands, $1$ standardized
-        \item R's \texttt{glmnet} standardizes the predictors by default; scikit-learn's \texttt{Ridge} and \texttt{Lasso} do not, so put a \texttt{StandardScaler} in front of them
+        \item scikit-learn's \texttt{Ridge} and \texttt{Lasso} do not standardize the predictors, so put a \texttt{StandardScaler} in front of them
     \end{itemize}
 \end{frame}
 
@@ -217,7 +222,7 @@
     \centering
     \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_skew_transforms.pdf}
 
-    {\scriptsize Price of 53{,}940 diamonds (\texttt{ggplot2::diamonds})}
+    {\scriptsize Price of 53{,}940 diamonds (the \texttt{diamonds} data from R's \texttt{ggplot2} package)}
     \raggedright
     \begin{itemize}
         \item Scaling is linear and keeps the shape: skewness is 1.62 before and after standardizing
@@ -309,7 +314,7 @@
         \item 0/1 dummies (lecture 2 encodings) are usually left as they are: the unit ``has the category or not'' is already interpretable
         \item In the Default example the student dummy stayed 0/1 in both versions
         \item With ridge or lasso, a dummy's coefficient is penalized like any other; standardizing a dummy divides it by $\sqrt{\hat{p}(1 - \hat{p})}$, which changes how strongly rare categories are penalized
-        \item Software such as \texttt{glmnet} standardizes every column, dummies included; whichever choice you make, make it on purpose and apply it the same way in training and prediction
+        \item A \texttt{StandardScaler} applied to all columns standardizes the dummies too; whichever choice you make, make it on purpose and apply it the same way in training and prediction
         \item Ordinal codes ($1, 2, 3, \dots$) can be scaled like numeric features if the spacing is meaningful
     \end{itemize}
 \end{frame}
@@ -541,7 +546,7 @@
     \begin{columns}[T]
         \begin{column}{0.56\textwidth}
                         \begin{itemize}
-                \item The Credit data (ISLR2) record the balances of 400 card holders, with 11 predictor columns
+                \item The Credit data (ISLP package): balances of 400 card holders, 11 predictor columns
                 \item Limit and Rating are nearly the same variable ($r = 0.997$), the only pair above 0.9 (collinearity, lecture 4)
                 \item Keep one; it hardly matters which, since both correlate about equally with Balance (0.862 and 0.864)
                 \item Also drop constant or nearly constant features (variance threshold)

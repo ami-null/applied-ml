@@ -448,7 +448,7 @@
 
 \begin{frame}{DBSCAN: density-based clustering}
     \begin{itemize}
-        \item Clusters are dense regions separated by sparse regions; $K$ is not needed
+        \item DBSCAN (Density-Based Spatial Clustering of Applications with Noise): clusters are dense regions separated by sparse regions; $K$ is not needed
         \item Two settings: a radius $\varepsilon$ and a count minPts. A core point has at least minPts observations (itself included) within distance $\varepsilon$
         \item A cluster is a set of core points linked through neighbors within $\varepsilon$, plus the non-core points within $\varepsilon$ of them (border points); all other points are noise
         \item Finds clusters of any shape and flags outliers as noise, but one $\varepsilon$ struggles when clusters differ in density
@@ -472,7 +472,7 @@
         \[
             p(\mathbf{x}) = \sum_{k=1}^{K} \pi_k \, N(\mathbf{x};\, \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)
         \]
-        \item Fitted by maximum likelihood with the EM algorithm, which alternates like K-means: compute each observation's probability of belonging to each cluster, then update $\pi_k$, $\boldsymbol{\mu}_k$, $\boldsymbol{\Sigma}_k$ using these probabilities as weights
+        \item Fitted by maximum likelihood with the expectation--maximization (EM) algorithm, which alternates like K-means: compute each observation's probability of belonging to each cluster (E-step), then update $\pi_k$, $\boldsymbol{\mu}_k$, $\boldsymbol{\Sigma}_k$ using these probabilities as weights (M-step)
         \item Soft clustering: each observation gets probabilities $P(C_k \mid \mathbf{x}^{(i)})$; take the most probable cluster if a single label is needed
         \item Clusters can differ in size, spread and orientation; $K$ and the form of $\boldsymbol{\Sigma}_k$ can be chosen with BIC
     \end{itemize}
@@ -494,8 +494,10 @@
 \begin{frame}{Why evaluating clusters is hard}
     \begin{sitemize}
         \item Without a response there is no ground truth, and every clustering algorithm returns clusters even when the data have no cluster structure.
-        \item Evaluation therefore asks several questions: how many clusters, how compact and well separated they are, whether they agree with known labels, and whether they are stable.
-        \item Internal measures use only the data and the partition; external measures compare with known labels; stability checks whether the result survives small changes.
+        % \item Evaluation therefore asks several questions: how many clusters, how compact and well separated they are, whether they agree with known labels, and whether they are stable.
+        \item Evaluation therefore asks several questions: how many clusters, how compact and well separated they are, and whether they are stable.
+        % \item Internal measures use only the data and the partition; external measures compare with known labels; stability checks whether the result survives small changes.
+        \item Internal measures use only the data and the partition; stability checks whether the result survives small changes.
     \end{sitemize}
 \end{frame}
 
@@ -553,26 +555,26 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}{External measure: Rand index and adjusted Rand index}
-    \begin{itemize}
-        \item When reference labels exist, compare the partition $U$ with the labels $V$ through pairs of observations
-        \item Rand index: the fraction of pairs on which $U$ and $V$ agree, i.e. both place the pair together or both place it apart
-        \item The adjusted Rand index corrects for agreement by chance. With $n_{uv}$ the number of observations in cluster $u$ of $U$ and class $v$ of $V$, $n_{u\cdot}$, $n_{\cdot v}$ the row and column totals, and $E$ the value of $\sum_{u,v} \binom{n_{uv}}{2}$ expected by chance,
-        \[
-            \text{ARI} = \frac{\sum_{u,v} \binom{n_{uv}}{2} - E}{\frac{1}{2} \Bigl( \sum_{u} \binom{n_{u\cdot}}{2} + \sum_{v} \binom{n_{\cdot v}}{2} \Bigr) - E}, \quad E = \frac{\sum_{u} \binom{n_{u\cdot}}{2} \sum_{v} \binom{n_{\cdot v}}{2}}{\binom{n}{2}}
-        \]
-        \item ARI $= 1$ for identical partitions and about $0$ for random labeling (it can be negative)
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{NCI60: agreement with cancer type}
-    \centering
-    \includegraphics[width=\textwidth, height=0.42\textheight, keepaspectratio]{figures/fig_nci_ari.pdf}
-    \begin{itemize}
-        \item ARI between each clustering and the 14 cancer types, for $K = 4$ and $K = 14$ clusters
-        \item Labels are not necessarily the true clusters: a low ARI may reflect a mismatch between the labels and the gene expression, not a bad clustering
-    \end{itemize}
-\end{frame}
+% \begin{frame}{External measure: Rand index and adjusted Rand index}
+%     \begin{itemize}
+%         \item When reference labels exist, compare the partition $U$ with the labels $V$ through pairs of observations
+%         \item Rand index: the fraction of pairs on which $U$ and $V$ agree, i.e. both place the pair together or both place it apart
+%         \item The adjusted Rand index corrects for agreement by chance. With $n_{uv}$ the number of observations in cluster $u$ of $U$ and class $v$ of $V$, $n_{u\cdot}$, $n_{\cdot v}$ the row and column totals, and $E$ the value of $\sum_{u,v} \binom{n_{uv}}{2}$ expected by chance,
+%         \[
+%             \text{ARI} = \frac{\sum_{u,v} \binom{n_{uv}}{2} - E}{\frac{1}{2} \Bigl( \sum_{u} \binom{n_{u\cdot}}{2} + \sum_{v} \binom{n_{\cdot v}}{2} \Bigr) - E}, \quad E = \frac{\sum_{u} \binom{n_{u\cdot}}{2} \sum_{v} \binom{n_{\cdot v}}{2}}{\binom{n}{2}}
+%         \]
+%         \item ARI $= 1$ for identical partitions and about $0$ for random labeling (it can be negative)
+%     \end{itemize}
+% \end{frame}
+%
+% \begin{frame}{NCI60: agreement with cancer type}
+%     \centering
+%     \includegraphics[width=\textwidth, height=0.42\textheight, keepaspectratio]{figures/fig_nci_ari.pdf}
+%     \begin{itemize}
+%         \item ARI between each clustering and the 14 cancer types, for $K = 4$ and $K = 14$ clusters
+%         \item Labels are not necessarily the true clusters: a low ARI may reflect a mismatch between the labels and the gene expression, not a bad clustering
+%     \end{itemize}
+% \end{frame}
 
 \begin{frame}{Stability and robustness}
     \begin{itemize}
@@ -596,15 +598,25 @@
 \begin{frame}{Evaluation tools: summary}
     \centering
     \footnotesize
-    \begin{tabular}{@{}l l p{5.6cm}@{}}
+    % \begin{tabular}{@{}l l p{5.6cm}@{}}
+    %     \toprule
+    %     Tool & Needs labels? & Answers \\
+    %     \midrule
+    %     WSS and elbow & no & how much variation $K$ clusters explain; choosing $K$ \\
+    %     Silhouette & no & how well separated and compact; choosing $K$ \\
+    %     Cophenetic correlation & no & how well a dendrogram preserves the dissimilarities \\
+    %     Adjusted Rand index & yes & agreement with a reference partition \\
+    %     Stability (resampling) & no & whether the clusters are reproducible \\
+    %     \bottomrule
+    % \end{tabular}
+    \begin{tabular}{@{}l l@{}}
         \toprule
-        Tool & Needs labels? & Answers \\
+        Tool & Answers \\
         \midrule
-        WSS and elbow & no & how much variation $K$ clusters explain; choosing $K$ \\
-        Silhouette & no & how well separated and compact; choosing $K$ \\
-        Cophenetic correlation & no & how well a dendrogram preserves the dissimilarities \\
-        Adjusted Rand index & yes & agreement with a reference partition \\
-        Stability (resampling) & no & whether the clusters are reproducible \\
+        WSS and elbow & how much variation $K$ clusters explain; choosing $K$ \\
+        Silhouette & how well separated and compact; choosing $K$ \\
+        Cophenetic correlation & how well a dendrogram preserves the dissimilarities \\
+        Stability (resampling) & whether the clusters are reproducible \\
         \bottomrule
     \end{tabular}
 \end{frame}
@@ -662,7 +674,8 @@
         Divisive & \texttt{sklearn.cluster.BisectingKMeans} \\
         DBSCAN & \texttt{sklearn.cluster.DBSCAN(eps=..., min\_samples=...)} \\
         Gaussian mixture & \texttt{sklearn.mixture.GaussianMixture}; \texttt{predict\_proba}, \texttt{bic} \\
-        Silhouette, ARI & \texttt{sklearn.metrics.silhouette\_score}, \texttt{adjusted\_rand\_score} \\
+        % Silhouette, ARI & \texttt{sklearn.metrics.silhouette\_score}, \texttt{adjusted\_rand\_score} \\
+        Silhouette & \texttt{sklearn.metrics.silhouette\_score} \\
         \bottomrule
     \end{tabular}
 
@@ -676,7 +689,8 @@
         \item Standardize unless variables share a meaningful scale; correlation distance for profile shape, Gower for mixed data
         \item K-means minimizes WSS with Lloyd's algorithm (use many starts); K-medoids takes any dissimilarity; hierarchical clustering gives a dendrogram, and the linkage matters
         \item DBSCAN finds clusters of any shape and flags noise; Gaussian mixtures give soft assignments
-        \item Evaluate with elbow and silhouette for $K$, cophenetic correlation for dendrograms, ARI when labels exist, and stability always
+        % \item Evaluate with elbow and silhouette for $K$, cophenetic correlation for dendrograms, ARI when labels exist, and stability always
+        \item Evaluate with elbow and silhouette for $K$, cophenetic correlation for dendrograms, and stability always
         \item Interpret with cluster profiles and plots; reading: ISLP 12.4, Python lab 12.5
     \end{itemize}
 \end{frame}

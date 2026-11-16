@@ -32,7 +32,7 @@ df$data <- factor(df$data, levels = c("Raw", "Standardized"))
 p <- ggplot(df, aes(variable, share, fill = data)) +
     geom_col(position = position_dodge(0.8), width = 0.75) +
     scale_fill_manual(values = okabe[1:2]) +
-    labs(x = NULL, y = "Share of total variance (%)", fill = NULL)
+    labs(x = NULL, y = "Share of variance (%)", fill = NULL)
 ggsave("fig_usarrests_variance.pdf", p, width = 3.2, height = 2.8)
 
 
@@ -136,7 +136,7 @@ p <- contour_panel(g_raw, paste0("Raw: ", g_raw$iters, " iterations"),
                    c(-0.6, 3.2), c(-0.6, 1.8)) +
     contour_panel(g_std, paste0("Standardized: ", g_std$iters, " iterations"),
                   c(-0.6, 3.6), c(-0.6, 3.6))
-ggsave("fig_scaling_contours.pdf", p, width = 6.2, height = 2.7)
+ggsave("fig_scaling_contours.pdf", p, width = 6.6, height = 2.7)
 
 
 # ---- Which models need scaling? Balanced Default subsample --------------

@@ -1,0 +1,14 @@
+# Numbers quoted on the lecture 12 slides
+# produced by simulated_2d.R; do not edit by hand
+
+## First principal component: simulated 2-D data
+Variance along PC1 and PC2 (divisor n): PC1 = 4.58, PC2 = 0.23
+Mean squared distance to the PC1 line: 0.231
+Variance along PC1 + mean squared distance: 4.814
+Total variance (divisor n): 4.814
+
+## Variance is not relevance: simulated two classes
+Share of variance on PC1 (%): 89
+PC1 loadings: x1 = 0.999, x2 = -0.048
+Accuracy of a threshold on PC1: 0.56
+Accuracy of a threshold on PC2: 0.955

@@ -1,0 +1,8 @@
+# Numbers quoted on the lecture 12 slides
+# produced by swiss_roll.R; do not edit by hand
+
+## Swiss roll
+Share of variance, PC1 and PC2 (%): 41.6, 31.9
+Share of variance on PC3 (%): 26.5
+Share of the 10 nearest neighbours on the sheet that PCA (2 PCs) keeps: 0.17
+Share of the 10 nearest neighbours on the sheet that t-SNE keeps: 0.61

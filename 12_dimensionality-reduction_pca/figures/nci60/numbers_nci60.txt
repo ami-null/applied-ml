@@ -1,0 +1,37 @@
+# Numbers quoted on the lecture 12 slides
+# produced by nci60.R; do not edit by hand
+
+## NCI60 data
+Observations and genes: 64, 6,830
+Cancer types: 14
+
+## PCA on the standardized genes
+PVE of components 1-5 (%): 11.4, 6.8, 5.8, 4.2, 3.7
+Cumulative PVE, first 5 components (%): 31.8
+Cumulative PVE, first 10 components (%): 46.1
+Components needed for 90% of the variance: 44
+Components with nonzero variance (at most n - 1): 63
+
+## Two raw genes vs two principal components
+Between-type share of variance in PC1-PC2 plane: 0.727
+Between-type share, median of 1,000 random gene pairs: 0.322
+Between-type share, best of 1,000 random gene pairs: 0.657
+
+## Hierarchical clustering: all genes vs first PCs
+Clusters K: 4
+Principal components used: 5
+Majority-type purity, all genes: 0.344
+Majority-type purity, first PCs: 0.328
+Cluster sizes, all genes: 40, 7, 8, 9
+Cluster sizes, first PCs: 34, 20, 6, 4
+Share of observation pairs treated alike by both clusterings: 0.647
+Adjusted Rand index vs cancer type, all genes: 0.127
+Adjusted Rand index vs cancer type, first PCs: 0.135
+Adjusted Rand index, 2 PCs, K = 4: 0.227
+Adjusted Rand index, 5 PCs, K = 4: 0.135
+Adjusted Rand index, 10 PCs, K = 4: 0.208
+Adjusted Rand index, 20 PCs, K = 4: 0.126
+Adjusted Rand index, 63 PCs, K = 4: 0.127
+Adjusted Rand index, all genes, K = 14: 0.265
+Adjusted Rand index, first 5 PCs, K = 14: 0.388
+Adjusted Rand index, first 10 PCs, K = 14: 0.382

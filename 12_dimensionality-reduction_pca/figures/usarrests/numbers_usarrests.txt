@@ -1,0 +1,28 @@
+# Numbers quoted on the lecture 12 slides
+# produced by usarrests.R; do not edit by hand
+
+## USArrests: PCA via the SVD
+Singular values: 11.024, 6.964, 4.180, 2.915
+sigma_j^2 / (n - 1): 2.480, 0.990, 0.357, 0.173
+prcomp variances (sdev^2): 2.480, 0.990, 0.357, 0.173
+Max difference, |loadings from svd| vs |prcomp|: 0.00e+00
+Max difference, |U Sigma| vs |scores from prcomp|: 2.22e-15
+Largest correlation between two different scores: 4.53e-16
+Loadings PC1: Murder = 0.536, Assault = 0.583, UrbanPop = 0.278, Rape = 0.543
+Loadings PC2: Murder = -0.418, Assault = -0.188, UrbanPop = 0.873, Rape = 0.167
+Loadings PC3: Murder = 0.341, Assault = 0.268, UrbanPop = 0.378, Rape = -0.818
+Loadings PC4: Murder = 0.649, Assault = -0.743, UrbanPop = 0.134, Rape = 0.089
+PVE (%): 62.0, 24.7, 8.9, 4.3
+Cumulative PVE (%): 62.0, 86.8, 95.7, 100.0
+Components with variance above 1 (Kaiser rule): 1
+Squared error of the rank-1 approximation: 74.468
+Sum of the dropped sigma^2, k = 1: 74.468
+Squared error of the rank-2 approximation: 25.97
+Sum of the dropped sigma^2, k = 2: 25.97
+Squared error of the rank-3 approximation: 8.498
+Sum of the dropped sigma^2, k = 3: 8.498
+
+## USArrests: PCA without standardizing
+Raw: PVE (%): 96.6, 2.8, 0.6, 0.1
+Raw: PC1 loadings: Murder = 0.042, Assault = 0.995, UrbanPop = 0.046, Rape = 0.075
+Standardized: PC1 loadings: Murder = 0.536, Assault = 0.583, UrbanPop = 0.278, Rape = 0.543

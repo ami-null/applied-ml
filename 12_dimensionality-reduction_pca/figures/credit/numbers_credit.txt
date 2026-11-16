@@ -1,0 +1,7 @@
+# Numbers quoted on the lecture 12 slides
+# produced by credit.R; do not edit by hand
+
+## Correlated features: Credit Limit and Rating
+Correlation of Limit and Rating: 0.997
+Share of variance on PC1 (%): 99.8
+PC1 loadings (Limit, Rating): Limit = 0.707, Rating = 0.707

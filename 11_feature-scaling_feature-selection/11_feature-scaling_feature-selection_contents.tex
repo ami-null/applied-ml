@@ -218,6 +218,38 @@
     \end{columns}
 \end{frame}
 
+\begin{frame}{Which scaler when? Examples}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{@{}p{0.17\textwidth} p{0.35\textwidth} p{0.42\textwidth}@{}}
+        \toprule
+        Scaler & Use it when & Typical features \tabularnewline
+        \midrule
+        Standardization & \raggedright the feature is roughly symmetric with no extreme values; the default choice & \raggedright a patient's height, weight or blood pressure; exam scores; daily temperature \tabularnewline
+        Min-max & \raggedright the feature has natural, known bounds, or the model expects inputs in $[0, 1]$ & \raggedright pixel intensities 0--255 for a neural net; ratings on a 1--5 scale; percentages \tabularnewline
+        Robust & \raggedright a few values sit far from the rest and you want to keep them & \raggedright household income; house prices; payment amounts in fraud detection \tabularnewline
+        \bottomrule
+    \end{tabular}
+
+    \svspace{0.6em}
+    \raggedright
+    \normalsize
+    \begin{itemize}
+        \item Ask what the extremes look like. Bounded and fixed: min-max. Unbounded but well behaved: standardize. A long tail or rare extremes: robust (or a log first)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Choosing a scaler in practice}
+    \begin{itemize}
+        \item When unsure, standardize; if a box plot (lecture 2) shows a few points far outside the whiskers, switch to robust scaling
+        \item Min-max is safe when the measurement fixes the bounds (a pixel is always 0--255). Fitted on sample extremes, it breaks when a new house costs more than any in the training data: its scaled value exceeds 1
+        \item Robust scaling keeps outliers far out instead of squashing the rest; in fraud detection an unusually large payment should stay unusual
+        \item Income and prices often do better logged first, then standardized: robust scaling alone keeps the long tail
+        \item A \texttt{ColumnTransformer} can scale columns differently: robust for income, min-max for ratings, standardization for age
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Skewed features}
     \centering
     \includegraphics[width=\textwidth, height=0.4\textheight, keepaspectratio]{figures/fig_skew_transforms.pdf}

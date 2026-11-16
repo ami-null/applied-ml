@@ -1,0 +1,54 @@
+# Numbers quoted on the lecture 12 slides
+# produced by digits.R; do not edit by hand
+
+## Digits data
+Images and pixels: 3,823, 64
+Pixel value range: 0, 16
+Constant pixels (always the same value): 2
+
+## PCA on the digits (pixels centered, not scaled)
+PVE of components 1-3 (%): 14.9, 13.4, 11.7
+Cumulative PVE, k = 2 (%): 28.3
+Cumulative PVE, k = 10 (%): 74.1
+Cumulative PVE, k = 30 (%): 95.8
+Cumulative PVE, k = 64 (%): 100
+Components needed for 90% of the variance: 21
+Components with nonzero variance: 62
+Between-digit share of variance in the PC1-PC2 plane: 0.741
+Between-digit share, median of 1,000 random pixel pairs: 0.415
+Mean PC1 and PC2 for digit 0: PC1 = -13.5, PC2 = 4.6
+Mean PC1 and PC2 for digit 1: PC1 = 3.8, PC2 = -9.2
+Mean PC1 and PC2 for digit 2: PC1 = -0.6, PC2 = 14.8
+Mean PC1 and PC2 for digit 3: PC1 = 9.4, PC2 = 13.8
+Mean PC1 and PC2 for digit 4: PC1 = -6.7, PC2 = -21.5
+Mean PC1 and PC2 for digit 5: PC1 = 0.8, PC2 = 3.3
+Mean PC1 and PC2 for digit 6: PC1 = -23.8, PC2 = -3.6
+Mean PC1 and PC2 for digit 7: PC1 = 21.0, PC2 = -9.4
+Mean PC1 and PC2 for digit 8: PC1 = 1.6, PC2 = 1.8
+Mean PC1 and PC2 for digit 9: PC1 = 7.3, PC2 = 5.9
+Mean squared reconstruction error per pixel, k = 2: 13.484
+Mean squared reconstruction error per pixel, k = 10: 4.863
+Mean squared reconstruction error per pixel, k = 30: 0.794
+Mean squared reconstruction error per pixel, k = 64: 0
+Mean squared reconstruction error from sum of dropped variances, k = 10: 4.863
+
+## Denoising: PCA fitted on noisy digits
+Noise SD (pixel values range 0 to 16): 4
+MSE of the noisy test images against the clean ones: 15.86
+MSE against clean after keeping k = 5 components: 10.14
+MSE against clean after keeping k = 10 components: 7.54
+MSE against clean after keeping k = 20 components: 7.15
+MSE against clean after keeping k = 40 components: 10.36
+Best k (smallest error against the clean images): 16
+Smallest MSE against the clean images: 6.96
+
+## k-NN on the first k principal components (digits)
+Training and test images: 3,823, 1,797
+Test accuracy, k-NN (5 neighbours) on all 64 pixels: 0.978
+Test accuracy on the first 2 components: 0.563
+Test accuracy on the first 5 components: 0.904
+Test accuracy on the first 10 components: 0.953
+Test accuracy on the first 20 components: 0.978
+Test accuracy on the first 30 components: 0.979
+Best number of components: 40
+Best test accuracy: 0.981

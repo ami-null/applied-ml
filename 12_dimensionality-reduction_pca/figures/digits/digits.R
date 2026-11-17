@@ -1,10 +1,11 @@
-# digits.R: UCI optdigits (8x8 handwritten digits; frames 2.9, 2.10, 3.1, 3.4, 3.7)
+# digits.R: UCI optdigits (8x8 handwritten digits; frames 2.9, 2.10, 3.1, 3.4, 3.7, 3.9)
 # The data are downloaded once into data/ (commit the files so reruns need no network)
-# Produces: fig_digits_scree.pdf, fig_digits_pca.pdf, fig_digits_reconstruction.pdf, fig_digits_denoise.pdf, fig_digits_knn_pca.pdf, numbers_digits.txt
+# Produces: fig_digits_tsne.pdf, fig_digits_scree.pdf, fig_digits_pca.pdf, fig_digits_reconstruction.pdf, fig_digits_denoise.pdf, fig_digits_knn_pca.pdf, numbers_digits.txt
 # Run from this folder (helpers.R is one level up)
 source("../helpers.R")
 library(patchwork)
 library(readr)
+library(Rtsne)
 
 numbers_start("digits")
 
@@ -206,3 +207,30 @@ p <- ggplot(df, aes(k, acc)) +
     geom_line(colour = okabe[1]) + geom_point(colour = okabe[1], size = 1.8) +
     labs(x = "Number of principal components used", y = "Test accuracy (5-NN)")
 ggsave("fig_digits_knn_pca.pdf", p, width = 4.4, height = 2.8)
+
+
+# ---- Frame 3.9: nonlinear alternative on real data (t-SNE on the digits) ---
+numbers_section("t-SNE vs PCA on the digits (all 3,823 training images)")
+set.seed(9)
+ts <- Rtsne(X, perplexity = 30, check_duplicates = FALSE, verbose = FALSE)$Y
+pc2 <- pcd$x[, 1:2]
+# leave-one-out 5-NN accuracy in the two-dimensional pictures
+set.seed(10)
+acc_pca2 <- mean(knn.cv(pc2, ytr, k = 5) == ytr)
+acc_tsne2 <- mean(knn.cv(ts, ytr, k = 5) == ytr)
+report("Leave-one-out 5-NN accuracy in the PCA plane (PC1, PC2)", acc_pca2, 3)
+report("Leave-one-out 5-NN accuracy in the t-SNE plane", acc_tsne2, 3)
+report("t-SNE perplexity", 30, 0)
+
+emb <- rbind(
+    data.frame(a = pc2[, 1], b = pc2[, 2], digit = factor(digit), method = "PCA"),
+    data.frame(a = ts[, 1], b = ts[, 2], digit = factor(digit), method = "t-SNE")
+)
+emb$method <- factor(emb$method, levels = c("PCA", "t-SNE"))
+p <- ggplot(emb, aes(a, b, colour = digit)) +
+    geom_text(aes(label = digit), size = 1.8) +
+    scale_colour_manual(values = pal10, guide = "none") +
+    facet_wrap(~method, scales = "free") +
+    labs(x = NULL, y = NULL) +
+    theme(axis.text = element_blank(), panel.grid = element_blank())
+ggsave("fig_digits_tsne.pdf", p, width = 6.4, height = 3.2)

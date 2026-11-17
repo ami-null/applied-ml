@@ -52,3 +52,8 @@ Test accuracy on the first 20 components: 0.978
 Test accuracy on the first 30 components: 0.979
 Best number of components: 40
 Best test accuracy: 0.981
+
+## t-SNE vs PCA on the digits (all 3,823 training images)
+Leave-one-out 5-NN accuracy in the PCA plane (PC1, PC2): 0.587
+Leave-one-out 5-NN accuracy in the t-SNE plane: 0.985
+t-SNE perplexity: 30

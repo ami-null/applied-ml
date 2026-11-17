@@ -40,86 +40,93 @@
 \begin{frame}{Selection vs. extraction, and the plan}
     \begin{itemize}
         \item Selection keeps a subset of the original features: interpretable, but the dropped features are gone
-        \item Extraction builds a few new features, each a linear combination of all the original ones: harder to interpret, but it keeps the shared information of correlated features
-        \item Today's tool is principal component analysis (PCA), which builds the combinations in order of how much variance they capture
+        \item Extraction builds a few new features, each a weighted sum of all the original ones: harder to interpret, but it keeps the shared information of correlated features
+        \item Today's tool is principal component analysis (PCA), which builds the weighted sums in order of how much they differ between observations
         \item Plan
             \begin{enumerate}
-                \item the singular value decomposition (SVD) in brief, because PCA is computed from it
-                \item PCA: definition, interpretation, how many components
+                \item PCA: the idea, how to read it, how many components to keep, how it is computed
                 \item using PCA: regression, visualization, clustering, denoising
             \end{enumerate}
     \end{itemize}
 \end{frame}
 
 
-\section{The SVD in brief}
-
-\begin{frame}{The data matrix}
-    \begin{itemize}
-        \item Collect the data in an $n \times p$ matrix $X$: one row per observation, one column per feature
-        \item Center every column by subtracting its mean; if the features have different units, also divide by the SD (lecture 11)
-        \item From now on, $X$ is this centered (and, where needed, standardized) matrix
-        \item Examples: USArrests has $n = 50$ and $p = 4$; the digits have $n = 3{,}823$ images and $p = 64$ pixels; NCI60 has $n = 64$ and $p = 6{,}830$ genes
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{The singular value decomposition}
-    \begin{columns}[T]
-        \begin{column}{0.5\textwidth}
-            \begin{itemize}
-                \item Every matrix can be written as
-                    \[
-                        X = U \Sigma V^\top
-                    \]
-                \item $U$ and $V$ have orthonormal columns, and $\Sigma$ is diagonal with $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$, the singular values
-                \item In PCA, the columns of $V$ will be the directions (loadings), $U \Sigma$ the new feature values (scores), and $\sigma_j^2$ the variance along direction $j$
-            \end{itemize}
-        \end{column}
-        \begin{column}{0.48\textwidth}
-            \centering
-            \begin{tikzpicture}[x=0.42cm, y=0.5cm, font=\scriptsize]
-                \draw[fill=blue!10] (0, 0) rectangle (3, 5);
-                \node at (1.5, 2.5) {$X$};
-                \node at (1.5, -0.6) {$n \times p$};
-                \node at (3.8, 2.5) {$=$};
-                \draw[fill=orange!15] (4.6, 0) rectangle (7.6, 5);
-                \node at (6.1, 2.5) {$U$};
-                \node at (6.1, -0.6) {$n \times p$};
-                \draw[fill=green!15] (8.0, 2.0) rectangle (11.0, 5);
-                \node at (9.5, 3.5) {$\Sigma$};
-                \node at (9.5, 1.4) {$p \times p$};
-                \draw[fill=orange!15] (11.4, 2.0) rectangle (14.4, 5);
-                \node at (12.9, 3.5) {$V^\top$};
-                \node at (12.9, 1.4) {$p \times p$};
-            \end{tikzpicture}
-
-            \svspace{0.3em}
-            {\scriptsize Shown for $n > p$; $\Sigma$ is zero off the diagonal}
-        \end{column}
-    \end{columns}
-\end{frame}
-
-\begin{frame}{The best low-rank approximation}
-    \begin{itemize}
-        \item Keep only the first $k$ singular values: $X_k = \sum_{j=1}^{k} \sigma_j \mathbf{u}_j \mathbf{v}_j^\top$
-        \item Eckart-Young: among all matrices of rank $k$, $X_k$ is the closest to $X$ in squared error, and the error is
-            \[
-                \sum_{i,j} (x_{ij} - x^{(k)}_{ij})^2 = \sum_{j > k} \sigma_j^2
-            \]
-        \item We state this without proof; it is the one fact used later, for reconstruction and denoising
-        \item The SVD also appears in image compression, recommender systems (latent factors), text analysis (latent semantic analysis) and least squares via the pseudoinverse (lecture 3)
-    \end{itemize}
-\end{frame}
+% ---------------------------------------------------------------------------
+% The SVD section is commented out. PCA is computed from the SVD, which the
+% frames "How software computes PCA" and "Why the SVD?" explain briefly; the
+% frames below went into more detail (the matrix picture and Eckart-Young)
+% and are not needed to use PCA. The data-matrix frame moved to the PCA section.
+% ---------------------------------------------------------------------------
+% \section{The SVD in brief}
+%
+% \begin{frame}{The singular value decomposition}
+%     \begin{columns}[T]
+%         \begin{column}{0.5\textwidth}
+%             \begin{itemize}
+%                 \item Every matrix can be written as
+%                     \[
+%                         X = U \Sigma V^\top
+%                     \]
+%                 \item $U$ and $V$ have orthonormal columns, and $\Sigma$ is diagonal with $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$, the singular values
+%                 \item In PCA, the columns of $V$ will be the directions (loadings), $U \Sigma$ the new feature values (scores), and $\sigma_j^2$ the variance along direction $j$
+%             \end{itemize}
+%         \end{column}
+%         \begin{column}{0.48\textwidth}
+%             \centering
+%             \begin{tikzpicture}[x=0.42cm, y=0.5cm, font=\scriptsize]
+%                 \draw[fill=blue!10] (0, 0) rectangle (3, 5);
+%                 \node at (1.5, 2.5) {$X$};
+%                 \node at (1.5, -0.6) {$n \times p$};
+%                 \node at (3.8, 2.5) {$=$};
+%                 \draw[fill=orange!15] (4.6, 0) rectangle (7.6, 5);
+%                 \node at (6.1, 2.5) {$U$};
+%                 \node at (6.1, -0.6) {$n \times p$};
+%                 \draw[fill=green!15] (8.0, 2.0) rectangle (11.0, 5);
+%                 \node at (9.5, 3.5) {$\Sigma$};
+%                 \node at (9.5, 1.4) {$p \times p$};
+%                 \draw[fill=orange!15] (11.4, 2.0) rectangle (14.4, 5);
+%                 \node at (12.9, 3.5) {$V^\top$};
+%                 \node at (12.9, 1.4) {$p \times p$};
+%             \end{tikzpicture}
+%
+%             \svspace{0.3em}
+%             {\scriptsize Shown for $n > p$; $\Sigma$ is zero off the diagonal}
+%         \end{column}
+%     \end{columns}
+% \end{frame}
+%
+% \begin{frame}{The best low-rank approximation}
+%     \begin{itemize}
+%         \item Keep only the first $k$ singular values: $X_k = \sum_{j=1}^{k} \sigma_j \mathbf{u}_j \mathbf{v}_j^\top$
+%         \item Eckart-Young: among all matrices of rank $k$, $X_k$ is the closest to $X$ in squared error, and the error is
+%             \[
+%                 \sum_{i,j} (x_{ij} - x^{(k)}_{ij})^2 = \sum_{j > k} \sigma_j^2
+%             \]
+%         \item We state this without proof; it is the one fact used later, for reconstruction and denoising
+%         \item The SVD also appears in image compression, recommender systems (latent factors), text analysis (latent semantic analysis) and least squares via the pseudoinverse (lecture 3)
+%     \end{itemize}
+% \end{frame}
 
 
 \section{Principal component analysis}
 
-\begin{frame}{The goal}
+\begin{frame}{Setting up: center and scale the data}
     \begin{itemize}
-        \item Find the direction in feature space along which the data vary the most; then the direction of most variation among those orthogonal to the first; and so on
-        \item These directions are the principal components, and the data expressed along them are the scores
-        \item Behind this: variance is treated as information. A direction in which all observations look alike tells us little; a direction in which they differ tells us a lot
-        \item We will see that this is an assumption, and that it can fail
+        \item Collect the data in an $n \times p$ matrix $X$: one row per observation, one column per feature
+        \item PCA measures how the observations spread around the average, so we first subtract each column's mean (centering)
+        \item If the features have different units we also divide by the SD (lecture 11); otherwise the feature with the largest numbers dominates
+        \item Sizes we will meet: USArrests $50 \times 4$, the digits $3{,}823 \times 64$ (one row per image, one column per pixel), NCI60 $64 \times 6{,}830$ (one row per cell line, one column per gene)
+        \item From now on, $X$ is this prepared matrix
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{The idea: look for the best viewing angle}
+    \begin{itemize}
+        \item Picture a cloud of points in 3-D and its shadow on a wall. Turn the cloud: from one angle the shadow is a thin streak, from another it is widely spread
+        \item The widely spread shadow keeps more of the differences between the points. PCA finds that angle
+        \item With $p$ features the cloud lives in $p$ dimensions; the shadow is a line (one new feature), a plane (two new features), and so on
+        \item ``Spread'' is variance. A direction along which all observations look alike tells us nothing; a direction along which they differ tells us a lot
+        \item This treats variance as information. It is an assumption, and we will see where it fails
     \end{itemize}
 \end{frame}
 
@@ -127,12 +134,9 @@
     \begin{columns}[T]
         \begin{column}{0.56\textwidth}
             \begin{itemize}
-                \item The first loading vector $\mathbf{v}_1$ (length 1) maximizes the variance of the scores:
-                    \[
-                        \mathbf{v}_1 = \arg\max_{\lVert \mathbf{v} \rVert = 1} \operatorname{Var}(X \mathbf{v})
-                    \]
-                \item The same line minimizes the squared distances to the points: variance along the line plus squared distance to it is the total
-                \item Simulated, 40 points: $4.58 + 0.231 = 4.814$
+                \item A direction is a line through the middle of the data
+                \item Dropping each point onto the line (the orange dots) gives it a position along the line: its score
+                \item The first principal component is the line on which these positions spread out the most (largest variance)
             \end{itemize}
         \end{column}
         \begin{column}{0.42\textwidth}
@@ -144,34 +148,55 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Further components}
+\begin{frame}{The same line is the closest line}
+    \begin{columns}[T]
+        \begin{column}{0.56\textwidth}
+            \begin{itemize}
+                \item Each point is split into a part along the line and a part across it (the gray segment)
+                \item The total spread of the data is fixed, so (spread along the line) $+$ (squared distance to the line) is constant
+                \item Making the first large therefore makes the second small: PC1 is also the line closest to all the points
+                \item Simulated, 40 points: $4.58 + 0.231 = 4.814$
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.42\textwidth}
+            \centering
+            \includegraphics[width=\textwidth, height=0.6\textheight, keepaspectratio]{figures/simulated/fig_pc1_line.pdf}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{A component is a recipe}
     \begin{itemize}
-        \item The second component $\mathbf{v}_2$ maximizes the variance among directions orthogonal to $\mathbf{v}_1$, the third among those orthogonal to both, and so on
-        \item The scores of different components are uncorrelated
-        \item At most $\min(n - 1, p)$ components have nonzero variance: USArrests has 4, NCI60 has 63 (64 samples, 6{,}830 genes), and the digits have 62, because two of the 64 pixels never change
-        \item Together the components are a rotation of the original axes: nothing is lost until we drop some of them
+        \item A direction is described by one weight per feature, its loadings $v_1, \dots, v_p$
+        \item An observation's score is the weighted sum of its (prepared) features: $z = v_1 x_1 + v_2 x_2 + \dots + v_p x_p$
+        \item Credit: PC1 $= 0.707 \cdot \text{Limit} + 0.707 \cdot \text{Rating}$, a single number per customer that stands for ``overall credit size''
+        \item A large weight means the feature matters for the component; weights of the same sign mean those features rise together along it
+        \item Loadings say what a component means; scores are the new data values we then use
     \end{itemize}
 \end{frame}
 
-\begin{frame}{PCA through the SVD}
-    \centering
-    \footnotesize
-    \begin{tabular}{@{}l l l@{}}
-        \toprule
-        SVD object & PCA name & Meaning \\
-        \midrule
-        Columns of $V$ & loadings & weight of each feature in a component \\
-        $X V = U \Sigma$ & scores & the new feature values \\
-        $\sigma_j^2 / (n - 1)$ & variance of component $j$ & eigenvalue of $\frac{1}{n-1} X^\top X$ \\
-        \bottomrule
-    \end{tabular}
-
-    \svspace{0.8em}
-    \raggedright
+\begin{frame}{Further components}
     \begin{itemize}
-        \item USArrests (standardized): singular values 11.02, 6.96, 4.18 and 2.92; $\sigma_j^2 / 49$ gives the variances 2.48, 0.99, 0.36 and 0.17, identical to \texttt{prcomp}
-        \item Loadings from the SVD and from \texttt{prcomp} agree exactly; the scores are uncorrelated (largest correlation $4.5 \times 10^{-16}$)
-        \item Software uses the SVD rather than the eigenvalues because it is numerically more stable
+        \item After the first line, look at the spread that is left: the second component is the line with the largest variance among those at a right angle to the first, the third is at right angles to both, and so on
+        \item Right angles mean that each component tells something new: the scores of different components are uncorrelated
+        \item At most $\min(n - 1, p)$ components have nonzero variance: USArrests has 4, NCI60 has 63, the digits have 62 (two pixels never change)
+        \item All the components together are the same data on rotated axes: nothing is lost until we drop some
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{PCA step by step}
+    \begin{enumerate}
+        \item Center the features, and scale them if their units differ
+        \item Find the direction with the largest variance: the first component
+        \item Find the direction with the largest variance among those at right angles to the earlier ones, and repeat
+        \item For each observation, compute its scores: the weighted sums with each component's loadings
+        \item Keep the first $k$ scores as the new features, and drop the rest
+    \end{enumerate}
+
+    \svspace{0.6em}
+    \begin{itemize}
+        \item Steps 2 and 3 are not done one at a time: linear algebra (the SVD) returns all components at once
+        \item How to choose $k$ is the main question after the next few slides
     \end{itemize}
 \end{frame}
 
@@ -192,22 +217,22 @@
     \svspace{0.8em}
     \raggedright
     \begin{itemize}
-        \item PC1 weighs the three crime rates about equally and UrbanPop less: an overall level of violent crime
-        \item PC2 is dominated by UrbanPop, with the opposite sign on Murder and Assault: the degree of urbanization
-        \item The signs of a whole component are arbitrary; here the loadings of each component are oriented to sum to a positive number
+        \item Each column is a recipe. PC1 $= 0.54\,\text{Murder} + 0.58\,\text{Assault} + 0.28\,\text{UrbanPop} + 0.54\,\text{Rape}$: all weights positive and large on the three crime rates, so PC1 is the overall level of violent crime
+        \item PC2 is dominated by UrbanPop, with negative weights on Murder and Assault: the degree of urbanization
+        \item The sign of a whole component is arbitrary; here each component is oriented so that its weights sum to a positive number
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Scores and the biplot}
     \begin{columns}[T]
-        \begin{column}{0.38\textwidth}
+        \begin{column}{0.44\textwidth}
             \begin{itemize}
-                \item Each state is a point at its scores on PC1 and PC2; arrows show the loadings
-                \item Florida, Nevada and California are high on PC1; North Dakota and Vermont are low
-                \item Only two components are shown, so distances in the plot are approximate
+                \item Each state is a point at its scores on PC1 (horizontal) and PC2 (vertical); the arrows are the loadings
+                \item UrbanPop points up: states high in the plot are urban. The crime arrows point right: states on the right have high crime
+                \item Murder and Assault point the same way: they rise together
             \end{itemize}
         \end{column}
-        \begin{column}{0.6\textwidth}
+        \begin{column}{0.54\textwidth}
             \centering
             \includegraphics[width=\textwidth, height=0.8\textheight, keepaspectratio]{figures/usarrests/fig_usarrests_biplot.pdf}
         \end{column}
@@ -219,9 +244,9 @@
         \begin{column}{0.56\textwidth}
             \begin{itemize}
                 \item PCA looks for variance, so variables with a large SD dominate (lecture 11)
-                \item Raw USArrests: PC1 explains 96.6\% and is almost only Assault (loading 0.995)
+                \item Raw USArrests: PC1 explains 96.6\% and is almost only Assault (loading 0.995): the variable with the biggest numbers
                 \item Standardized: loadings 0.54, 0.58 and 0.54 on the three crime rates
-                \item Standardize unless all features share one meaningful unit (the digit pixels are only centered)
+                \item Standardize unless all features share one unit (the digit pixels are only centered)
             \end{itemize}
         \end{column}
         \begin{column}{0.42\textwidth}
@@ -233,27 +258,33 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Proportion of variance explained}
+\begin{frame}{How much does each component explain?}
     \begin{itemize}
-        \item Component $j$ explains
-            \[
-                \text{PVE}_j = \frac{\sigma_j^2}{\sum_{i} \sigma_i^2}
-            \]
-            of the total variance; the PVEs add up to 1
+        \item Each component has a variance, the spread of its scores. For standardized data every feature has variance 1, so the total variance is $p$ (here 4)
+        \item USArrests: the component variances are 2.48, 0.99, 0.36 and 0.17, which add up to 4. PC1 alone is worth 2.48 of the original features
+        \item Proportion of variance explained: $\text{PVE}_j = \dfrac{\text{variance of component } j}{\text{total variance}}$
         \item USArrests: 62.0\%, 24.7\%, 8.9\% and 4.3\%; the first two together 86.8\%
-        \item Digits: 14.9\%, 13.4\% and 11.7\% for the first three; the first 10 components 74.1\%, the first 30 95.8\%
-        \item NCI60: only 11.4\% and 6.8\% for the first two, and 44 components for 90\%
-        \item PVE tells how much of the spread a summary keeps, not how useful it is for prediction
+        \item PVE says how much of the spread a summary keeps, not how useful it is for prediction
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{PVE in other data sets}
+    \begin{itemize}
+        \item Digits ($p = 64$ pixels): the first three components explain 14.9\%, 13.4\% and 11.7\%; the first 10 together 74.1\%, the first 30 together 95.8\%
+        \item NCI60 ($p = 6{,}830$ genes): the first two explain only 11.4\% and 6.8\%, and 44 components are needed for 90\%
+        \item How quickly the PVE falls tells how much redundancy there is: USArrests and Credit have a lot, gene expression much less
+        \item The next frames turn this into a rule for choosing $k$
     \end{itemize}
 \end{frame}
 
 \begin{frame}{How many components?}
     \begin{itemize}
-        \item Scree plot: plot the variance of each component and look for an elbow where the curve flattens
+        \item Every extra component keeps more variance, with diminishing returns. We stop when more components add little
+        \item Scree plot: plot the variance of each component and look for the elbow where the curve flattens
         \item Cumulative variance: keep enough components to reach a threshold such as 90\%
-        \item Kaiser rule (standardized data): keep components whose variance exceeds 1, the variance of a single standardized feature
-        \item Cross-validation: choose the number that gives the best error in the task that follows (regression, classification), the most direct answer
-        \item There is no single right answer: the rules are guides, and the choice depends on what the components are for
+        \item Kaiser rule (standardized data): keep components with variance above 1, i.e.\ worth more than one original feature
+        \item Cross-validation: choose the $k$ that gives the best error in the task that follows, the most direct answer
+        \item There is no single right answer: these rules are guides
     \end{itemize}
 \end{frame}
 
@@ -290,10 +321,9 @@
     \begin{columns}[T]
         \begin{column}{0.55\textwidth}
             \begin{itemize}
-                \item Project on the first $k$ components and back: $\hat{X}_k = X V_k V_k^\top$ (add the means back)
-                \item This is the rank-$k$ approximation, so the squared error is the sum of the dropped $\sigma_j^2$
-                \item USArrests, 2 components: error 25.97 $= \sigma_3^2 + \sigma_4^2$
-                \item Digits, mean squared error per pixel: 13.48 with 2 components, 4.86 with 10, 0.79 with 30
+                \item Keep only the first $k$ scores, then map back to the original features: a blurred copy $\hat{X}_k$ of the data
+                \item What is lost is the variation along the dropped components
+                \item With few components the digits come back as blurred versions of themselves; with 30 they are hard to tell from the originals
             \end{itemize}
         \end{column}
         \begin{column}{0.43\textwidth}
@@ -303,6 +333,15 @@
             {\scriptsize Three digits rebuilt from $k$ components}
         \end{column}
     \end{columns}
+\end{frame}
+
+\begin{frame}{Reconstruction error}
+    \begin{itemize}
+        \item The squared error equals the variances of the dropped components, times $n - 1$
+        \item USArrests, 2 components: dropped variances $0.36 + 0.17$, times 49, gives 25.97
+        \item No other $k$ directions do better: the first $k$ components give the smallest possible squared error
+        \item Digits, error per pixel: 13.48 with 2 components, 4.86 with 10, 0.79 with 30
+    \end{itemize}
 \end{frame}
 
 \begin{frame}{Variance is not the same as relevance}
@@ -326,12 +365,44 @@
 
 \begin{frame}{Properties and limits}
     \begin{itemize}
-        \item Components are linear combinations of the features and are uncorrelated with each other
-        \item PCA only finds linear structure (a later slide shows a curved example)
+        \item Components are weighted sums of the features and are uncorrelated with each other
+        \item PCA only finds linear structure; curved or ring-shaped data need the nonlinear methods at the end of the lecture
         \item Outliers pull the components toward themselves, because the criterion is squared distance
         \item Signs are arbitrary: flipping a loading vector and its scores changes nothing, so compare components only up to sign
         \item Components with nearly equal variance are not well defined: a small change in the data can rotate them within their plane
         \item Components are harder to interpret than the original features; reading the loadings is part of the analysis
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{How software computes PCA: the SVD}
+    \begin{itemize}
+        \item Nobody solves the ``largest variance'' problem by hand: software computes PCA with the singular value decomposition (SVD) of the prepared matrix $X$
+        \item The SVD writes $X = U \Sigma V^\top$, where $U$ and $V$ have columns that are directions at right angles, each of length 1, and $\Sigma$ is diagonal with entries $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$ (the singular values)
+        \item These are exactly the quantities PCA needs:
+    \end{itemize}
+
+    \svspace{0.4em}
+    \centering
+    \footnotesize
+    \begin{tabular}{@{}l l l@{}}
+        \toprule
+        SVD object & PCA name & Meaning \\
+        \midrule
+        Columns of $V$ & loadings & the weights of each component \\
+        $X V = U \Sigma$ & scores & the new feature values \\
+        $\sigma_j^2 / (n - 1)$ & variance of component $j$ & spread of the scores \\
+        \bottomrule
+    \end{tabular}
+\end{frame}
+
+\begin{frame}{Why the SVD?}
+    \begin{itemize}
+        \item One computation gives all loadings, scores and variances, already ordered from largest to smallest
+        \item It never forms the $p \times p$ covariance matrix (for NCI60 that would be $6{,}830^2$ numbers) and is numerically more accurate
+        \item Fast versions compute only the first $k$ components: randomized SVD, and \texttt{TruncatedSVD} for large sparse data such as word counts
+        \item It also explains the fact on the reconstruction slide: keeping the first $k$ terms of the SVD is the best possible $k$-dimensional summary
+        \item Check on USArrests: singular values 11.02, 6.96, 4.18 and 2.92; $\sigma_j^2 / 49$ gives 2.48, 0.99, 0.36 and 0.17, the variances above, and the scores are uncorrelated (largest correlation $4.5 \times 10^{-16}$)
+        \item To use PCA you need no more of the SVD than this
     \end{itemize}
 \end{frame}
 
@@ -372,9 +443,9 @@
         \begin{column}{0.58\textwidth}
             \begin{itemize}
                 \item Principal components regression (PCR): regress on the first $k$ scores, choose $k$ by cross-validation
-                \item It handles multicollinearity (lecture 4): Hitters has 12 pairs of predictors with $|r| > 0.9$
+                \item Predictors that move together make OLS unstable (lecture 4); scores are uncorrelated. Hitters has 12 predictor pairs with $|r| > 0.9$
                 \item 10-fold CV RMSE: 452 with no predictor, 351.9 with 1 component, 339.2 at best (18), 339.6 with all 19 (OLS), 343.6 with 6
-                \item Caveat: the components are built without the response
+                \item Caveat: components ignore the response
             \end{itemize}
         \end{column}
         \begin{column}{0.4\textwidth}
@@ -483,10 +554,10 @@
     \begin{columns}[T]
         \begin{column}{0.56\textwidth}
             \begin{itemize}
-                \item The signal sits in a few high-variance directions, the noise is spread over all of them
-                \item Keep the top components and reconstruct
-                \item Digits with noise (SD 4 on a 0 to 16 scale), PCA fitted on noisy images; error against the clean ones: 15.9 noisy, 7.5 with 10 components, 7.2 with 20, 10.4 with 40
-                \item Best $k = 16$ (7.0): too many components put the noise back
+                \item The signal (strokes shared by many images) sits in a few high-variance directions; noise is spread over all
+                \item Keep the top components and reconstruct: the noise in the dropped directions disappears
+                \item Digits with noise (SD 4), PCA fitted on noisy images; error against the clean ones: 15.9 noisy, 7.5 with 10 components, 7.2 with 20, 10.4 with 40
+                \item Best $k = 16$ (7.0): more put the noise back
             \end{itemize}
         \end{column}
         \begin{column}{0.42\textwidth}
@@ -496,34 +567,49 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Beyond linear PCA}
-    \begin{columns}[T]
-        \begin{column}{0.38\textwidth}
-            \begin{itemize}
-                \item A Swiss roll is a flat sheet rolled up in 3-D: the data are two-dimensional but curved
-                \item PCA flattens the roll and puts far-apart points together: it keeps 17\% of each point's 10 nearest neighbors on the sheet
-                \item t-SNE keeps 61\%
-            \end{itemize}
-        \end{column}
-        \begin{column}{0.6\textwidth}
-            \centering
-            \includegraphics[width=\textwidth, height=0.45\textheight, keepaspectratio]{figures/simulated/fig_swiss_roll.pdf}
+% \begin{frame}{Beyond linear PCA}
+%     \begin{columns}[T]
+%         \begin{column}{0.38\textwidth}
+%             \begin{itemize}
+%                 \item A Swiss roll is a flat sheet rolled up in 3-D: the data are two-dimensional but curved
+%                 \item PCA flattens the roll and puts far-apart points together: it keeps 17\% of each point's 10 nearest neighbors on the sheet
+%                 \item t-SNE keeps 61\%
+%             \end{itemize}
+%         \end{column}
+%         \begin{column}{0.6\textwidth}
+%             \centering
+%             \includegraphics[width=\textwidth, height=0.45\textheight, keepaspectratio]{figures/simulated/fig_swiss_roll.pdf}
+%
+%             {\scriptsize Colored by position along the roll}
+%         \end{column}
+%     \end{columns}
+% \end{frame}
 
-            {\scriptsize Colored by position along the roll}
-        \end{column}
-    \end{columns}
+\begin{frame}{Beyond PCA: nonlinear methods and where they are used}
+    \centering
+    \footnotesize
+    \begin{tabular}{@{}l p{4.0cm} p{6.4cm}@{}}
+        \toprule
+        Method & Idea & Practical example \\
+        \midrule
+        Kernel PCA & PCA after a nonlinear map of the features & data on rings or curves, such as two concentric circles: PCA cannot separate them, kernel PCA can \\
+        t-SNE & a 2-D picture that keeps each point's neighbors together & maps of digits or of single-cell gene expression, where each cell type forms an island \\
+        UMAP & like t-SNE, usually faster on large data, and can place new points & the same maps for hundreds of thousands of points, e.g.\ document or image embeddings \\
+        Autoencoder & a neural network that compresses and rebuilds its input & image denoising; anomaly detection, because unusual inputs are rebuilt badly (next lecture) \\
+        \bottomrule
+    \end{tabular}
 \end{frame}
 
-\begin{frame}{Nonlinear alternatives}
+\begin{frame}{Example: t-SNE on the digits}
+    \centering
+    \includegraphics[width=0.6\textwidth, height=0.36\textheight, keepaspectratio]{figures/digits/fig_digits_tsne.pdf}
+
+    \svspace{0.3em}
+    \raggedright
     \begin{itemize}
-        \item Kernel PCA: PCA after an implicit nonlinear map of the features
-        \item t-SNE and UMAP: embeddings that keep neighborhoods; used for visualization only
-            \begin{itemize}
-                \item distances between far-apart clusters are not meaningful
-                \item the picture depends on hyperparameters, such as the perplexity in t-SNE
-            \end{itemize}
-        \item Autoencoders: neural networks that compress and reconstruct their input; with linear layers they find the same subspace as PCA (next lecture)
-        \item We use PCA first: it is fast, deterministic, has a clear meaning, and gives a baseline
+        \item The same 3{,}823 digits, in the first two components (left) and with t-SNE (right): t-SNE pulls each digit into its own island
+        \item Leave-one-out 5-NN accuracy in the 2-D picture: 0.587 for PCA, 0.985 for t-SNE
+        \item Use it for pictures only: distances between islands mean little, the result depends on settings such as the perplexity (30 here), and it cannot place new points
     \end{itemize}
 \end{frame}
 
@@ -568,22 +654,22 @@
         Pipeline and CV & \texttt{pipeline.make\_pipeline}, \texttt{model\_selection.cross\_val\_score} \\
         PCR (pipeline) & \texttt{make\_pipeline(StandardScaler(), PCA(), LinearRegression())} \\
         PLS & \texttt{cross\_decomposition.PLSRegression} \\
-        Nonlinear embeddings & \texttt{manifold.TSNE}, \texttt{decomposition.KernelPCA} \\
+        Nonlinear embeddings & \texttt{manifold.TSNE}, \texttt{decomposition.KernelPCA}, \texttt{umap.UMAP} \\
         \bottomrule
     \end{tabular}
 
     \svspace{0.5em}
-    Worked examples: the ISLP Python lab, Section 12.5
+    Worked examples: the ISLP Python lab, Section 12.5. UMAP comes from the \texttt{umap-learn} package
 \end{frame}
 
 \begin{frame}{Summary}
     \begin{itemize}
-        \item PCA builds new features, in order of variance, from the SVD of the centered (usually standardized) data
-        \item Loadings say what a component means, scores are the new data, PVE says how much is kept; choose $k$ by a scree plot, a variance threshold or cross-validation
-        \item Rebuilding from $k$ components is the best rank-$k$ approximation
-        \item Use it for visualization, as inputs to regression and clustering, and for denoising, with scaling and PCA fitted on the training data inside the pipeline
+        \item PCA builds new features, weighted sums of the old ones, in order of how much they spread the observations; software computes it with the SVD
+        \item Loadings say what a component means, scores are the new data, PVE says how much is kept; choose $k$ by a scree plot, a threshold or cross-validation
+        \item Rebuilding from $k$ components is the best possible $k$-dimensional summary
+        \item Use it for visualization, regression and clustering inputs, and denoising, fitted on training data inside the pipeline
         \item Variance is not relevance, and PCA sees only linear structure
-        \item Reading: ISLP 6.3 and 12.2; ESL 3.5 and 14.5
+        \item Reading: ISLP 6.3, 12.2; ESL 3.5, 14.5
         \item Next lecture: neural networks, which learn features; an autoencoder is a nonlinear PCA
     \end{itemize}
 \end{frame}

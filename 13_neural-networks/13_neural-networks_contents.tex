@@ -5,11 +5,27 @@
 \section{Introduction \& The Artificial Neuron}
 
 \begin{frame}{Why Neural Networks?}
+%     \begin{itemize}
+%         \item \textbf{The limitation of linear models:} Linear and logistic regression compute $\hat{y} = g(\mathbf{w}^\top \mathbf{x} + b)$. They can only form straight decision boundaries or flat planes unless we \emph{manually} engineer features (polynomials, interactions).
+%         \item \textbf{Manual feature engineering is hard:} In high dimensions (e.g., images with thousands of pixels, audio, text), deciding which non-linear features to create by hand is practically impossible.
+%         \item \textbf{The core idea of Neural Networks:} Instead of designing features by hand, the model \textbf{learns hierarchical features automatically} from raw data through successive layers of computation.
+%         % \item \textbf{Biological inspiration:} Biological brains consist of billions of interconnected neurons communicating via electrical signals. Artificial neural networks (ANNs) borrow this modular, interconnected structure.
+%         \item \textbf{Biological inspiration:} Artificial units borrow their interconnected structure from networks of neurons that communicate through electrical signals.
+%     \end{itemize}
+    \small
+    Both models use the same predictor, with intercept $b=\hat\beta_0$ and slopes $w_j=\hat\beta_j$:
+    \[
+        z = \mathbf{w}^{\top}\mathbf{x}+b
+          = \hat\beta_0+\hat\beta_1 x_1+\cdots+\hat\beta_p x_p.
+    \]
+    \begin{tabular}{@{}ll@{}}
+        \textbf{Linear regression} & Identity: $\hat y=g(z)=z$. \\
+        \textbf{Logistic regression} & Sigmoid: $\hat p=g(z)=1/(1+e^{-z})$, so $\log\!\frac{\hat p}{1-\hat p}=z$.
+    \end{tabular}
     \begin{itemize}
-        \item \textbf{The limitation of linear models:} Linear and logistic regression compute $\hat{y} = g(\mathbf{w}^\top \mathbf{x} + b)$. They can only form straight decision boundaries or flat planes unless we \emph{manually} engineer features (polynomials, interactions).
-        \item \textbf{Manual feature engineering is hard:} In high dimensions (e.g., images with thousands of pixels, audio, text), deciding which non-linear features to create by hand is practically impossible.
-        \item \textbf{The core idea of Neural Networks:} Instead of designing features by hand, the model \textbf{learns hierarchical features automatically} from raw data through successive layers of computation.
-        \item \textbf{Biological inspiration:} Biological brains consist of billions of interconnected neurons communicating via electrical signals. Artificial neural networks (ANNs) borrow this modular, interconnected structure.
+        \item Linear regression fits a plane. Logistic regression has a flat decision boundary at $\hat p=0.5$, where $z=0$.
+        \item We can add polynomials or interactions by hand. Choosing these features becomes difficult for images, audio, or text.
+        \item Neural networks learn features from data through successive layers. Their interconnected units draw inspiration from biological neurons that communicate through electrical signals.
     \end{itemize}
 \end{frame}
 
@@ -116,10 +132,14 @@
         \begin{column}{0.50\textwidth}
             \small
             \begin{itemize}
-                \item When data has non-linear structure, a single linear boundary makes systematic errors.
-                \item The solid line shows logistic regression (a single unit): it cannot bend around the curved class boundary.
-                \item In earlier lectures, we fixed this by manually inventing polynomial terms ($x_1^2, x_1 x_2$).
-                \item \textbf{The solution:} Connect multiple neurons into a \textbf{network} to learn non-linear boundaries automatically!
+                % \item When data has non-linear structure, a single linear boundary makes systematic errors.
+                \item A straight boundary makes systematic errors on these curved classes.
+                % \item The solid line shows logistic regression (a single unit): it cannot bend around the curved class boundary.
+                \item The solid line is the logistic regression boundary.
+                % \item In earlier lectures, we fixed this by manually inventing polynomial terms ($x_1^2, x_1 x_2$).
+                \item Earlier we added polynomial features such as $x_1^2$ and $x_1x_2$ by hand.
+                % \item \textbf{The solution:} Connect multiple neurons into a \textbf{network} to learn non-linear boundaries automatically!
+                \item A network can learn features that bend the boundary.
             \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
@@ -229,7 +249,7 @@
 
 \begin{frame}{Common Activation Functions}
     \begin{center}
-    \begin{tikzpicture}[font=\scriptsize, scale=0.80]
+    \begin{tikzpicture}[font=\scriptsize, scale=0.62]
         % Sigmoid plot
         \begin{scope}[xshift=-4.2cm]
             \draw[->, gray] (-1.8,0) -- (1.9,0) node[right, black] {$z$};
@@ -271,8 +291,10 @@
     \small
     \begin{itemize}
         \item \textbf{Sigmoid:} Squashes to $(0, 1)$. Good for output probabilities; \textbf{saturates} for large $|z|$ (vanishing gradient: derivative $\approx 0$).
-        \item \textbf{Tanh:} Squashes to $(-1, 1)$, zero-centered. Often trains faster than sigmoid, but still saturates at extremes.
-        \item \textbf{ReLU (Rectified Linear Unit):} Modern default for hidden layers! Extremely fast; derivative is $1$ for $z > 0$, preventing vanishing gradients.
+        % \item \textbf{Tanh:} Squashes to $(-1, 1)$, zero-centered. Often trains faster than sigmoid, but still saturates at extremes.
+        \item \textbf{Tanh:} Squashes to $(-1, 1)$, zero-centered. Can train faster than sigmoid. Saturates at extremes.
+        % \item \textbf{ReLU (Rectified Linear Unit):} Modern default for hidden layers! Extremely fast; derivative is $1$ for $z > 0$, preventing vanishing gradients.
+        \item \textbf{ReLU (Rectified Linear Unit):} A common, inexpensive hidden activation. Its slope is $1$ for $z>0$ and $0$ for $z<0$. Gradients can still shrink across layers.
     \end{itemize}
 \end{frame}
 
@@ -339,7 +361,8 @@
     \end{center}
     \vspace{-0.5em}
     \small
-    Let hidden biases be $(0, 0)$ and output bias be $-1$. Hidden units use $\mathrm{ReLU}$; output uses sigmoid $\sigma$. Input observation: $\mathbf{x} = (2, -1)^\top$ with true class $y=1$.
+    % Let hidden biases be $(0, 0)$ and output bias be $-1$. Hidden units use $\mathrm{ReLU}$; output uses sigmoid $\sigma$. Input observation: $\mathbf{x} = (2, -1)^\top$ with true class $y=1$.
+    For this hand calculation we choose simple weights. Hidden biases are zero and the output bias is $-1$. For $\mathbf{x}=(2,-1)^\top$ and $y=1$, apply ReLU in the hidden layer and sigmoid at the output.
     \begin{enumerate}
         \item \textbf{Pre-activations:} $z_1 = 0 + 1(2) + 0(-1) = 2, \quad z_2 = 0 + 0(2) + 1(-1) = -1$.
         \item \textbf{Hidden features:} $h_1 = \max(0, 2) = 2, \quad h_2 = \max(0, -1) = 0$ (unit 2 is off!).
@@ -368,7 +391,8 @@
     \begin{itemize}
         \item Exponentiating $e^{z_k}$ forces all class scores to be strictly positive.
         \item Normalizing by $\sum_{j=1}^K e^{z_j}$ ensures probabilities sum to $1.0$.
-        \item Example: raw scores $(2, 1, 0) \xrightarrow{\text{softmax}} (0.67, 0.24, 0.09)$.
+        % \item Example: raw scores $(2, 1, 0) \xrightarrow{\text{softmax}} (0.67, 0.24, 0.09)$.
+        \item Scores $(2,1,0)$ give probabilities $(0.67,0.24,0.09)$. Predict the class with the largest probability. For a true class $k$, the loss is $-\log(\hat p_k)$.
     \end{itemize}
 \end{frame}
 
@@ -456,7 +480,8 @@
         w_{11}^{(\text{new})} = w_{11} - \eta\,\frac{\partial L}{\partial w_{11}}
         = 1.0 - 0.1 \times (-0.5379) = \mathbf{1.0538}.
     \]
-    Let's check the result with another forward pass:
+    % Let's check the result with another forward pass:
+    Change only $w_{11}$ here to isolate its effect. A full training step updates all trainable weights and biases together.
     \begin{center}
     \small
     \begin{tabular}{lrrr}
@@ -490,7 +515,8 @@
         \item \textbf{Iteration (Step):} One single update of all model parameters using the gradient from one mini-batch.
         \item \textbf{Epoch:} One complete pass through the entire training dataset.
         \[
-            \text{Iterations per epoch} = \frac{\text{Total training observations } n}{\text{Batch size } B}.
+            % \text{Iterations per epoch} = \frac{\text{Total training observations } n}{\text{Batch size } B}.
+            \text{Iterations per epoch} = \lceil n/B \rceil \quad \text{(keep the final partial batch).}
         \]
         \item Example: With $n = 3{,}060$ training images and batch size $B = 64$, one epoch consists of $\lceil 3{,}060 / 64 \rceil = 48$ iterations.
     \end{itemize}
@@ -572,35 +598,21 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Early Stopping in Practice: Handwritten Digits}
-    \begin{columns}[c]
-        \begin{column}{0.54\textwidth}
-            \centering
-            \includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{figures/digits/fig_learning_curves.pdf}
-        \end{column}
-        \begin{column}{0.44\textwidth}
-            \small
-            \begin{itemize}
-                \item Training an MLP on 8-by-8 digits for 100 epochs.
-                \item Training loss (blue) drops continuously toward zero ($0.0060$).
-                \item Validation loss (red) reaches minimum of \textbf{0.0886} at \textbf{epoch 43}.
-                \item Beyond epoch 43, validation loss creeps up ($0.1122$ at epoch 100).
-                \item \textbf{Early stopping} restores weights at epoch 43.
-            \end{itemize}
-        \end{column}
-    \end{columns}
-\end{frame}
 
-\begin{frame}{Feature Scaling: A Non-Negotiable Requirement}
+
+% \begin{frame}{Feature Scaling: A Non-Negotiable Requirement}
+\begin{frame}{How Feature Scaling Helps Training}
     \small
-    Unlike decision trees, neural networks are \textbf{critically sensitive to feature scaling}:
+    % Unlike decision trees, neural networks are \textbf{critically sensitive to feature scaling}:
+    Changing feature units can affect how quickly gradient descent trains a network. Tree splits depend on the ordering of feature values.
     \begin{enumerate}\footnotesize
         \item \textbf{Gradient descent efficiency:} Unscaled features produce highly eccentric loss surfaces. Gradient descent oscillates wildly and converges slowly.
         \item \textbf{Preventing vanishing gradients:} Large unscaled inputs drive pre-activations $z = \mathbf{w}^\top \mathbf{x} + b$ into flat saturation zones of Sigmoid/Tanh, where derivatives vanish ($\frac{\partial L}{\partial w} \approx 0$).
         \item \textbf{Balanced parameter updates:} Standardizing features ($\mu = 0, \sigma = 1$) or scaling to $[0, 1]$ ensures all weights update at compatible, healthy rates.
     \end{enumerate}
     \svspace{0.3em}
-    \textbf{Golden rule:} Always scale input features before training a neural network!
+    % \textbf{Golden rule:} Always scale input features before training a neural network!
+    \textbf{In practice:} Estimate scaling constants from the fitting data and reuse them for validation and test inputs. For digits, divide each pixel by its known maximum, 16.
 \end{frame}
 
 \begin{frame}{Regression Case Study: Auto Fuel Economy}
@@ -621,12 +633,14 @@
             Linear output: $\widehat{\mathrm{mpg}} = 20.02 + 0.312\,h_L - 0.085\,h_R$.
             \svspace{0.3em}
 
-            The network captures the sharp bend at 105 hp.
+            % The network captures the sharp bend at 105 hp.
+            The fitted slopes meet at 105 hp.
         \end{column}
     \end{columns}
     \svspace{0.3em}
     \small
-    \textbf{Held-out test RMSE (79 cars):} Linear model = 4.81 mpg, Quadratic = 4.32 mpg, \textbf{Neural Network = 4.26 mpg}.
+    % \textbf{Held-out test RMSE (79 cars):} Linear model = 4.81 mpg, Quadratic = 4.32 mpg, \textbf{Neural Network = 4.26 mpg}.
+    Using 313 training cars, we tried each interior horsepower value as the bend, fitted the slopes by least squares, and chose 105 hp for its lowest squared error.\\ \textbf{Test RMSE (79 cars):} Linear 4.81, quadratic 4.32, network 4.26 mpg.
 \end{frame}
 
 \begin{frame}{Classification Case Study: Handwritten Digits}
@@ -650,24 +664,52 @@
             \end{itemize}
         \end{column}
     \end{columns}
+    \small Start with small random weights so hidden units can learn different features. Use 3,060 images to fit weights, 763 to select the checkpoint, and 1,797 for the final test.
+\end{frame}
+
+\begin{frame}{Early Stopping in Practice: Handwritten Digits}
+    \begin{columns}[c]
+        \begin{column}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{figures/digits/fig_learning_curves.pdf}
+        \end{column}
+        \begin{column}{0.50\textwidth}
+            \small
+            \begin{itemize}
+                % \item Training an MLP on 8-by-8 digits for 100 epochs.
+                \item Train for 100 epochs. Save the weights whenever validation loss reaches a new low.
+                % \item Training loss (blue) drops continuously toward zero ($0.0060$).
+                \item Training loss trends downward to $0.0060$.
+                % \item Validation loss (red) reaches minimum of \textbf{0.0886} at \textbf{epoch 43}.
+                \item Validation loss is lowest at epoch \textbf{43} ($0.0886$).
+                % \item Beyond epoch 43, validation loss creeps up ($0.1122$ at epoch 100).
+                \item At epoch 100, validation loss is higher ($0.1122$).
+                % \item \textbf{Early stopping} restores weights at epoch 43.
+                \item Restore the epoch-43 weights for the final test.
+            \end{itemize}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}{Digits Performance: Baseline vs. Neural Network}
-    We compare multinomial logistic regression (linear baseline) with the 32-unit MLP on 1,797 held-out test images:
+    % We compare multinomial logistic regression (linear baseline) with the 32-unit MLP on 1,797 held-out test images:
+    Test results on 1,797 images for multinomial logistic regression and the 32-unit network:
     \begin{center}
     \small
-    \begin{tabular}{lrrr}
+    \begin{tabular}{@{}lrrr@{}}
     \toprule
     Model & Test Accuracy & Mean Log Loss & Test Errors \\
     \midrule
-    Multinomial Logistic (Baseline) & 95.21\% & 0.1846 & 86 \\
+    % Multinomial Logistic (Baseline) & 95.21\% & 0.1846 & 86 \\
+    Multinomial logistic & 95.21\% & 0.1846 & 86 \\
     \textbf{Neural Network (32 units)} & \textbf{95.88\%} & \textbf{0.1575} & \textbf{74} \\
     \bottomrule
     \end{tabular}
     \end{center}
     \begin{itemize}
         \item The neural network makes \textbf{12 fewer mistakes} on the test set.
-        \item \textbf{Accuracy vs. Log Loss:} Beyond accuracy, the network assigns higher confidence to correct classes, significantly reducing mean log loss from $0.1846$ to $0.1575$.
+        % \item \textbf{Accuracy vs. Log Loss:} Beyond accuracy, the network assigns higher confidence to correct classes, significantly reducing mean log loss from $0.1846$ to $0.1575$.
+        \item Mean log loss falls from $0.1846$ to $0.1575$. On average, the network incurs a smaller penalty for the probability it assigns to the true digit.
     \end{itemize}
 \end{frame}
 
@@ -689,22 +731,25 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Unsupervised Representation Learning: Autoencoders}
+% \begin{frame}{Unsupervised Representation Learning: Autoencoders}
+\begin{frame}{Optional: Unsupervised Learning with Autoencoders}
     \begin{columns}[c]
-        \begin{column}{0.50\textwidth}
+        \begin{column}{0.60\textwidth}
             \small
             \textbf{What if we don't have labels $y$?}
-            \begin{itemize}
+            \begin{itemize}\setlength{\itemsep}{0pt}
                 \item An \textbf{autoencoder} is trained to predict its own input:
-                \[
+                \par\noindent\(
                     \mathbf{x} \xrightarrow{\text{Encoder}} \mathbf{h} \xrightarrow{\text{Decoder}} \hat{\mathbf{x}}.
-                \]
+                \)\par
                 \item The hidden layer $\mathbf{h}$ has lower dimension than $\mathbf{x}$ (the \textbf{bottleneck}).
-                \item The network compresses 64 pixels into a compact code and reconstructs them.
-                \item \textbf{Connection to PCA:} A linear autoencoder with squared error recovers the exact PCA subspace!
+                % \item The network compresses 64 pixels into a compact code and reconstructs them.
+                \item For digits, decode the compact code back into 64 pixel values.
+                % \item \textbf{Connection to PCA:} A linear autoencoder with squared error recovers the exact PCA subspace!
+                \item \textbf{Connection to PCA:} For centered data, a linear bottleneck trained to minimum squared reconstruction error recovers a principal subspace.
             \end{itemize}
         \end{column}
-        \begin{column}{0.48\textwidth}
+        \begin{column}{0.38\textwidth}
             \centering
             \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{../12_dimensionality-reduction_pca/figures/digits/fig_digits_reconstruction.pdf}
             \par{\scriptsize PCA reconstructions from Lecture 12.}
@@ -735,10 +780,16 @@
 \end{frame}
 
 \begin{frame}{Check Your Understanding}
+    \small
     \begin{enumerate}
-        \item \textbf{Why does an MLP need non-linear activations?} \pause A composition of linear functions is strictly linear; without non-linearities, stacking 50 layers computes nothing more than a single linear regression.
-        \item \textbf{Why is ReLU preferred over Sigmoid in deep hidden layers?} \pause Sigmoid saturates at extreme values, causing gradients to vanish ($\approx 0$); ReLU maintains a derivative of $1$ for all positive inputs.
-        \item \textbf{What is the difference between an epoch and an iteration?} \pause An iteration is a single gradient update on one mini-batch; an epoch is one full pass through the entire training dataset.
-        \item \textbf{Which dataset determines when to stop training?} \pause Validation data. Training continues until validation error reaches its minimum, avoiding overfitting.
+        % \item \textbf{Why does an MLP need non-linear activations?} \pause A composition of linear functions is strictly linear; without non-linearities, stacking 50 layers computes nothing more than a single linear regression.
+        \item \textbf{Why does an MLP need non-linear activations?} \pause Even 50 layers with identity activations reduce to one weighted sum plus a bias.
+        % \item \textbf{Why is ReLU preferred over Sigmoid in deep hidden layers?} \pause Sigmoid saturates at extreme values, causing gradients to vanish ($\approx 0$); ReLU maintains a derivative of $1$ for all positive inputs.
+        \item \textbf{Why is ReLU preferred over Sigmoid in deep hidden layers?} \pause Sigmoid slopes approach zero at the extremes. ReLU has slope $1$ for positive inputs.
+        % \item \textbf{What is the difference between an epoch and an iteration?} \pause An iteration is a single gradient update on one mini-batch; an epoch is one full pass through the entire training dataset.
+        \item \textbf{What is the difference between an epoch and an iteration?} \pause One iteration updates the weights. One epoch uses all training observations.
+        % \item \textbf{Which dataset determines when to stop training?} \pause Validation data. Training continues until validation error reaches its minimum, avoiding overfitting.
+        \item \textbf{Which data select the checkpoint?} \pause Validation data. Keep the weights with the lowest observed validation loss.
+        \item \textbf{Softmax check:} For $(0.67,0.24,0.09)$, which class wins? If the second class is correct, what is the loss? \pause The first class wins. The loss is $-\log(0.24)\approx1.43$.
     \end{enumerate}
 \end{frame}

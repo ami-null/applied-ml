@@ -4,6 +4,17 @@
 
 \section{From logistic regression to a neuron}
 
+\begin{frame}{The plan for this lecture}
+A neural network is logistic regression that builds its own features. We follow one tiny network through four steps:
+\begin{enumerate}
+    \item \textbf{Forward pass.} Push the inputs through the network, multiplying by weights (numbers we can adjust) along the way, to get a prediction.
+    \item \textbf{Loss.} A number that says how wrong the prediction was for the true label.
+    \item \textbf{Gradient.} For each weight, the slope of the loss: which direction of change would reduce it.
+    \item \textbf{Update.} Nudge every weight that way, then repeat on more observations.
+\end{enumerate}
+Every later slide is one of these four steps. When a slide feels dense, ask which step it belongs to.
+\end{frame}
+
 \begin{frame}{Where does logistic regression miss the curve?}
 \small
 \begin{columns}[c]
@@ -31,6 +42,7 @@ A neuron, or unit, computes an output from its inputs. For features $x_1,x_2$, f
     \item Each connection has a weight. Increasing $x_1$ by one unit adds $w_1$ to the score when $x_2$ stays fixed.
     \item The bias $b$ is the intercept. Imagine both inputs are zero: the neuron starts at score $b$ before either feature contributes.
     \item An activation function maps a score to the unit's output. Here the sigmoid $\sigma$ gives $\hat p$, the estimated probability of class 1.
+    \item The sigmoid squashes any score into $(0,1)$: $s=0$ gives $\hat p=0.5$, a large positive $s$ gives $\hat p$ near 1, and a large negative $s$ gives $\hat p$ near 0.
 \end{itemize}
 \end{frame}
 
@@ -43,6 +55,8 @@ At the usual cutoff, $\hat p=0.5$ exactly when $s=0$. Consider
     \item The points $(0,1)$ and $(1,0)$ both sit on the line. At $(1,1)$ the score is positive, so class 1 has the higher probability.
     \item Changing the bias shifts the line. Changing the relative weights can rotate it.
     \item What could we change in the model to make the boundary bend?
+\pause
+Not the weights: any $s=b+w_1x_1+w_2x_2$ has a straight boundary. We must feed the score better inputs than the raw $x_1,x_2$.
 \end{itemize}
 \end{frame}
 
@@ -63,10 +77,13 @@ In polynomial regression we supplied features such as $x$ and $x^2$. In a feedfo
 \begin{frame}{Can we describe this boundary in pieces?}
 \begin{columns}[c]
     \begin{column}{.48\textwidth}
+\small
 \begin{itemize}
-    \item These labels come from a constructed two-feature example. Each color marks one class.
-    \item Trace the change of class from left to right. Where is the boundary horizontal? Where does it turn?
-    \item We will reproduce all three pieces with two hidden units.
+    \item A constructed two-feature example; each color is one class.
+    \item Trace the class change from left to right. Where is the boundary horizontal? Where does it turn?
+    \pause
+    \item Horizontal at $x_2=1$ on the left; it turns at $(0,1)$ onto a diagonal, then at $(1,0)$ into a vertical line.
+    \item Two hidden units will reproduce all three pieces.
 \end{itemize}
     \end{column}
     \begin{column}{.50\textwidth}
@@ -84,7 +101,7 @@ Let $z=b+w_1x_1+w_2x_2$. The rectified linear unit (ReLU) returns
 \[
     h=\max(0,z).
 \]
-Move from left to right along the graph. Until the score reaches zero, the output stays at zero. Beyond zero, a one-unit rise in the score gives a one-unit rise in the output.
+Move from left to right along the graph. Until the score reaches zero, the output stays at zero. Beyond zero, a one-unit rise in the score gives a one-unit rise in the output. A unit is \emph{active} when its output is positive and \emph{inactive} (off) when its output is zero.
     \end{column}
     \begin{column}{.50\textwidth}
 \begin{center}
@@ -98,13 +115,15 @@ Move from left to right along the graph. Until the score reaches zero, the outpu
 \begin{center}
     \includegraphics[width=\linewidth,height=.48\textheight,keepaspectratio]{figures/toy/fig_hidden_features.pdf}
 \end{center}
-The left panel measures how far right of zero the point lies. The right panel measures how far above zero it lies. At the marked point $(2,-1)$, those features are 2 and 0. Where could you move the point to increase both?
+The left panel shows $h_1=\max(0,x_1)$, how far right of zero the point lies. The right panel shows $h_2=\max(0,x_2)$, how far above zero it lies. At the marked point $(2,-1)$, those features are 2 and 0. Where could you move the point to increase both?
+\pause
+Up and to the right, into the quadrant where both inputs are positive.
 \end{frame}
 
 \begin{frame}{Adding the two features creates a bend}
 \begin{columns}[c]
     \begin{column}{.48\textwidth}
-Set $s=h_1+h_2-1$. The class boundary follows $s=0$.
+Set $s=h_1+h_2-1$. The class boundary follows $s=0$, and class 1 is the side where $s>0$ (large features).
 \begin{itemize}
     \item On the left, $h_1=0$, so the boundary is $x_2=1$.
     \item In the upper right, both units contribute: $x_1+x_2=1$.
@@ -143,7 +162,7 @@ Start with $h=\max(0,x_1)$. The shaded region contains the points where the unit
     }
 \end{tikzpicture}
 \end{center}
-Changing the bias moves the threshold to the right. Giving $x_2$ weight 1 tilts it. Follow the dot $(0,2)$: its output changes from 0 to 0 to 1.
+The threshold is the line $z=0$, where the unit switches on. Changing the bias moves the threshold to the right. Giving $x_2$ weight 1 tilts it. Follow the dot $(0,2)$: its output changes from 0 to 0 to 1.
 \end{frame}
 
 \begin{frame}{What if we remove the ReLUs?}
@@ -154,7 +173,7 @@ With the identity activation $g(z)=z$, unit $j$ returns $h_j=b_j+\mathbf w_j^\to
    &= (c+v_1b_1+v_2b_2)+(v_1\mathbf w_1+v_2\mathbf w_2)^\top\mathbf x.
 \end{aligned}
 \]
-This is one intercept plus one weighted sum of the inputs. Setting this score to zero gives a straight boundary. In the example, the ReLUs let the slope change when a hidden unit switches on.
+This is one intercept plus one weighted sum of the inputs. Setting this score to zero gives a straight boundary. A straight rule fed into another straight rule is still one straight rule, however many layers we stack. The ReLU is what makes a unit switch off below its threshold, so the slope of the score changes where a unit switches on. That change in slope is the bend.
 \end{frame}
 
 \begin{frame}{Reading a fully connected network}
@@ -172,7 +191,7 @@ This is one intercept plus one weighted sum of the inputs. Setting this score to
 \end{center}
 \begin{itemize}
     \item Read left to right: input, hidden and output layers. Fully connected means each unit connects to every unit in the next layer.
-    \item Width counts the units in a layer. Here the hidden layer has two. Its four weights and two biases, plus two output weights and one output bias, give nine trainable parameters.
+    \item Width counts the units in a layer. Here the hidden layer has two. Its four weights and two biases, plus two output weights and one output bias, give nine trainable parameters. A parameter is any weight or bias that training may change.
     \item Increasing width adds features at this stage. Increasing depth adds another transformation of the features already learned.
 \end{itemize}
 \end{frame}
@@ -192,10 +211,13 @@ This is one intercept plus one weighted sum of the inputs. Setting this score to
     \foreach \h in {h1,h2} \draw[->] (\h) -- (out);
 \end{tikzpicture}
 \end{center}
-A forward pass computes one prediction from inputs to output using the current weights. Here the observed class is $y=1$. The two horizontal input-to-hidden connections have weight 1, the crossing connections have weight 0, and both hidden biases are 0. Both output weights are 1 and the output bias is $-1$.
+\small A forward pass computes one prediction from inputs to output using the current weights. Here the observed class is $y=1$. The two horizontal input-to-hidden connections have weight 1, the crossing connections have weight 0, and both hidden biases are 0. Both output weights are 1 and the output bias is $-1$.
 
-\svspace{0.4em}
+\svspace{0.2em}
 Cover the output. Starting at the two inputs, which hidden unit will still send a positive value to the right?
+\pause
+\svspace{0.3em}
+Hidden unit 1: it only sees $x_1=2>0$. Hidden unit 2 only sees $x_2=-1<0$, so it stays off. The next slide checks this.
 \end{frame}
 
 \begin{frame}{Compute the hidden features}
@@ -229,6 +251,7 @@ Keep $x_1=2$ and move $x_2$ from $-1$ to $-0.5$. The second unit still sends zer
     \item The network predicts class 1. The score is 1, while the estimated probability of class 1 is 0.7311.
     \item Try $(-1,-1)$ with the same weights. What happens when both units are inactive?
 \end{itemize}
+\pause
 \svspace{0.3em}
 Both hidden outputs are zero, so only the output bias remains: $s=-1$, $\hat p=0.2689$, and the predicted class is 0.
 \end{frame}
@@ -252,7 +275,7 @@ For $K$ classes with scores $s_1,\ldots,s_K$,
 \[
    \hat p_k=\frac{\exp(s_k)}{\sum_{j=1}^{K}\exp(s_j)}.
 \]
-Predict the class with the largest probability.
+Exponentiating makes scores positive and dividing by the sum makes them add to one: scores $(2,1,0)$ give $(0.67,0.24,0.09)$. Predict the largest.
 \end{frame}
 
 \section{Learning the weights}
@@ -270,7 +293,7 @@ For a binary label $y$, the loss for one prediction is
 \end{frame}
 
 \begin{frame}{Predict the direction before calculating a gradient}
-The gradient collects the slopes of the loss, one per parameter. Each slope describes how loss changes when that parameter alone increases slightly. For $(2,-1)$ with $y=1$, the score is $s=c+v_1h_1+v_2h_2$.
+The gradient collects the slopes (derivatives) of the loss, one per parameter. Each slope describes how loss changes when that parameter alone increases slightly. For $(2,-1)$ with $y=1$, the score is $s=c+v_1h_1+v_2h_2$.
 \[
    h_1=2,\qquad h_2=0.
 \]
@@ -298,7 +321,7 @@ The sigmoid increases with its score. A higher score gives the true class more p
 \end{frame}
 
 \begin{frame}{Backpropagation follows the chain rule backwards}
-Backpropagation computes those slopes from output to input. The chain rule multiplies local slopes along a path. For sigmoid output with binary cross-entropy, the first slope is $\partial L/\partial s=\hat p-y$.
+Backpropagation computes those slopes from output to input. The chain rule says that when one quantity feeds the next, their slopes multiply along the path. $\mathrm{ReLU}'(z)$ is the slope of the ReLU: 1 if $z>0$ and 0 if $z<0$. For sigmoid output with binary cross-entropy, the first slope is $\partial L/\partial s=\hat p-y$.
 \[
 \frac{\partial L}{\partial w_{11}}=
 \underbrace{(\hat p-y)}_{\text{output signal}}\,
@@ -306,11 +329,21 @@ Backpropagation computes those slopes from output to input. The chain rule multi
 \underbrace{\mathrm{ReLU}'(z_1)}_{\text{local slope}}\,
 \underbrace{x_1}_{\text{input}}.
 \]
-The last three factors give $1(1)(2)=2$: they explain the 0.02 score increase on the previous slide. Multiplying by $0.7311-1$ gives a loss slope of $-0.5379$. The same output signal can be reused for other weights.
+The last three factors give $1(1)(2)=2$: raising $w_{11}$ by 0.01 raises the score by 0.02, as on the previous slide. Multiplying by $\hat p-y=-0.2689$ gives a loss slope of $-0.5379$. The same output signal can be reused for other weights.
+\end{frame}
+
+\begin{frame}{Read the chain rule as a relay}
+\begin{itemize}
+    \item \textbf{Output signal} $\hat p-y=-0.2689$: the score is too low for a class-1 observation, so the loss would fall if the score rose.
+    \item \textbf{Outgoing weight} $v_1=1$ passes that message back to hidden unit 1.
+    \item \textbf{ReLU slope} is 1 because $z_1=2>0$, so the unit is on and the message passes through. An off unit has slope 0 and blocks it.
+    \item \textbf{Input} $x_1=2$ scales the message: a larger input makes the weight matter more.
+    \item \textbf{Result} $-0.5379$. The negative sign says that increasing $w_{11}$ lowers the loss, matching the direction we predicted before calculating.
+\end{itemize}
 \end{frame}
 
 \begin{frame}{One gradient step, checked by another forward pass}
-The learning rate $\eta$ sets the step size. Take $\eta=0.1$. Change just $w_{11}$ so we can isolate its effect:
+Picture the loss as a hill and the slope as which way is uphill. Gradient descent steps the opposite way, downhill, so we subtract the slope. The learning rate $\eta$ sets the step size. Take $\eta=0.1$. Change just $w_{11}$ so we can isolate its effect:
 \[
     w_{11}^{\rm new}=w_{11}-\eta\,\frac{\partial L}{\partial w_{11}}
     =1-0.1(-0.5379)=1.0538.
@@ -328,7 +361,7 @@ During training, all weights and biases use gradients evaluated at the same star
 \begin{frame}{From one observation to an epoch}
 \begin{enumerate}
     \item Initialize the weights with small random values so hidden units can learn different features.
-    \item Shuffle the fitting observations. Take a small group (a mini-batch) and compute its mean loss.
+    \item Shuffle the fitting observations, the ones used to estimate the weights. Take a small group (a mini-batch) and compute its mean loss.
     \item An optimizer is the rule for updating parameters. Mini-batch stochastic gradient descent (SGD) takes a step using the gradient from that batch.
     \item Repeat for the remaining batches. One pass through the fitting data is one \textbf{epoch}.
 \end{enumerate}
@@ -337,10 +370,10 @@ A larger learning rate makes each update larger. As in Lecture 11, input scale a
 
 \begin{frame}{Training choices that control overfitting}
 \begin{itemize}
-    \item Overfitting occurs when a model learns patterns specific to the fitting sample that generalize poorly. Adding hidden units gives the model more capacity to fit such patterns.
+    \item Overfitting occurs when a model memorizes quirks of the fitting sample, like a student who memorizes past answers, and then generalizes poorly. Adding hidden units gives the model more capacity (flexibility) to fit such patterns.
     \item Weight decay discourages large weights. A squared-weight penalty plays the same role as in ridge regression.
-    \item Early stopping uses performance on separate validation observations to decide which epoch's weights to keep. The weights saved at one epoch form a checkpoint.
-    \item Fix these choices before evaluating predictions on the test set.
+    \item Early stopping uses performance on validation observations (held out from fitting) to decide which epoch's weights to keep. The weights saved at one epoch form a checkpoint.
+    \item Fix these choices before evaluating predictions on the test set, a final group of observations kept untouched until the end.
 \end{itemize}
 \end{frame}
 
@@ -352,10 +385,15 @@ A larger learning rate makes each update larger. As in Lecture 11, input scale a
 \end{center}
     \end{column}
     \begin{column}{.40\textwidth}
+\small
 Each curve shows mean cross-entropy for handwritten digits after an epoch of training. Lower is better.
-\svspace{0.6em}
+\svspace{0.3em}
 
-Trace the validation curve from left to right. When does further improvement in fitting loss stop translating into a sustained improvement on validation images?
+Trace the validation curve left to right. When does a falling fitting loss stop bringing sustained improvement on validation images?
+\pause
+\svspace{0.2em}
+
+Fitting loss keeps falling, but validation loss levels off near 0.09--0.10 after about epoch 20. Its lowest value is at epoch 43.
     \end{column}
 \end{columns}
 \end{frame}
@@ -418,7 +456,7 @@ Official test & 1,797 & Evaluate the final models\\
 \end{center}
 \begin{itemize}
     \item Within each digit class, we randomly assigned about 80\% of images to fitting and the rest to validation. A fixed random seed makes this split reproducible. Divide each pixel by its known maximum of 16.
-    \item The baseline fits one linear score per class with a squared-weight penalty (decay 0.01). The network can also learn nonlinear features.
+    \item The baseline, a simple reference model, fits one linear score per class with a squared-weight penalty (decay 0.01). The network can also learn nonlinear features.
 \end{itemize}
 \end{frame}
 
@@ -476,14 +514,18 @@ Network with 32 hidden units & 95.88\% & 0.1575 & 74\\
 \begin{columns}[c]
     \begin{column}{.44\textwidth}
 \begin{center}
-    \includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{figures/digits/fig_confusion.pdf}
+    \includegraphics[width=\linewidth,height=.55\textheight,keepaspectratio]{figures/digits/fig_confusion.pdf}
 \end{center}
     \end{column}
     \begin{column}{.54\textwidth}
 \begin{center}
-    \includegraphics[width=\linewidth,height=.32\textheight,keepaspectratio]{figures/digits/fig_test_examples.pdf}
+    \includegraphics[width=\linewidth,height=.22\textheight,keepaspectratio]{figures/digits/fig_test_examples.pdf}
 \end{center}
+\small
 A confusion matrix counts true digits by row and predictions by column. Seven true 7s were read as 5s. Above are the first three mistakes in test-file order. What makes the first image look like a 1?
+\pause
+
+A thick, nearly vertical stroke runs through the middle, like the stem of a 1. The 2's curved top and base are small by comparison.
     \end{column}
 \end{columns}
 \end{frame}
@@ -511,17 +553,19 @@ Imagine sending an image using only four numbers. The encoder produces those fou
 \begin{frame}{What does the bottleneck preserve?}
 \begin{itemize}
     \item PCA asks which $k$-dimensional linear subspace gives the smallest squared reconstruction error for centered data.
-    \item A linear encoder and decoder with a $k$-dimensional bottleneck can recover that reconstruction at an optimum. Different code coordinates can describe the same subspace.
+    \item A linear encoder and decoder with a $k$-dimensional bottleneck can recover that reconstruction at an optimum.
     \item Nonlinear activations allow the encoder and decoder to learn other representations. A digit classifier uses label loss to decide what to preserve. An autoencoder uses pixel reconstruction loss.
     \item Closing a small gap can turn a 3 into an 8 while changing only a few pixels. Would a small reconstruction error guarantee the same predicted digit?
+    \pause
+    \item No. The error averages over 64 pixels, so a few wrong pixels in the decisive place barely move it but can change the digit.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Check your understanding}
 \begin{enumerate}
-    \item \textbf{Replace the hidden ReLUs with identity functions.} What shape can the binary boundary have? Collecting the weights gives one weighted sum plus a bias and a straight boundary in two dimensions.
-    \item \textbf{A hidden unit is inactive for one image.} Why can its incoming weight receive zero gradient? The ReLU has zero local slope at a negative input.
-    \item \textbf{Choose a checkpoint.} Which data choose the epoch? Validation images guide selection. Test images evaluate the model after its weights have been fixed.
-    \item \textbf{Remove the digit labels.} What target remains available? An autoencoder uses the original pixel vector.
+    \item \textbf{Replace the hidden ReLUs with identity functions.} What shape can the binary boundary have? \pause Collecting the weights gives one weighted sum plus a bias and a straight boundary in two dimensions.
+    \item \textbf{A hidden unit is inactive for one image.} Why can its incoming weight receive zero gradient? \pause The ReLU has zero local slope at a negative input.
+    \item \textbf{Choose a checkpoint.} Which data choose the epoch? \pause Validation images guide selection. Test images evaluate the model after its weights have been fixed.
+    \item \textbf{Remove the digit labels.} What target remains available? \pause An autoencoder uses the original pixel vector.
 \end{enumerate}
 \end{frame}

@@ -1,571 +1,744 @@
-% Numerical results: figures/toy/numbers_toy.txt and figures/digits/numbers_digits.txt.
+% Numerical results: figures/toy/numbers_toy.txt, figures/auto/numbers_auto.txt, figures/digits/numbers_digits.txt.
 
 \mode<article>{\maketitle}
 
-\section{From logistic regression to a neuron}
+\section{Introduction \& The Artificial Neuron}
 
-\begin{frame}{The plan for this lecture}
-A neural network is logistic regression that builds its own features. We follow one tiny network through four steps:
-\begin{enumerate}
-    \item \textbf{Forward pass.} Push the inputs through the network, multiplying by weights (numbers we can adjust) along the way, to get a prediction.
-    \item \textbf{Loss.} A number that says how wrong the prediction was for the true label.
-    \item \textbf{Gradient.} For each weight, the slope of the loss: which direction of change would reduce it.
-    \item \textbf{Update.} Nudge every weight that way, then repeat on more observations.
-\end{enumerate}
-Every later slide is one of these four steps. When a slide feels dense, ask which step it belongs to.
+\begin{frame}{Why Neural Networks?}
+    \begin{itemize}
+        \item \textbf{The limitation of linear models:} Linear and logistic regression compute $\hat{y} = g(\mathbf{w}^\top \mathbf{x} + b)$. They can only form straight decision boundaries or flat planes unless we \emph{manually} engineer features (polynomials, interactions).
+        \item \textbf{Manual feature engineering is hard:} In high dimensions (e.g., images with thousands of pixels, audio, text), deciding which non-linear features to create by hand is practically impossible.
+        \item \textbf{The core idea of Neural Networks:} Instead of designing features by hand, the model \textbf{learns hierarchical features automatically} from raw data through successive layers of computation.
+        \item \textbf{Biological inspiration:} Biological brains consist of billions of interconnected neurons communicating via electrical signals. Artificial neural networks (ANNs) borrow this modular, interconnected structure.
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{Where does logistic regression miss the curve?}
-\small
-\begin{columns}[c]
-    \begin{column}{.40\textwidth}
-\begin{itemize}
-    \item Each point shows two inputs. Color gives its class label.
-    \item A decision boundary separates predicted classes. Logistic regression gives the solid line.
-    \item For $k$-nearest neighbors ($k$-NN), the 15 closest points vote. Trace its dashed boundary.
-\end{itemize}
-    \end{column}
-    \begin{column}{.58\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{../06_classification/figures/cls_logistic_vs_knn.pdf}
-\end{center}
-    \end{column}
-\end{columns}
+\begin{frame}{The Four Pillars of Neural Networks}
+    Every neural network, regardless of size or complexity, is built on four core concepts:
+    \begin{enumerate}
+        \item \textbf{Architecture:} How artificial neurons are organized into layers (input, hidden, output) and connected together.
+        \item \textbf{Forward Propagation:} Pushing input data forward through the network to generate a prediction $\hat{y}$.
+        \item \textbf{Loss Function:} Measuring how far the prediction $\hat{y}$ is from the ground truth target $y$.
+        \item \textbf{Backpropagation \& Optimization:} Computing gradients via the calculus chain rule and updating weights via Gradient Descent to minimize the loss.
+    \end{enumerate}
+    \svspace{0.4em}
+    We begin with the fundamental atomic building block: a \textbf{single artificial neuron}.
 \end{frame}
 
-\begin{frame}{What does one neuron do?}
-A neuron, or unit, computes an output from its inputs. For features $x_1,x_2$, form a score $s$, then apply a function to it:
-\[
-    s=b+w_1x_1+w_2x_2,\qquad \hat p=\sigma(s)=\frac{1}{1+e^{-s}}.
-\]
-\begin{itemize}
-    \item Each connection has a weight. Increasing $x_1$ by one unit adds $w_1$ to the score when $x_2$ stays fixed.
-    \item The bias $b$ is the intercept. Imagine both inputs are zero: the neuron starts at score $b$ before either feature contributes.
-    \item An activation function maps a score to the unit's output. Here the sigmoid $\sigma$ gives $\hat p$, the estimated probability of class 1.
-    \item The sigmoid squashes any score into $(0,1)$: $s=0$ gives $\hat p=0.5$, a large positive $s$ gives $\hat p$ near 1, and a large negative $s$ gives $\hat p$ near 0.
-\end{itemize}
+\begin{frame}{The Building Block: An Artificial Neuron}
+    \begin{center}
+    \begin{tikzpicture}[
+        >=Stealth,
+        scale=0.88, every node/.style={transform shape},
+        font=\small,
+        in_node/.style={circle, draw=blue!70, fill=blue!10, thick, minimum size=20pt, inner sep=0pt},
+        sum_node/.style={circle, draw=orange!80, fill=orange!15, thick, minimum size=28pt, inner sep=0pt},
+        act_node/.style={rectangle, rounded corners=4pt, draw=teal!80, fill=teal!15, thick, minimum size=26pt, inner sep=3pt},
+        out_node/.style={circle, draw=purple!70, fill=purple!10, thick, minimum size=20pt, inner sep=0pt}
+    ]
+        % Inputs
+        \node[in_node] (x1) at (0, 1.3) {$x_1$};
+        \node[in_node] (x2) at (0, 0.4) {$x_2$};
+        \node at (0, -0.3) {$\vdots$};
+        \node[in_node] (xp) at (0, -1.1) {$x_p$};
+        \node[in_node, fill=gray!20, draw=gray!70] (bnode) at (0, -2.0) {$1$};
+
+        % Summation
+        \node[sum_node] (sum) at (3.4, 0) {$\sum$};
+        \node[below=4pt of sum, font=\scriptsize, align=center] {Linear Combination\\$z = \mathbf{w}^\top \mathbf{x} + b$};
+
+        % Activation
+        \node[act_node] (act) at (6.2, 0) {$g(z)$};
+        \node[below=4pt of act, font=\scriptsize, align=center] {Activation\\$a = g(z)$};
+
+        % Output
+        \node[out_node] (out) at (8.6, 0) {$a$};
+        \node[below=4pt of out, font=\scriptsize, align=center] {Neuron\\Output};
+
+        % Arrows
+        \draw[->, thick] (x1) -- node[above, font=\scriptsize, sloped] {$w_1$} (sum);
+        \draw[->, thick] (x2) -- node[above, font=\scriptsize, sloped] {$w_2$} (sum);
+        \draw[->, thick] (xp) -- node[above, font=\scriptsize, sloped] {$w_p$} (sum);
+        \draw[->, thick] (bnode) -- node[below, font=\scriptsize, sloped] {$b$ (bias)} (sum);
+
+        \draw[->, thick] (sum) -- node[above, font=\scriptsize] {$z$} (act);
+        \draw[->, thick] (act) -- node[above, font=\scriptsize] {$a$} (out);
+
+        % Annotations
+        \node[above=3pt of x1, font=\footnotesize\bfseries, color=blue!80] {Inputs};
+        \node[above=16pt of sum, font=\footnotesize\bfseries, color=orange!80!black] {Pre-activation};
+        \node[above=16pt of act, font=\footnotesize\bfseries, color=teal!80!black] {Non-linearity};
+    \end{tikzpicture}
+    \end{center}
+    \vspace{-0.4em}
+    \small
+    A single neuron computes an output in two sequential steps:
+    \[
+        \text{1. Linear pre-activation: } z = b + \sum_{j=1}^p w_j x_j = \mathbf{w}^\top \mathbf{x} + b, \qquad
+        \text{2. Activation: } a = g(z).
+    \]
 \end{frame}
 
-\begin{frame}{Which observations lie on the decision boundary?}
-At the usual cutoff, $\hat p=0.5$ exactly when $s=0$. Consider
-\[
-    s=-1+x_1+x_2. \qquad \text{Boundary: } x_2=1-x_1.
-\]
-\begin{itemize}
-    \item The points $(0,1)$ and $(1,0)$ both sit on the line. At $(1,1)$ the score is positive, so class 1 has the higher probability.
-    \item Changing the bias shifts the line. Changing the relative weights can rotate it.
-    \item What could we change in the model to make the boundary bend?
-\pause
-Not the weights: any $s=b+w_1x_1+w_2x_2$ has a straight boundary. We must feed the score better inputs than the raw $x_1,x_2$.
-\end{itemize}
+\begin{frame}{Anatomy of an Artificial Neuron}
+    \begin{itemize}
+        \item \textbf{Inputs} ($x_1, \dots, x_p$): Incoming numerical features or signals from earlier layers.
+        \item \textbf{Weights} ($w_1, \dots, w_p$): Learnable parameters representing connection strengths. Each weight scales how strongly an input influences the neuron.
+        \item \textbf{Bias} ($b$): An intercept term that shifts the pre-activation $z$ independently of the inputs, controlling the neuron's baseline activation threshold.
+        \item \textbf{Pre-activation} ($z$): The weighted sum $z = \mathbf{w}^\top \mathbf{x} + b$. This is purely linear.
+        \item \textbf{Activation Function} ($g$): A non-linear function that squashes or transforms $z$ into the neuron's final activation $a = g(z)$.
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{Where do the new features come from?}
-In polynomial regression we supplied features such as $x$ and $x^2$. In a feedforward neural network, information flows from inputs to output through successive layers (groups of units), with no loops:
-\[
-    (x_1,x_2)\ \longrightarrow\ (h_1,h_2)\
-        \longrightarrow\ s\ \longrightarrow\ \hat p.
-\]
-\begin{itemize}
-    \item A hidden unit sits between input and output. It applies an activation function to a weighted sum plus a bias. Its output $h_j$ is one new feature.
-    \item We chose the square in polynomial regression. Here training adjusts the weights inside each hidden unit, so the shape of its feature can change when the model makes mistakes.
-\end{itemize}
-\end{frame}
-
-\section{How a hidden layer builds features}
-
-\begin{frame}{Can we describe this boundary in pieces?}
-\begin{columns}[c]
-    \begin{column}{.48\textwidth}
-\small
-\begin{itemize}
-    \item A constructed two-feature example; each color is one class.
-    \item Trace the class change from left to right. Where is the boundary horizontal? Where does it turn?
+\begin{frame}{Connecting Neurons to Familiar Models}
+    A single neuron reproduces the classical models from earlier lectures:
+    \begin{itemize}
+        \item \textbf{Linear Regression:} Identity activation $g(z) = z$
+        \[
+            \hat{y} = \mathbf{w}^\top \mathbf{x} + b.
+        \]
+        \item \textbf{Logistic Regression:} Sigmoid activation $g(z) = \sigma(z) = \frac{1}{1+e^{-z}}$
+        \[
+            \hat{p} = \sigma(\mathbf{w}^\top \mathbf{x} + b).
+        \]
+    \end{itemize}
     \pause
-    \item Horizontal at $x_2=1$ on the left; it turns at $(0,1)$ onto a diagonal, then at $(1,0)$ into a vertical line.
-    \item Two hidden units will reproduce all three pieces.
-\end{itemize}
-    \end{column}
-    \begin{column}{.50\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{figures/toy/fig_classes.pdf}
-\end{center}
-    \end{column}
-\end{columns}
+    \svspace{0.3em}
+    \textbf{The geometric limitation:}
+    \begin{itemize}
+        \item At cutoff $\hat{p} = 0.5$, the decision boundary satisfies $\mathbf{w}^\top \mathbf{x} + b = 0$.
+        \item A single neuron can \textbf{only} create a straight line or flat hyperplane!
+        \item It cannot separate curved or non-convex classes (such as XOR).
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{A rectified linear unit keeps the positive part}
-\begin{columns}[c]
-    \begin{column}{.48\textwidth}
-Let $z=b+w_1x_1+w_2x_2$. The rectified linear unit (ReLU) returns
-\[
-    h=\max(0,z).
-\]
-Move from left to right along the graph. Until the score reaches zero, the output stays at zero. Beyond zero, a one-unit rise in the score gives a one-unit rise in the output. A unit is \emph{active} when its output is positive and \emph{inactive} (off) when its output is zero.
-    \end{column}
-    \begin{column}{.50\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{figures/toy/fig_relu.pdf}
-\end{center}
-    \end{column}
-\end{columns}
+\begin{frame}{Where Does a Single Neuron Fail?}
+    \begin{columns}[c]
+        \begin{column}{0.50\textwidth}
+            \small
+            \begin{itemize}
+                \item When data has non-linear structure, a single linear boundary makes systematic errors.
+                \item The solid line shows logistic regression (a single unit): it cannot bend around the curved class boundary.
+                \item In earlier lectures, we fixed this by manually inventing polynomial terms ($x_1^2, x_1 x_2$).
+                \item \textbf{The solution:} Connect multiple neurons into a \textbf{network} to learn non-linear boundaries automatically!
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.36\textheight,keepaspectratio]{../06_classification/figures/cls_logistic_vs_knn.pdf}
+            \par{\scriptsize Logistic regression (single unit) misses the curve.}
+        \end{column}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Two units can see different parts of one observation}
-\begin{center}
-    \includegraphics[width=\linewidth,height=.48\textheight,keepaspectratio]{figures/toy/fig_hidden_features.pdf}
-\end{center}
-The left panel shows $h_1=\max(0,x_1)$, how far right of zero the point lies. The right panel shows $h_2=\max(0,x_2)$, how far above zero it lies. At the marked point $(2,-1)$, those features are 2 and 0. Where could you move the point to increase both?
-\pause
-Up and to the right, into the quadrant where both inputs are positive.
+
+\section{Network Architecture \& Activation Functions}
+
+\begin{frame}{Building a Network: The Multi-Layer Perceptron}
+    \begin{columns}[c]
+        \begin{column}{0.58\textwidth}
+            \centering
+            \begin{tikzpicture}[
+                >=Stealth,
+                scale=0.74, every node/.style={transform shape},
+                font=\small,
+                neuron/.style={circle, draw=blue!70, fill=blue!10, thick, minimum size=16pt, inner sep=0pt},
+                hid1/.style={circle, draw=orange!80, fill=orange!15, thick, minimum size=16pt, inner sep=0pt},
+                hid2/.style={circle, draw=teal!80, fill=teal!15, thick, minimum size=16pt, inner sep=0pt},
+                out_n/.style={circle, draw=purple!80, fill=purple!15, thick, minimum size=16pt, inner sep=0pt}
+            ]
+                % Input layer
+                \node[neuron] (in1) at (0, 1.2) {$x_1$};
+                \node[neuron] (in2) at (0, 0.4) {$x_2$};
+                \node[neuron] (in3) at (0, -0.4) {$x_3$};
+                \node[neuron] (in4) at (0, -1.2) {$x_4$};
+                \node[below=4pt of in4, font=\scriptsize\bfseries, color=blue!80] {Input};
+
+                % Hidden layer 1
+                \node[hid1] (h11) at (2.4, 1.5) {$h_1^{(1)}$};
+                \node[hid1] (h12) at (2.4, 0.5) {$h_2^{(1)}$};
+                \node[hid1] (h13) at (2.4, -0.5) {$h_3^{(1)}$};
+                \node[hid1] (h14) at (2.4, -1.5) {$h_4^{(1)}$};
+                \node[below=4pt of h14, font=\scriptsize\bfseries, color=orange!80!black] {Hidden 1};
+
+                % Hidden layer 2
+                \node[hid2] (h21) at (4.8, 1.0) {$h_1^{(2)}$};
+                \node[hid2] (h22) at (4.8, 0.0) {$h_2^{(2)}$};
+                \node[hid2] (h23) at (4.8, -1.0) {$h_3^{(2)}$};
+                \node[below=14pt of h23, font=\scriptsize\bfseries, color=teal!80!black] {Hidden 2};
+
+                % Output layer
+                \node[out_n] (o1) at (7.0, 0.5) {$\hat{y}_1$};
+                \node[out_n] (o2) at (7.0, -0.5) {$\hat{y}_2$};
+                \node[below=24pt of o2, font=\scriptsize\bfseries, color=purple!80!black] {Output};
+
+                % Connections
+                \foreach \i in {in1,in2,in3,in4}
+                    \foreach \j in {h11,h12,h13,h14}
+                        \draw[->, draw=gray!40] (\i) -- (\j);
+
+                \foreach \i in {h11,h12,h13,h14}
+                    \foreach \j in {h21,h22,h23}
+                        \draw[->, draw=gray!40] (\i) -- (\j);
+
+                \foreach \i in {h21,h22,h23}
+                    \foreach \j in {o1,o2}
+                        \draw[->, draw=gray!40] (\i) -- (\j);
+            \end{tikzpicture}
+        \end{column}
+        \begin{column}{0.40\textwidth}
+            \small
+            \begin{itemize}
+                \item \textbf{Feedforward:} Information flows strictly left-to-right without feedback loops.
+                \item \textbf{Dense / Fully Connected:} Every neuron connects to all neurons in the next layer.
+                \item \textbf{Parameters:} Each layer $l$ has weight matrix $\mathbf{W}^{(l)}$ and bias vector $\mathbf{b}^{(l)}$.
+            \end{itemize}
+        \end{column}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Adding the two features creates a bend}
-\begin{columns}[c]
-    \begin{column}{.48\textwidth}
-Set $s=h_1+h_2-1$. The class boundary follows $s=0$, and class 1 is the side where $s>0$ (large features).
-\begin{itemize}
-    \item On the left, $h_1=0$, so the boundary is $x_2=1$.
-    \item In the upper right, both units contribute: $x_1+x_2=1$.
-    \item Below the horizontal axis, $h_2=0$, so the boundary is $x_1=1$.
-\end{itemize}
-    \end{column}
-    \begin{column}{.50\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{figures/toy/fig_score_boundary.pdf}
-\end{center}
-    \end{column}
-\end{columns}
+\begin{frame}{Network Building Blocks: Layers, Width, and Depth}
+    \begin{itemize}
+        \item \textbf{Input Layer:} Accepts the raw feature vector $\mathbf{x} \in \mathbb{R}^p$. No weights or computations here; it distributes data to the first hidden layer.
+        \item \textbf{Hidden Layer(s):} Layers between input and output. They compute internal representations (learned features) from the previous layer.
+        \item \textbf{Output Layer:} Delivers the final prediction (continuous response $\hat{y}$, binary probability $\hat{p}$, or class probabilities).
+        \item \textbf{Width:} The number of neurons in a given layer. More width allows a layer to capture more distinct feature patterns simultaneously.
+        \item \textbf{Depth:} The number of hidden layers. \textbf{Deep Learning} refers to models with multiple hidden layers stacked sequentially.
+        \item \textbf{Feature Hierarchy:} Early layers learn simple patterns (edges, lines); deeper layers combine them into complex concepts (shapes, parts, objects).
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{What can a hidden unit learn to detect?}
-Start with $h=\max(0,x_1)$. The shaded region contains the points where the unit sends a positive value.
-\begin{center}
-\begin{tikzpicture}[font=\small,>=Stealth]
-    \foreach \shift/\case/\formula in {0/0/{x_1},3.9/1/{x_1-1},7.8/2/{x_1+x_2-1}} {
-        \begin{scope}[xshift=\shift cm,x=.66cm,y=.48cm]
-            \ifcase\case
-                \fill[blue!18] (0,-2) rectangle (2,2);
-                \draw[blue,thick] (0,-2) -- (0,2);
-            \or
-                \fill[blue!18] (1,-2) rectangle (2,2);
-                \draw[blue,thick] (1,-2) -- (1,2);
-            \or
-                \fill[blue!18] (-1,2) -- (2,2) -- (2,-1) -- cycle;
-                \draw[blue,thick] (-1,2) -- (2,-1);
-            \fi
-            \draw[->,gray] (-2,0) -- (2.3,0) node[right] {$x_1$};
-            \draw[->,gray] (0,-2) -- (0,2.5) node[above] {$x_2$};
-            \fill (0,2) circle (2pt);
-            \node at (0,-2.8) {$z=\formula$};
+\begin{frame}{Why Are Activation Functions Necessary?}
+    \textbf{The Linearity Dilemma:} What happens if we omit the activation functions and use $g(z) = z$ (identity) everywhere?
+    \begin{itemize}
+        \item Consider a two-layer network with inputs $\mathbf{x}$:
+        \[
+            \mathbf{h} = \mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)}, \qquad
+            \mathbf{s} = \mathbf{W}^{(2)}\mathbf{h} + \mathbf{b}^{(2)}.
+        \]
+        \item Substitute $\mathbf{h}$ directly into $\mathbf{s}$:
+        \[
+            \mathbf{s} = \mathbf{W}^{(2)}\bigl(\mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)}\bigr) + \mathbf{b}^{(2)}
+            = \underbrace{\bigl(\mathbf{W}^{(2)}\mathbf{W}^{(1)}\bigr)}_{\mathbf{W}_{\text{comb}}}\mathbf{x} + \underbrace{\bigl(\mathbf{W}^{(2)}\mathbf{b}^{(1)} + \mathbf{b}^{(2)}\bigr)}_{\mathbf{b}_{\text{comb}}}.
+        \]
+        \item The result is still strictly a \textbf{single linear transformation}!
+    \end{itemize}
+    \pause
+    \svspace{0.3em}
+    \textbf{Key insight:} A linear combination of linear functions is always linear. A 100-layer network without non-linear activations computes nothing more than standard linear regression. Non-linear activations give networks their expressive power.
+\end{frame}
+
+\begin{frame}{Common Activation Functions}
+    \begin{center}
+    \begin{tikzpicture}[font=\scriptsize, scale=0.80]
+        % Sigmoid plot
+        \begin{scope}[xshift=-4.2cm]
+            \draw[->, gray] (-1.8,0) -- (1.9,0) node[right, black] {$z$};
+            \draw[->, gray] (0,-0.2) -- (0,1.3) node[above, black] {$a$};
+            \draw[thick, blue] plot[domain=-1.7:1.7, samples=30] (\x, {1/(1+exp(-2*\x))});
+            \node[below, font=\scriptsize] at (0,-0.3) {$\sigma(z) = \frac{1}{1+e^{-z}}$};
+            \node[above=2pt, font=\footnotesize\bfseries, color=blue!80] at (0,1.3) {Sigmoid};
+            \draw[dotted, gray] (-1.7, 1) -- (1.7, 1);
+            \node[left, gray] at (0, 1) {$1$};
+            \node[left, gray] at (0, 0.5) {$0.5$};
         \end{scope}
-    }
-\end{tikzpicture}
-\end{center}
-The threshold is the line $z=0$, where the unit switches on. Changing the bias moves the threshold to the right. Giving $x_2$ weight 1 tilts it. Follow the dot $(0,2)$: its output changes from 0 to 0 to 1.
+
+        % Tanh plot
+        \begin{scope}[xshift=0cm]
+            \draw[->, gray] (-1.8,0) -- (1.9,0) node[right, black] {$z$};
+            \draw[->, gray] (0,-1.2) -- (0,1.3) node[above, black] {$a$};
+            \draw[thick, orange!90!black] plot[domain=-1.7:1.7, samples=30] (\x, {(exp(1.5*\x)-exp(-1.5*\x))/(exp(1.5*\x)+exp(-1.5*\x))});
+            \node[below, font=\scriptsize] at (0,-1.3) {$\tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$};
+            \node[above=2pt, font=\footnotesize\bfseries, color=orange!90!black] at (0,1.3) {Tanh};
+            \draw[dotted, gray] (-1.7, 1) -- (1.7, 1);
+            \draw[dotted, gray] (-1.7, -1) -- (1.7, -1);
+            \node[left, gray] at (0, 1) {$1$};
+            \node[left, gray] at (0, -1) {$-1$};
+        \end{scope}
+
+        % ReLU plot
+        \begin{scope}[xshift=4.2cm]
+            \draw[->, gray] (-1.8,0) -- (1.9,0) node[right, black] {$z$};
+            \draw[->, gray] (0,-0.2) -- (0,1.3) node[above, black] {$a$};
+            \draw[thick, teal!90!black] (-1.7,0) -- (0,0) -- (1.2,1.2);
+            \node[below, font=\scriptsize] at (0,-0.3) {$\mathrm{ReLU}(z) = \max(0,z)$};
+            \node[above=2pt, font=\footnotesize\bfseries, color=teal!90!black] at (0,1.3) {ReLU};
+            \node[above left, teal!90!black] at (1.0,1.0) {slope $1$};
+            \node[below, teal!90!black] at (-0.9,0) {slope $0$};
+        \end{scope}
+    \end{tikzpicture}
+    \end{center}
+    \vspace{-0.9em}
+    \small
+    \begin{itemize}
+        \item \textbf{Sigmoid:} Squashes to $(0, 1)$. Good for output probabilities; \textbf{saturates} for large $|z|$ (vanishing gradient: derivative $\approx 0$).
+        \item \textbf{Tanh:} Squashes to $(-1, 1)$, zero-centered. Often trains faster than sigmoid, but still saturates at extremes.
+        \item \textbf{ReLU (Rectified Linear Unit):} Modern default for hidden layers! Extremely fast; derivative is $1$ for $z > 0$, preventing vanishing gradients.
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{What if we remove the ReLUs?}
-With the identity activation $g(z)=z$, unit $j$ returns $h_j=b_j+\mathbf w_j^\top\mathbf x$, where $b_j$ is its bias and $\mathbf w_j^\top\mathbf x$ its weighted sum of inputs. Let $c$ be the output bias and $v_1,v_2$ the output weights. Then
-\[
-\begin{aligned}
- s &= c+v_1h_1+v_2h_2\\
-   &= (c+v_1b_1+v_2b_2)+(v_1\mathbf w_1+v_2\mathbf w_2)^\top\mathbf x.
-\end{aligned}
-\]
-This is one intercept plus one weighted sum of the inputs. Setting this score to zero gives a straight boundary. A straight rule fed into another straight rule is still one straight rule, however many layers we stack. The ReLU is what makes a unit switch off below its threshold, so the slope of the score changes where a unit switches on. That change in slope is the bend.
-\end{frame}
-
-\begin{frame}{Reading a fully connected network}
-\begin{center}
-\begin{tikzpicture}[x=2cm,y=0.73cm,>=Stealth,
-    unit/.style={draw,rounded corners,fill=blue!7,inner sep=4pt}]
-    \node[unit] (x1) at (0,1) {$x_1$};
-    \node[unit] (x2) at (0,-1) {$x_2$};
-    \node[unit,fill=orange!12] (h1) at (1.3,1) {$h_1$};
-    \node[unit,fill=orange!12] (h2) at (1.3,-1) {$h_2$};
-    \node[unit] (out) at (2.7,0) {$\hat p$};
-    \foreach \x in {x1,x2} \foreach \h in {h1,h2} \draw[->] (\x) -- (\h);
-    \foreach \h in {h1,h2} \draw[->] (\h) -- (out);
-\end{tikzpicture}
-\end{center}
-\begin{itemize}
-    \item Read left to right: input, hidden and output layers. Fully connected means each unit connects to every unit in the next layer.
-    \item Width counts the units in a layer. Here the hidden layer has two. Its four weights and two biases, plus two output weights and one output bias, give nine trainable parameters. A parameter is any weight or bias that training may change.
-    \item Increasing width adds features at this stage. Increasing depth adds another transformation of the features already learned.
-\end{itemize}
-\end{frame}
-
-\section{One prediction by hand}
-
-\begin{frame}{Trace one labeled observation}
-\begin{center}
-\begin{tikzpicture}[x=2cm,y=0.73cm,>=Stealth,
-    unit/.style={draw,rounded corners,fill=blue!7,inner sep=4pt}]
-    \node[unit] (x1) at (0,1) {$2$};
-    \node[unit] (x2) at (0,-1) {$-1$};
-    \node[unit,fill=orange!12] (h1) at (1.3,1) {$h_1$};
-    \node[unit,fill=orange!12] (h2) at (1.3,-1) {$h_2$};
-    \node[unit] (out) at (2.7,0) {$\hat p$};
-    \foreach \x in {x1,x2} \foreach \h in {h1,h2} \draw[->] (\x) -- (\h);
-    \foreach \h in {h1,h2} \draw[->] (\h) -- (out);
-\end{tikzpicture}
-\end{center}
-\small A forward pass computes one prediction from inputs to output using the current weights. Here the observed class is $y=1$. The two horizontal input-to-hidden connections have weight 1, the crossing connections have weight 0, and both hidden biases are 0. Both output weights are 1 and the output bias is $-1$.
-
-\svspace{0.2em}
-Cover the output. Starting at the two inputs, which hidden unit will still send a positive value to the right?
-\pause
-\svspace{0.3em}
-Hidden unit 1: it only sees $x_1=2>0$. Hidden unit 2 only sees $x_2=-1<0$, so it stays off. The next slide checks this.
-\end{frame}
-
-\begin{frame}{Compute the hidden features}
-\[
-\begin{aligned}
- z_1 &= 0+1(2)+0(-1)=2,  & h_1 &= \max(0,2)=2,\\
- z_2 &= 0+0(2)+1(-1)=-1, & h_2 &= \max(0,-1)=0.
-\end{aligned}
-\]
-\begin{center}
-\begin{tikzpicture}[x=2cm,y=0.73cm,>=Stealth,
-    unit/.style={draw,rounded corners,fill=blue!7,inner sep=4pt}]
-    \node[unit] (x1) at (0,1) {$2$};
-    \node[unit] (x2) at (0,-1) {$-1$};
-    \node[unit,fill=orange!12] (h1) at (1.3,1) {$2$};
-    \node[unit,fill=orange!12] (h2) at (1.3,-1) {$0$};
-    \node[unit] (out) at (2.7,0) {$\hat p$};
-    \foreach \x in {x1,x2} \foreach \h in {h1,h2} \draw[->] (\x) -- (\h);
-    \foreach \h in {h1,h2} \draw[->] (\h) -- (out);
-\end{tikzpicture}
-\end{center}
-Keep $x_1=2$ and move $x_2$ from $-1$ to $-0.5$. The second unit still sends zero. Once $x_2$ crosses zero, that path starts changing the prediction.
-\end{frame}
-
-\begin{frame}{Finish the forward pass}
-\[
-  s=-1+1(2)+1(0)=1,\qquad
-  \hat p=\frac{1}{1+e^{-1}}=0.7311.
-\]
-\begin{itemize}
-    \item The network predicts class 1. The score is 1, while the estimated probability of class 1 is 0.7311.
-    \item Try $(-1,-1)$ with the same weights. What happens when both units are inactive?
-\end{itemize}
-\pause
-\svspace{0.3em}
-Both hidden outputs are zero, so only the output bias remains: $s=-1$, $\hat p=0.2689$, and the predicted class is 0.
-\end{frame}
-
-\begin{frame}{Choose an output and loss to match the response}
-\small
-A loss measures prediction error. Squared error is $(y-\hat y)^2$. Cross-entropy (log loss) is $-\log$ of the probability assigned to the observed class. Softmax turns class scores into probabilities.
-\begin{center}
-\small
-\begin{tabular}{@{}lll@{}}
-\toprule
-Response & Output & Training loss\\
-\midrule
-Continuous & One linear value & Squared error\\
-Binary & One sigmoid probability & Binary cross-entropy\\
-One of $K$ classes & $K$ softmax probabilities & Categorical cross-entropy\\
-\bottomrule
-\end{tabular}
-\end{center}
-For $K$ classes with scores $s_1,\ldots,s_K$,
-\[
-   \hat p_k=\frac{\exp(s_k)}{\sum_{j=1}^{K}\exp(s_j)}.
-\]
-Exponentiating makes scores positive and dividing by the sum makes them add to one: scores $(2,1,0)$ give $(0.67,0.24,0.09)$. Predict the largest.
-\end{frame}
-
-\section{Learning the weights}
-
-\begin{frame}{How costly is a confident mistake?}
-For a binary label $y$, the loss for one prediction is
-\[
-    L=-y\log(\hat p)-(1-y)\log(1-\hat p).
-\]
-\begin{itemize}
-    \item For a class-1 observation, only the first term contributes. Our example gives $-\log(0.7311)=0.3133$.
-    \item Predicting 0.1 for the same observation costs $-\log(0.1)=2.3026$. Assigning a small probability to the observed class incurs a large loss.
-    \item Averaging this loss over observations gives the negative Bernoulli log-likelihood per observation from Lecture 6.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Predict the direction before calculating a gradient}
-The gradient collects the slopes (derivatives) of the loss, one per parameter. Each slope describes how loss changes when that parameter alone increases slightly. For $(2,-1)$ with $y=1$, the score is $s=c+v_1h_1+v_2h_2$.
-\[
-   h_1=2,\qquad h_2=0.
-\]
-\begin{itemize}
-    \item Increasing $v_1$ by 0.1 adds 0.2 to the score. The sigmoid probability rises and the loss for this class-1 observation falls.
-    \item Increasing $v_2$ by the same amount adds zero. This observation gives no learning signal for that output weight.
-    \item Now follow the signal one step farther back, to the weight $w_{11}$ connecting $x_1$ to hidden unit 1.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Trace a small change through the network}
-What would happen if we raised just $w_{11}$ from $1$ to $1.01$ for our class-1 observation?
-\begin{center}
-\begin{tabular}{lcc}
-\toprule
-Quantity & Before & After\\
-\midrule
-First hidden score $w_{11}x_1$ & $1(2)=2$ & $1.01(2)=2.02$\\
-First hidden output $\max(0,z_1)$ & 2 & 2.02\\
-Output score $h_1+h_2-1$ & 1 & 1.02\\
-\bottomrule
-\end{tabular}
-\end{center}
-The sigmoid increases with its score. A higher score gives the true class more probability, so its loss falls. We already know the sign of this weight's derivative.
-\end{frame}
-
-\begin{frame}{Backpropagation follows the chain rule backwards}
-Backpropagation computes those slopes from output to input. The chain rule says that when one quantity feeds the next, their slopes multiply along the path. $\mathrm{ReLU}'(z)$ is the slope of the ReLU: 1 if $z>0$ and 0 if $z<0$. For sigmoid output with binary cross-entropy, the first slope is $\partial L/\partial s=\hat p-y$.
-\[
-\frac{\partial L}{\partial w_{11}}=
-\underbrace{(\hat p-y)}_{\text{output signal}}\,
-\underbrace{v_1}_{\text{outgoing weight}}\,
-\underbrace{\mathrm{ReLU}'(z_1)}_{\text{local slope}}\,
-\underbrace{x_1}_{\text{input}}.
-\]
-The last three factors give $1(1)(2)=2$: raising $w_{11}$ by 0.01 raises the score by 0.02, as on the previous slide. Multiplying by $\hat p-y=-0.2689$ gives a loss slope of $-0.5379$. The same output signal can be reused for other weights.
-\end{frame}
-
-\begin{frame}{Read the chain rule as a relay}
-\begin{itemize}
-    \item \textbf{Output signal} $\hat p-y=-0.2689$: the score is too low for a class-1 observation, so the loss would fall if the score rose.
-    \item \textbf{Outgoing weight} $v_1=1$ passes that message back to hidden unit 1.
-    \item \textbf{ReLU slope} is 1 because $z_1=2>0$, so the unit is on and the message passes through. An off unit has slope 0 and blocks it.
-    \item \textbf{Input} $x_1=2$ scales the message: a larger input makes the weight matter more.
-    \item \textbf{Result} $-0.5379$. The negative sign says that increasing $w_{11}$ lowers the loss, matching the direction we predicted before calculating.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{One gradient step, checked by another forward pass}
-Picture the loss as a hill and the slope as which way is uphill. Gradient descent steps the opposite way, downhill, so we subtract the slope. The learning rate $\eta$ sets the step size. Take $\eta=0.1$. Change just $w_{11}$ so we can isolate its effect:
-\[
-    w_{11}^{\rm new}=w_{11}-\eta\,\frac{\partial L}{\partial w_{11}}
-    =1-0.1(-0.5379)=1.0538.
-\]
-\begin{center}
-\begin{tabular}{lrrr}
-\toprule & Score & Class-1 probability & Loss\\
-\midrule Before & 1.0000 & 0.7311 & 0.3133\\
-After & 1.1076 & 0.7517 & 0.2854\\ \bottomrule
-\end{tabular}
-\end{center}
-During training, all weights and biases use gradients evaluated at the same starting values for that step.
-\end{frame}
-
-\begin{frame}{From one observation to an epoch}
-\begin{enumerate}
-    \item Initialize the weights with small random values so hidden units can learn different features.
-    \item Shuffle the fitting observations, the ones used to estimate the weights. Take a small group (a mini-batch) and compute its mean loss.
-    \item An optimizer is the rule for updating parameters. Mini-batch stochastic gradient descent (SGD) takes a step using the gradient from that batch.
-    \item Repeat for the remaining batches. One pass through the fitting data is one \textbf{epoch}.
-\end{enumerate}
-A larger learning rate makes each update larger. As in Lecture 11, input scale affects the size of the gradients.
-\end{frame}
-
-\begin{frame}{Training choices that control overfitting}
-\begin{itemize}
-    \item Overfitting occurs when a model memorizes quirks of the fitting sample, like a student who memorizes past answers, and then generalizes poorly. Adding hidden units gives the model more capacity (flexibility) to fit such patterns.
-    \item Weight decay discourages large weights. A squared-weight penalty plays the same role as in ridge regression.
-    \item Early stopping uses performance on validation observations (held out from fitting) to decide which epoch's weights to keep. The weights saved at one epoch form a checkpoint.
-    \item Fix these choices before evaluating predictions on the test set, a final group of observations kept untouched until the end.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Which epoch would you keep?}
-\begin{columns}[c]
-    \begin{column}{.58\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{figures/digits/fig_learning_curves.pdf}
-\end{center}
-    \end{column}
-    \begin{column}{.40\textwidth}
-\small
-Each curve shows mean cross-entropy for handwritten digits after an epoch of training. Lower is better.
-\svspace{0.3em}
-
-Trace the validation curve left to right. When does a falling fitting loss stop bringing sustained improvement on validation images?
-\pause
-\svspace{0.2em}
-
-Fitting loss keeps falling, but validation loss levels off near 0.09--0.10 after about epoch 20. Its lowest value is at epoch 43.
-    \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{What if the response is fuel economy?}
-Lecture 5 predicted miles per gallon (mpg) from horsepower $x$. Use two ReLU features with a shared threshold $t$:
-\[
-    h_L=\max(0,t-x),\qquad h_R=\max(0,x-t).
-\]
-Each feature measures distance from $t$ on its side. A linear output gives a prediction directly in mpg:
-\[
-    \widehat{\mathrm{mpg}}=b+v_Lh_L+v_Rh_R.
-\]
-At $x=t$, both features are zero, so the prediction is $b$. Moving left or right activates one unit. Its weight determines how quickly the prediction changes.
-\end{frame}
-
-\begin{frame}{Where does the fitted curve bend?}
-\begin{columns}[c]
-    \begin{column}{.54\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{figures/auto/fig_auto_regression.pdf}
-    \end{column}
-    \begin{column}{.44\textwidth}
-        \small
-        On 313 training cars, we tried each interior observed horsepower as $t$, fitted the output weights by least squares, and kept the lowest squared error.
-
-        \svspace{0.4em}
-        The bend is at 105 horsepower. At 100 horsepower, $h_L=5$ and $h_R=0$. The prediction is $20.022+0.312(5)\approx21.6$ mpg.
-    \end{column}
-\end{columns}
-\svspace{0.3em}
-\small On 79 held-out cars, root mean squared error (RMSE) was 4.81 mpg for the line, 4.32 for the quadratic and 4.26 for the network. Both curved fits captured the flattening at higher horsepower.
+\begin{frame}{How ReLUs Carve Non-Linear Boundaries}
+    \begin{columns}[c]
+        \begin{column}{0.50\textwidth}
+            \small
+            \begin{itemize}
+                \item A ReLU unit $h = \max(0, b + w_1 x_1 + w_2 x_2)$ is:
+                \begin{itemize}\footnotesize
+                    \item \textbf{Inactive} ($h=0$) when $z \le 0$.
+                    \item \textbf{Active} ($h = z$) when $z > 0$.
+                \end{itemize}
+                \item Combining multiple units (e.g., $s = h_1 + h_2 - 1$) bends the decision boundary $s=0$ into piecewise-linear facets!
+                \item More units create finer facets, enabling networks to approximate arbitrarily curved boundaries.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{figures/toy/fig_score_boundary.pdf}
+            \par{\scriptsize Two ReLU units combine to create a bent boundary.}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 
-\section{Classifying handwritten digits}
+\section{Forward Propagation \& Loss Functions}
 
-\begin{frame}{From 64 pixels to one of ten labels}
-\begin{center}
-    \includegraphics[width=\linewidth,height=.32\textheight,keepaspectratio]{figures/digits/fig_training_digits.pdf}
-\end{center}
-\begin{itemize}
-    \item Lecture 12 used these $8\times8$ digit images for principal component analysis (PCA). Read the pixels row by row to obtain 64 inputs.
-    \item Each image has one digit label and ten possible classes.
-    \item Multinomial logistic regression learns one linear score per class and applies softmax. We compare it with a multilayer perceptron (MLP), a feedforward network with fully connected layers.
-\end{itemize}
+\begin{frame}{Forward Propagation: Layer-by-Layer}
+    For an $L$-layer network, forward propagation computes predictions from input $\mathbf{x}$:
+    \begin{enumerate}
+        \item Set initial activation: $\mathbf{a}^{(0)} = \mathbf{x}$.
+        \item For each hidden layer $l = 1, \dots, L-1$:
+        \[
+            \mathbf{z}^{(l)} = \mathbf{W}^{(l)} \mathbf{a}^{(l-1)} + \mathbf{b}^{(l)}, \qquad
+            \mathbf{a}^{(l)} = g^{(l)}\bigl(\mathbf{z}^{(l)}\bigr).
+        \]
+        \item For the output layer $l = L$:
+        \[
+            \mathbf{z}^{(L)} = \mathbf{W}^{(L)} \mathbf{a}^{(L-1)} + \mathbf{b}^{(L)}, \qquad
+            \hat{\mathbf{y}} = g^{(L)}\bigl(\mathbf{z}^{(L)}\bigr).
+        \]
+    \end{enumerate}
+    \svspace{0.3em}
+    \textbf{Vectorization:} Operations are matrix multiplications and element-wise functions, making them exceptionally fast on modern GPU hardware.
 \end{frame}
 
-\begin{frame}{Give both models the same comparison}
-\begin{center}
-\begin{tabular}{lrl}
-\toprule
-Data & Images & Use\\
-\midrule
-Fitting & 3,060 & Estimate the weights of both models\\
-Validation & 763 & Choose the network checkpoint\\
-Official test & 1,797 & Evaluate the final models\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{itemize}
-    \item Within each digit class, we randomly assigned about 80\% of images to fitting and the rest to validation. A fixed random seed makes this split reproducible. Divide each pixel by its known maximum of 16.
-    \item The baseline, a simple reference model, fits one linear score per class with a squared-weight penalty (decay 0.01). The network can also learn nonlinear features.
-\end{itemize}
+\begin{frame}{Worked Example: One Forward Pass by Hand}
+    \begin{center}
+    \begin{tikzpicture}[x=2.2cm,y=0.75cm,>=Stealth,
+        unit/.style={draw,rounded corners,fill=blue!7,inner sep=4pt}]
+        \node[unit] (x1) at (0,1) {$x_1 = 2$};
+        \node[unit] (x2) at (0,-1) {$x_2 = -1$};
+        \node[unit,fill=orange!15] (h1) at (1.4,1) {$h_1$};
+        \node[unit,fill=orange!15] (h2) at (1.4,-1) {$h_2$};
+        \node[unit,fill=purple!15] (out) at (2.9,0) {$\hat p$};
+        \draw[->] (x1) -- node[above, font=\scriptsize] {$1$} (h1);
+        \draw[->] (x1) -- node[above, font=\scriptsize, near start] {$0$} (h2);
+        \draw[->] (x2) -- node[below, font=\scriptsize, near start] {$0$} (h1);
+        \draw[->] (x2) -- node[below, font=\scriptsize] {$1$} (h2);
+        \draw[->] (h1) -- node[above, font=\scriptsize] {$1$} (out);
+        \draw[->] (h2) -- node[below, font=\scriptsize] {$1$} (out);
+    \end{tikzpicture}
+    \end{center}
+    \vspace{-0.5em}
+    \small
+    Let hidden biases be $(0, 0)$ and output bias be $-1$. Hidden units use $\mathrm{ReLU}$; output uses sigmoid $\sigma$. Input observation: $\mathbf{x} = (2, -1)^\top$ with true class $y=1$.
+    \begin{enumerate}
+        \item \textbf{Pre-activations:} $z_1 = 0 + 1(2) + 0(-1) = 2, \quad z_2 = 0 + 0(2) + 1(-1) = -1$.
+        \item \textbf{Hidden features:} $h_1 = \max(0, 2) = 2, \quad h_2 = \max(0, -1) = 0$ (unit 2 is off!).
+        \item \textbf{Output score:} $s = -1 + 1(h_1) + 1(h_2) = -1 + 1(2) + 1(0) = 1$.
+        \item \textbf{Predicted probability:} $\hat{p} = \sigma(1) = \frac{1}{1+e^{-1}} \approx \mathbf{0.7311} \implies \text{Predict Class 1}$.
+    \end{enumerate}
 \end{frame}
 
-\begin{frame}{What does the digit network have to learn?}
-\[
-    64\ \text{pixels}\ \longrightarrow\ 32\ \text{ReLU units}\
-    \longrightarrow\ 10\ \text{softmax probabilities}
-\]
-The hidden layer has $64(32)+32$ parameters. The output layer adds $32(10)+10$, giving \textbf{2,410} weights and biases.
-\begin{center}
-\small
-\begin{tabular}{ll}
-\toprule
-Choice & Python (\texttt{MLPClassifier})\\
-\midrule
-Hidden width & \texttt{hidden\_layer\_sizes=(32,)}\\
-Hidden activation & \texttt{activation="relu"}\\
-Mini-batch updates & \texttt{solver="sgd"}, \texttt{batch\_size=64}\\
-\bottomrule
-\end{tabular}
-\end{center}
+\begin{frame}{Matching Output Layer and Loss to the Task}
+    \small
+    The choice of output activation and loss function depends on the prediction task:
+    \begin{center}
+    \footnotesize
+    \begin{tabular}{@{}llll@{}}
+    \toprule
+    Task & Output Units & Output Activation & Training Loss \\
+    \midrule
+    \textbf{Regression} & $1$ continuous & Linear ($\hat{y} = z$) & Squared error: $\frac{1}{2}(y - \hat{y})^2$ \\
+    \textbf{Binary} & $1$ probability & Sigmoid ($\hat{p} = \sigma(z)$) & Binary cross-entropy \\
+    \textbf{Multiclass} & $K$ probabilities & Softmax ($\hat{p}_k = \frac{e^{z_k}}{\sum_j e^{z_j}}$) & Categorical cross-entropy \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+    \vspace{-0.2em}
+    \textbf{Softmax intuition ($K$ classes):}
+    \begin{itemize}
+        \item Exponentiating $e^{z_k}$ forces all class scores to be strictly positive.
+        \item Normalizing by $\sum_{j=1}^K e^{z_j}$ ensures probabilities sum to $1.0$.
+        \item Example: raw scores $(2, 1, 0) \xrightarrow{\text{softmax}} (0.67, 0.24, 0.09)$.
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{Restore the weights from epoch 43}
-The R fit used batches of 64, learning rate 0.05 and momentum 0.9. Momentum carries part of the previous update into the next step.
-\begin{center}
-\begin{tabular}{lrr}
-\toprule & Epoch 43 & Epoch 100\\
-\midrule
-Validation cross-entropy & 0.0886 & 0.1122\\
-\bottomrule
-\end{tabular}
-\end{center}
-Of the 100 saved validation losses, epoch 43 gives the minimum. Keep the weights from that epoch. By epoch 100, fitting loss has fallen to 0.0060 while validation loss has risen. The extra updates helped fit the training images.
+
+\section{Training \& Backpropagation}
+
+\begin{frame}{The Neural Network Training Loop}
+    \begin{center}
+    \begin{tikzpicture}[
+        >=Stealth,
+        scale=0.82, every node/.style={transform shape},
+        font=\small,
+        box/.style={rectangle, rounded corners=5pt, draw=blue!70, fill=blue!8, thick, align=center, minimum width=2.6cm, minimum height=0.85cm}
+    ]
+        \node[box] (fwd) at (0, 1.4) {\textbf{1. Forward Pass}\\Compute $\hat{y} = f(\mathbf{x}; \mathbf{W}, \mathbf{b})$};
+        \node[box, draw=red!70, fill=red!8] (loss) at (5.0, 1.4) {\textbf{2. Compute Loss}\\$L(y, \hat{y})$ measures error};
+        \node[box, draw=orange!80, fill=orange!8] (back) at (5.0, -0.6) {\textbf{3. Backpropagation}\\Chain rule gives $\nabla_{\mathbf{W}} L, \nabla_{\mathbf{b}} L$};
+        \node[box, draw=teal!80, fill=teal!8] (opt) at (0, -0.6) {\textbf{4. Gradient Update}\\$\mathbf{W} \leftarrow \mathbf{W} - \eta \nabla_{\mathbf{W}} L$};
+
+        \draw[->, very thick, blue!80] (fwd) -- (loss);
+        \draw[->, very thick, red!80] (loss) -- (back);
+        \draw[->, very thick, orange!80] (back) -- (opt);
+        \draw[->, very thick, teal!80] (opt) -- (fwd);
+    \end{tikzpicture}
+    \end{center}
+    \vspace{-0.3em}
+    \small
+    Training is an iterative loop: pass observations forward, evaluate error, propagate gradients backward, and nudge weights downhill using Gradient Descent.
 \end{frame}
 
-\begin{frame}{Does the hidden layer help on new images?}
-\begin{center}
-\begin{tabular}{lrrr}
-\toprule
-Model & Accuracy & Mean log loss & Errors\\
-\midrule
-Multinomial logistic regression & 95.21\% & 0.1846 & 86\\
-Network with 32 hidden units & 95.88\% & 0.1575 & 74\\
-\bottomrule
-\end{tabular}
-\end{center}
-\begin{itemize}
-    \item Across the same 1,797 test images, the network makes 12 fewer mistakes. The linear baseline already classifies most digits correctly.
-    \item Accuracy is the fraction of images classified correctly. Log loss also uses the probability given to the true class. Two models can have equal accuracy and different log losses.
-\end{itemize}
+\begin{frame}{Quantifying Error: Binary Cross-Entropy Loss}
+    For a single binary observation $(y \in \{0, 1\})$ and predicted probability $\hat{p}$:
+    \[
+        L(y, \hat{p}) = -y\log(\hat{p}) - (1-y)\log(1-\hat{p}).
+    \]
+    \begin{itemize}
+        \item If $y = 1$: Loss is $-\log(\hat{p})$.
+        \begin{itemize}
+            \item Predicting $\hat{p} = 0.7311 \implies L = -\log(0.7311) = \mathbf{0.3133}$ (small penalty).
+            \item Predicting $\hat{p} = 0.1000 \implies L = -\log(0.1000) = \mathbf{2.3026}$ (severe penalty!).
+        \end{itemize}
+        \item The loss approaches $+\infty$ as the model assigns probability near $0$ to the true class: \textbf{confident mistakes are heavily penalized}.
+        \item Averaging this loss across all training samples yields the negative log-likelihood (identical to Logistic Regression).
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{Which digits does the network confuse?}
-\begin{columns}[c]
-    \begin{column}{.44\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=.55\textheight,keepaspectratio]{figures/digits/fig_confusion.pdf}
-\end{center}
-    \end{column}
-    \begin{column}{.54\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=.22\textheight,keepaspectratio]{figures/digits/fig_test_examples.pdf}
-\end{center}
-\small
-A confusion matrix counts true digits by row and predictions by column. Seven true 7s were read as 5s. Above are the first three mistakes in test-file order. What makes the first image look like a 1?
-\pause
-
-A thick, nearly vertical stroke runs through the middle, like the stem of a 1. The 2's curved top and base are small by comparison.
-    \end{column}
-\end{columns}
+\begin{frame}{Backpropagation: The Chain Rule in Reverse}
+    How do we know whether increasing a weight $w$ will increase or decrease the loss?
+    \begin{itemize}
+        \item We compute the partial derivative $\frac{\partial L}{\partial w}$ (the gradient).
+        \item \textbf{The Chain Rule:} Along any connected path, slopes multiply!
+        \item Consider weight $w_{11}$ (connecting $x_1$ to hidden unit 1):
+        \[
+            x_1 \xrightarrow{\,w_{11}\,} z_1 \xrightarrow{\,\mathrm{ReLU}\,} h_1 \xrightarrow{\,v_1\,} s \xrightarrow{\,\sigma\,} \hat{p} \longrightarrow L.
+        \]
+        \item Applying the chain rule backward from output to input:
+        \[
+            \frac{\partial L}{\partial w_{11}} =
+            \underbrace{\frac{\partial L}{\partial s}}_{(\hat{p} - y)} \cdot
+            \underbrace{\frac{\partial s}{\partial h_1}}_{v_1} \cdot
+            \underbrace{\frac{\partial h_1}{\partial z_1}}_{\mathrm{ReLU}'(z_1)} \cdot
+            \underbrace{\frac{\partial z_1}{\partial w_{11}}}_{x_1}.
+        \]
+    \end{itemize}
 \end{frame}
 
-\section{Autoencoders and summary}
-
-\begin{frame}{Train an image to predict its own pixels}
-\begin{columns}[c]
-    \begin{column}{.48\textwidth}
-An \textbf{autoencoder} has two parts:
-\[
-  \mathbf x \xrightarrow{\text{encoder}} \mathbf h
-             \xrightarrow{\text{decoder}} \hat{\mathbf x}.
-\]
-Imagine sending an image using only four numbers. The encoder produces those four numbers (the bottleneck). The decoder must rebuild all 64 pixels from them. Compare each rebuilt pixel with the original and average the squared differences. The original image supplies its own target.
-    \end{column}
-    \begin{column}{.50\textwidth}
-\begin{center}
-    \includegraphics[width=\linewidth,height=.42\textheight,keepaspectratio]{../12_dimensionality-reduction_pca/figures/digits/fig_digits_reconstruction.pdf}
-\end{center}\centering{\small PCA reconstructions from Lecture 12}
-    \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{What does the bottleneck preserve?}
-\begin{itemize}
-    \item PCA asks which $k$-dimensional linear subspace gives the smallest squared reconstruction error for centered data.
-    \item A linear encoder and decoder with a $k$-dimensional bottleneck can recover that reconstruction at an optimum.
-    \item Nonlinear activations allow the encoder and decoder to learn other representations. A digit classifier uses label loss to decide what to preserve. An autoencoder uses pixel reconstruction loss.
-    \item Closing a small gap can turn a 3 into an 8 while changing only a few pixels. Would a small reconstruction error guarantee the same predicted digit?
+\begin{frame}{Backpropagation: Numerical Trace of a Gradient}
+    Evaluating each factor for our observation ($x_1=2, y=1$):
+    \begin{itemize}
+        \item \textbf{Output error:} $\hat{p} - y = 0.7311 - 1 = \mathbf{-0.2689}$ (score is too low!).
+        \item \textbf{Outgoing weight:} $v_1 = 1$ passes the error backward.
+        \item \textbf{ReLU slope:} $\mathrm{ReLU}'(2) = 1$ (unit is active, gradient passes through).
+        \item \textbf{Input:} $x_1 = 2$ scales the message.
+    \end{itemize}
+    \[
+        \frac{\partial L}{\partial w_{11}} = (-0.2689) \cdot (1) \cdot (1) \cdot (2) = \mathbf{-0.5379}.
+    \]
     \pause
-    \item No. The error averages over 64 pixels, so a few wrong pixels in the decisive place barely move it but can change the digit.
-\end{itemize}
+    \textbf{Interpretation:} The negative sign means that increasing $w_{11}$ will \textbf{decrease} the loss! In one backward sweep, backpropagation computes all gradients simultaneously.
 \end{frame}
 
-\begin{frame}{Check your understanding}
-\begin{enumerate}
-    \item \textbf{Replace the hidden ReLUs with identity functions.} What shape can the binary boundary have? \pause Collecting the weights gives one weighted sum plus a bias and a straight boundary in two dimensions.
-    \item \textbf{A hidden unit is inactive for one image.} Why can its incoming weight receive zero gradient? \pause The ReLU has zero local slope at a negative input.
-    \item \textbf{Choose a checkpoint.} Which data choose the epoch? \pause Validation images guide selection. Test images evaluate the model after its weights have been fixed.
-    \item \textbf{Remove the digit labels.} What target remains available? \pause An autoencoder uses the original pixel vector.
-\end{enumerate}
+\begin{frame}{Parameter Update: Gradient Descent Step}
+    Gradient points uphill (steepest increase in loss). Step \textbf{downhill}:
+    \[
+        w_{11}^{(\text{new})} = w_{11} - \eta\,\frac{\partial L}{\partial w_{11}}
+        = 1.0 - 0.1 \times (-0.5379) = \mathbf{1.0538}.
+    \]
+    Let's check the result with another forward pass:
+    \begin{center}
+    \small
+    \begin{tabular}{lrrr}
+    \toprule
+    State & Output Score $s$ & Predicted $\hat{p}$ & Loss $L$ \\
+    \midrule
+    Before update & $1.0000$ & $0.7311$ & $0.3133$ \\
+    After update & $1.1076$ & $0.7517$ & $\mathbf{0.2854}$ \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+    The probability of the correct class increased, and the loss dropped!
+\end{frame}
+
+\begin{frame}{Batch vs. Stochastic vs. Mini-Batch Gradient Descent}
+    How many observations do we evaluate before making a parameter update?
+    \begin{itemize}
+        \item \textbf{Batch Gradient Descent:} Uses all $n$ training samples for each update. Accurate gradients, but slow and memory-intensive for large datasets.
+        \item \textbf{Stochastic Gradient Descent (SGD):} Updates weights after every single sample. Very fast, but gradients are noisy and fluctuate erratically.
+        \item \textbf{Mini-batch SGD (Standard):} Uses small subsets (e.g., 32, 64, or 128 samples).
+        \begin{itemize}
+            \item Best of both worlds: smooth gradient estimates and high GPU parallelism.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Training Terminology: Batches, Steps, and Epochs}
+    Three key terms define the training schedule:
+    \begin{itemize}
+        \item \textbf{Batch Size ($B$):} The number of training examples evaluated in one forward and backward pass. Typically powers of two: 32, 64, 128, 256.
+        \item \textbf{Iteration (Step):} One single update of all model parameters using the gradient from one mini-batch.
+        \item \textbf{Epoch:} One complete pass through the entire training dataset.
+        \[
+            \text{Iterations per epoch} = \frac{\text{Total training observations } n}{\text{Batch size } B}.
+        \]
+        \item Example: With $n = 3{,}060$ training images and batch size $B = 64$, one epoch consists of $\lceil 3{,}060 / 64 \rceil = 48$ iterations.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{The Learning Rate ($\eta$)}
+    The learning rate is the single most critical hyperparameter in training:
+    \begin{columns}[c]
+        \begin{column}{0.52\textwidth}
+            \begin{itemize}
+                \item \textbf{Too small:} Training is painfully slow; optimization may get trapped in shallow local minima.
+                \item \textbf{Too large:} Steps overshoot the minimum; loss oscillates wildly or diverges to infinity ($\mathrm{NaN}$).
+                \item \textbf{Just right:} Rapid, steady convergence.
+                \item \textbf{Adaptive optimizers} (Adam, RMSprop) dynamically adjust step sizes per parameter.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \centering
+            \begin{tikzpicture}[scale=0.80, font=\scriptsize]
+                \draw[thick, gray!80] (-2.0, 2.3) parabola bend (0, 0.2) (2.0, 2.3);
+                \node at (0, -0.1) {Parameter $w$};
+                \node[rotate=90] at (-2.3, 1.2) {Loss $L$};
+
+                % Small step
+                \draw[->, blue, thick] (-1.7, 1.6) -- (-1.3, 1.0);
+                \draw[->, blue, thick] (-1.3, 1.0) -- (-0.9, 0.6);
+                \node[blue, font=\tiny] at (-1.4, 0.4) {Too small};
+
+                % Overshoot
+                \draw[->, red, thick] (1.1, 0.8) -- (-1.4, 1.3);
+                \draw[->, red, thick] (-1.4, 1.3) -- (1.7, 1.8);
+                \node[red, font=\tiny] at (1.1, 1.5) {Too large};
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+
+\section{Overfitting, Regularization \& Applications}
+
+\begin{frame}{Overfitting and Network Capacity}
+    \begin{columns}[c]
+        \begin{column}{0.50\textwidth}
+            \small
+            \begin{itemize}
+                \item Neural networks have high \textbf{capacity} (thousands to millions of parameters).
+                \item A wide or deep network can easily memorize training noise rather than true patterns.
+                \item \textbf{The Generalization Gap:} Training error keeps decreasing toward zero, but error on unseen validation data starts rising.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \begin{tikzpicture}[font=\scriptsize, scale=0.75]
+                \draw[->, gray] (0,0) -- (5.5,0) node[right, black] {Epochs};
+                \draw[->, gray] (0,0) -- (0,3.0) node[above, black] {Loss};
+                % Training loss
+                \draw[thick, blue] (0.4, 2.6) .. controls (1.5, 0.7) and (3.5, 0.25) .. (5.0, 0.15) node[right, font=\tiny] {Train};
+                % Validation loss
+                \draw[thick, red] (0.4, 2.7) .. controls (1.5, 1.1) and (2.5, 0.9) .. (3.0, 0.9) .. controls (3.6, 0.95) and (4.4, 1.3) .. (5.0, 1.7) node[right, font=\tiny] {Validation};
+                % Best checkpoint
+                \draw[dashed, gray] (3.0, 0) -- (3.0, 2.2);
+                \node[below, font=\tiny] at (3.0, 0) {Best};
+                \fill[red] (3.0, 0.9) circle (2pt);
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Tools to Combat Overfitting}
+    \begin{itemize}
+        \item \textbf{Weight Decay ($L_2$ Regularization):}
+        Adds a squared-weights penalty to the loss: $L_{\text{reg}} = L + \frac{\lambda}{2} \sum w_j^2$.
+        Penalizes large weights, enforcing smoother decision boundaries (analogue of Ridge regression).
+        \item \textbf{Dropout:}
+        Randomly deactivates a fraction $p$ (e.g., $20\%$--$50\%$) of neurons during each training pass.
+        Prevents neurons from co-adapting; acts like training an ensemble of subnetworks.
+        \item \textbf{Early Stopping:}
+        Continuously monitors validation loss after every epoch. Halts training when validation loss stops improving and saves the best model checkpoint.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Early Stopping in Practice: Handwritten Digits}
+    \begin{columns}[c]
+        \begin{column}{0.54\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{figures/digits/fig_learning_curves.pdf}
+        \end{column}
+        \begin{column}{0.44\textwidth}
+            \small
+            \begin{itemize}
+                \item Training an MLP on 8-by-8 digits for 100 epochs.
+                \item Training loss (blue) drops continuously toward zero ($0.0060$).
+                \item Validation loss (red) reaches minimum of \textbf{0.0886} at \textbf{epoch 43}.
+                \item Beyond epoch 43, validation loss creeps up ($0.1122$ at epoch 100).
+                \item \textbf{Early stopping} restores weights at epoch 43.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Feature Scaling: A Non-Negotiable Requirement}
+    \small
+    Unlike decision trees, neural networks are \textbf{critically sensitive to feature scaling}:
+    \begin{enumerate}\footnotesize
+        \item \textbf{Gradient descent efficiency:} Unscaled features produce highly eccentric loss surfaces. Gradient descent oscillates wildly and converges slowly.
+        \item \textbf{Preventing vanishing gradients:} Large unscaled inputs drive pre-activations $z = \mathbf{w}^\top \mathbf{x} + b$ into flat saturation zones of Sigmoid/Tanh, where derivatives vanish ($\frac{\partial L}{\partial w} \approx 0$).
+        \item \textbf{Balanced parameter updates:} Standardizing features ($\mu = 0, \sigma = 1$) or scaling to $[0, 1]$ ensures all weights update at compatible, healthy rates.
+    \end{enumerate}
+    \svspace{0.3em}
+    \textbf{Golden rule:} Always scale input features before training a neural network!
+\end{frame}
+
+\begin{frame}{Regression Case Study: Auto Fuel Economy}
+    \begin{columns}[c]
+        \begin{column}{0.54\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{figures/auto/fig_auto_regression.pdf}
+        \end{column}
+        \begin{column}{0.44\textwidth}
+            \small
+            Predict miles per gallon (mpg) from engine horsepower using two ReLU features:
+            \[
+                h_L = \max(0, 105 - x),
+            \]
+            \[
+                h_R = \max(0, x - 105).
+            \]
+            Linear output: $\widehat{\mathrm{mpg}} = 20.02 + 0.312\,h_L - 0.085\,h_R$.
+            \svspace{0.3em}
+
+            The network captures the sharp bend at 105 hp.
+        \end{column}
+    \end{columns}
+    \svspace{0.3em}
+    \small
+    \textbf{Held-out test RMSE (79 cars):} Linear model = 4.81 mpg, Quadratic = 4.32 mpg, \textbf{Neural Network = 4.26 mpg}.
+\end{frame}
+
+\begin{frame}{Classification Case Study: Handwritten Digits}
+    \begin{columns}[c]
+        \begin{column}{0.50\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{figures/digits/fig_training_digits.pdf}
+            \par{\scriptsize 8-by-8 pixel digit images ($64$ pixels per image).}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \small
+            \begin{itemize}
+                \item \textbf{Task:} Classify $8 \times 8$ grayscale images into 10 digits ($0, \dots, 9$).
+                \item \textbf{Architecture:} 64 inputs $\longrightarrow$ 32 ReLU hidden units $\longrightarrow$ 10 Softmax outputs.
+                \item \textbf{Parameter counting:}
+                \begin{itemize}
+                    \item Hidden: $64 \times 32 + 32 = 2{,}080$.
+                    \item Output: $32 \times 10 + 10 = 330$.
+                    \item \textbf{Total parameters: 2,410}.
+                \end{itemize}
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Digits Performance: Baseline vs. Neural Network}
+    We compare multinomial logistic regression (linear baseline) with the 32-unit MLP on 1,797 held-out test images:
+    \begin{center}
+    \small
+    \begin{tabular}{lrrr}
+    \toprule
+    Model & Test Accuracy & Mean Log Loss & Test Errors \\
+    \midrule
+    Multinomial Logistic (Baseline) & 95.21\% & 0.1846 & 86 \\
+    \textbf{Neural Network (32 units)} & \textbf{95.88\%} & \textbf{0.1575} & \textbf{74} \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+    \begin{itemize}
+        \item The neural network makes \textbf{12 fewer mistakes} on the test set.
+        \item \textbf{Accuracy vs. Log Loss:} Beyond accuracy, the network assigns higher confidence to correct classes, significantly reducing mean log loss from $0.1846$ to $0.1575$.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Where Does the Network Make Mistakes?}
+    \begin{columns}[c]
+        \begin{column}{0.44\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{figures/digits/fig_confusion.pdf}
+        \end{column}
+        \begin{column}{0.54\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.15\textheight,keepaspectratio]{figures/digits/fig_test_examples.pdf}
+            \small
+            \begin{itemize}
+                \item \textbf{Confusion matrix:} Rows are true labels; columns are predictions. Most errors involve visually ambiguous shapes (e.g., true 7s misread as 5s).
+                \item In the first mistake shown, a true 2 is predicted as a 1: a heavy vertical stroke dominates the image, mimicking the stem of a 1.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Unsupervised Representation Learning: Autoencoders}
+    \begin{columns}[c]
+        \begin{column}{0.50\textwidth}
+            \small
+            \textbf{What if we don't have labels $y$?}
+            \begin{itemize}
+                \item An \textbf{autoencoder} is trained to predict its own input:
+                \[
+                    \mathbf{x} \xrightarrow{\text{Encoder}} \mathbf{h} \xrightarrow{\text{Decoder}} \hat{\mathbf{x}}.
+                \]
+                \item The hidden layer $\mathbf{h}$ has lower dimension than $\mathbf{x}$ (the \textbf{bottleneck}).
+                \item The network compresses 64 pixels into a compact code and reconstructs them.
+                \item \textbf{Connection to PCA:} A linear autoencoder with squared error recovers the exact PCA subspace!
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{../12_dimensionality-reduction_pca/figures/digits/fig_digits_reconstruction.pdf}
+            \par{\scriptsize PCA reconstructions from Lecture 12.}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Summary: Core Building Blocks of Neural Networks}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \textbf{Architectural Blocks:}
+            \begin{itemize}\footnotesize
+                \item \textbf{Neuron:} $z = \mathbf{w}^\top \mathbf{x} + b \to a = g(z)$.
+                \item \textbf{Layers:} Input, hidden, output; Width and Depth.
+                \item \textbf{Non-Linearity:} Activations (ReLU, Tanh, Sigmoid) prevent network collapse.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \textbf{Learning Blocks:}
+            \begin{itemize}\footnotesize
+                \item \textbf{Forward Pass:} Layer-by-layer computation.
+                \item \textbf{Backpropagation:} Chain rule yields exact parameter gradients.
+                \item \textbf{Optimization:} Mini-batch SGD with step size $\eta$.
+                \item \textbf{Regularization:} Weight decay, dropout, early stopping prevent overfitting.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Check Your Understanding}
+    \begin{enumerate}
+        \item \textbf{Why does an MLP need non-linear activations?} \pause A composition of linear functions is strictly linear; without non-linearities, stacking 50 layers computes nothing more than a single linear regression.
+        \item \textbf{Why is ReLU preferred over Sigmoid in deep hidden layers?} \pause Sigmoid saturates at extreme values, causing gradients to vanish ($\approx 0$); ReLU maintains a derivative of $1$ for all positive inputs.
+        \item \textbf{What is the difference between an epoch and an iteration?} \pause An iteration is a single gradient update on one mini-batch; an epoch is one full pass through the entire training dataset.
+        \item \textbf{Which dataset determines when to stop training?} \pause Validation data. Training continues until validation error reaches its minimum, avoiding overfitting.
+    \end{enumerate}
 \end{frame}

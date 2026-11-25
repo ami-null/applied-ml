@@ -1,8 +1,3 @@
-% Every number on these slides is produced by the scripts in figures/<dataset>/
-% and recorded in figures/<dataset>/numbers_*.txt; quote from those files only.
-
-\section{Why reduce the dimension?}
-
 \begin{frame}{From selecting features to building them}
     \begin{itemize}
         \item Lecture 11: with many features, nearby observations stop existing, distances concentrate and noise features swamp the signal
@@ -51,12 +46,6 @@
 \end{frame}
 
 
-% ---------------------------------------------------------------------------
-% The SVD section is commented out. PCA is computed from the SVD, which the
-% frames "How software computes PCA" and "Why the SVD?" explain briefly; the
-% frames below went into more detail (the matrix picture and Eckart-Young)
-% and are not needed to use PCA. The data-matrix frame moved to the PCA section.
-% ---------------------------------------------------------------------------
 % \section{The SVD in brief}
 %
 % \begin{frame}{The singular value decomposition}
@@ -593,8 +582,8 @@
         Method & Idea & Practical example \\
         \midrule
         Kernel PCA & PCA after a nonlinear map of the features & data on rings or curves, such as two concentric circles: PCA cannot separate them, kernel PCA can \\
-        t-SNE & a 2-D picture that keeps each point's neighbors together & maps of digits or of single-cell gene expression, where each cell type forms an island \\
-        UMAP & like t-SNE, usually faster on large data, and can place new points & the same maps for hundreds of thousands of points, e.g.\ document or image embeddings \\
+        t-SNE & t-distributed stochastic neighbor embedding: a 2-D picture that keeps each point's neighbors together & maps of digits or of single-cell gene expression, where each cell type forms an island \\
+        UMAP & uniform manifold approximation and projection: like t-SNE, usually faster on large data, and can place new points & the same maps for hundreds of thousands of points, e.g.\ document or image embeddings \\
         Autoencoder & a neural network that compresses and rebuilds its input & image denoising; anomaly detection, because unusual inputs are rebuilt badly (next lecture) \\
         \bottomrule
     \end{tabular}
